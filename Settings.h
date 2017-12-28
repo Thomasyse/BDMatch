@@ -26,8 +26,9 @@ namespace BDMatch {
 	{
 	public:
 		Settings(IntCallback ^ setFFTin, BoolCallback ^ setoutpcmin, IntCallback ^ setfindin, IntCallback ^ setmindbin,
-			IntCallback ^ setlengthin,	BoolCallback^ setdrawin, BoolCallback^ setmatchin, NullCallback^ nullbackin,
-			int FFTnum, bool outpcmin, int findfield, int mindb, int varnum, bool draw, bool matchass);
+			IntCallback ^ setlengthin, IntCallback ^ setminroundnum0, BoolCallback^ setdrawin, BoolCallback^ setmatchin,
+			NullCallback^ nullbackin,
+			int FFTnum, bool outpcmin, int findfield, int mindb, int maxlength, int minroundnum, bool draw, bool matchass);
 
 	protected:
 		/// <summary>
@@ -45,6 +46,7 @@ namespace BDMatch {
 	private: IntCallback ^ setfind = nullptr;
 	private: IntCallback ^ setmindb = nullptr;
 	private: IntCallback ^ setmaxlength = nullptr;
+	private: IntCallback ^ setminroundnum = nullptr;
 	private: BoolCallback ^ setdraw = nullptr;
 	private: BoolCallback ^ setmatchass = nullptr;
 	private: NullCallback ^ nullback = nullptr;
@@ -64,6 +66,9 @@ namespace BDMatch {
 	private: System::Windows::Forms::ComboBox^  FFTnumList;
 	private: System::Windows::Forms::CheckBox^  Draw;
 	private: System::Windows::Forms::CheckBox^  MatchAss;
+	private: System::Windows::Forms::NumericUpDown^  MinRoundNum;
+
+	private: System::Windows::Forms::Label^  label5;
 
 
 
@@ -106,16 +111,19 @@ namespace BDMatch {
 			this->FFTnumList = (gcnew System::Windows::Forms::ComboBox());
 			this->Draw = (gcnew System::Windows::Forms::CheckBox());
 			this->MatchAss = (gcnew System::Windows::Forms::CheckBox());
+			this->MinRoundNum = (gcnew System::Windows::Forms::NumericUpDown());
+			this->label5 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->FindSec))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MindB))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MaxLength))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MinRoundNum))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// OutPCM
 			// 
 			this->OutPCM->AutoSize = true;
 			this->OutPCM->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
-			this->OutPCM->Location = System::Drawing::Point(69, 246);
+			this->OutPCM->Location = System::Drawing::Point(69, 288);
 			this->OutPCM->Name = L"OutPCM";
 			this->OutPCM->Size = System::Drawing::Size(228, 35);
 			this->OutPCM->TabIndex = 3;
@@ -224,7 +232,7 @@ namespace BDMatch {
 			// 
 			this->Draw->AutoSize = true;
 			this->Draw->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
-			this->Draw->Location = System::Drawing::Point(69, 285);
+			this->Draw->Location = System::Drawing::Point(69, 327);
 			this->Draw->Name = L"Draw";
 			this->Draw->Size = System::Drawing::Size(132, 35);
 			this->Draw->TabIndex = 12;
@@ -236,7 +244,7 @@ namespace BDMatch {
 			// 
 			this->MatchAss->AutoSize = true;
 			this->MatchAss->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
-			this->MatchAss->Location = System::Drawing::Point(69, 325);
+			this->MatchAss->Location = System::Drawing::Point(69, 367);
 			this->MatchAss->Name = L"MatchAss";
 			this->MatchAss->Size = System::Drawing::Size(204, 35);
 			this->MatchAss->TabIndex = 13;
@@ -244,11 +252,37 @@ namespace BDMatch {
 			this->MatchAss->UseVisualStyleBackColor = true;
 			this->MatchAss->CheckedChanged += gcnew System::EventHandler(this, &Settings::MatchAss_CheckedChanged);
 			// 
+			// MinRoundNum
+			// 
+			this->MinRoundNum->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
+			this->MinRoundNum->Location = System::Drawing::Point(253, 242);
+			this->MinRoundNum->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 100000, 0, 0, 0 });
+			this->MinRoundNum->Minimum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 10, 0, 0, 0 });
+			this->MinRoundNum->Name = L"MinRoundNum";
+			this->MinRoundNum->Size = System::Drawing::Size(92, 33);
+			this->MinRoundNum->TabIndex = 14;
+			this->MinRoundNum->Value = System::Decimal(gcnew cli::array< System::Int32 >(4) { 30, 0, 0, 0 });
+			this->MinRoundNum->ValueChanged += gcnew System::EventHandler(this, &Settings::MinRoundNum_ValueChanged);
+			// 
+			// label5
+			// 
+			this->label5->BackColor = System::Drawing::Color::Transparent;
+			this->label5->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(134)));
+			this->label5->Location = System::Drawing::Point(63, 234);
+			this->label5->Name = L"label5";
+			this->label5->Size = System::Drawing::Size(397, 44);
+			this->label5->TabIndex = 15;
+			this->label5->Text = L"Ñ¡µãÈ·ÈÏ´ÎÊý£º";
+			this->label5->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
+			// 
 			// Settings
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 15);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(471, 399);
+			this->ClientSize = System::Drawing::Size(481, 442);
+			this->Controls->Add(this->MinRoundNum);
+			this->Controls->Add(this->label5);
 			this->Controls->Add(this->MatchAss);
 			this->Controls->Add(this->Draw);
 			this->Controls->Add(this->FFTnumList);
@@ -269,6 +303,7 @@ namespace BDMatch {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->FindSec))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MindB))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MaxLength))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MinRoundNum))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -281,6 +316,7 @@ namespace BDMatch {
 	private: System::Void FFTnumList_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void MindB_ValueChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void MaxLength_ValueChanged(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void MinRoundNum_ValueChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void Draw_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void MatchAss_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void Settings_FormClosed(System::Object^  sender, System::Windows::Forms::FormClosedEventArgs^  e);

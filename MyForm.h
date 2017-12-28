@@ -47,6 +47,7 @@ namespace BDMatch {
 	private: int minfinddb = -12;
 	private: int findfield = 8;
 	private: int maxlength = 20;
+	private: int minroundnum = 20;
 	private: bool outputpcm = false;
 	private: bool draw = false;
 	private: bool matchass = true;
@@ -567,6 +568,7 @@ namespace BDMatch {
 		void setfindfield(int num);
 		void setmindb(int num);
 		void setmaxlength(int num);
+		void setminroundnum(int num);
 		void setdraw(bool yes);
 		void setmatchass(bool yes);
 		void progbd();

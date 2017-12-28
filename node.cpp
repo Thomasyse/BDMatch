@@ -1,5 +1,4 @@
 #include "node.h"
-
 using namespace Node;
 
 Node::noded::noded(int num)
@@ -211,7 +210,7 @@ String ^ Node::timec::head(String ^ head0)
 }
 
 Node::Var::Var(array<node^, 2>^ tv0, array<node^, 2>^ bd0, int samprate0,
-	int tvstart0, int bdstart0, int duration0, int ch0, array<Int64>^ diffa0)
+	int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, array<Int64>^ diffa0)
 {
 	tv = tv0;
 	bd = bd0;
@@ -221,11 +220,13 @@ Node::Var::Var(array<node^, 2>^ tv0, array<node^, 2>^ bd0, int samprate0,
 	tvstart = tvstart0;
 	bdstart = bdstart0;
 	duration = duration0;
+	minroundnum = minroundnum0;
 }
 
 void Node::Var::caldiff()
 {
 	using namespace System::Threading;
+	if (diffa[2] <= 0)return;
 	Int64 sum = 0;
 	int size = tv[0, 0]->size();
 	int minfreq = static_cast<int>(100.0 / samprate * 2 * size);
@@ -236,7 +237,7 @@ void Node::Var::caldiff()
 		for (int j = 0; j < ch; j++) {
 			for (int k = 0; k < size; k++) {
 				if (k > minfreq && k < maxfreq) {
-					sum += abs(tv[j, tvpos]->read0(k) - bd[j, bdpos]->read0(k))*(tv[j, tvpos]->read0(k) + 128);
+					sum += labs(tv[j, tvpos]->read0(k) - bd[j, bdpos]->read0(k))*(tv[j, tvpos]->read0(k) + 128);
 				}
 			}
 		}	
@@ -245,5 +246,9 @@ void Node::Var::caldiff()
 	if (sum < diffa[1]) {
 		Interlocked::Exchange(diffa[1], sum);
 		Interlocked::Exchange(diffa[0], bdstart);
+		Interlocked::Exchange(diffa[2], minroundnum);
+	}
+	else if (labs(bdstart - diffa[0]) <= minroundnum) {
+		Interlocked::Decrement(diffa[2]);
 	}
 }

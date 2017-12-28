@@ -64,7 +64,7 @@ namespace Node {
 	public ref class Var {
 	public:
 		Var(array<node^, 2>^ tv0, array<node^, 2>^ bd0, int samprate0,
-			int tvstart0, int bdstart0, int duration0, int ch0, array<Int64>^ diffa0);
+			int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, array<Int64>^ diffa0);
 		void caldiff();
 	private:
 		array<node^, 2>^ tv;
@@ -74,6 +74,7 @@ namespace Node {
 		int bdstart;
 		int duration;
 		int ch;
+		int minroundnum;
 		array<Int64>^ diffa;
 	};
 }

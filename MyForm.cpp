@@ -273,8 +273,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 		find0 = static_cast<int>(find0 / double(tvmilisec)*tvfftnum);
 		interval = 1;
 	}
-	array<Int64> ^diftime = gcnew array<Int64>(2);
-	int maxdelta = 0, maxrow = 0;
+	array<Int64> ^diftime = gcnew array<Int64>(3);
+	double aveindex = 0;//调试用
 	for (int i = 0; i < alltimematch->Count; i++) {
 		if (tvtime[i] >= 0) {
 			int findstart = static_cast<int>(tvtime[i] - find0 * interval);
@@ -283,7 +283,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			findstart = max(0, findstart);
 			findend = static_cast<int>(min(bdfftnum - duration, findend));
 			int findnum = (findend - findstart) / interval;
-			int tvmax = 0, tvmaxtime = 0;
+			int tvmax = -128 * FFTnum / 2, tvmaxtime = 0;
 			for (int j = 0; j <= duration; j++) {
 				if (tvfftdata[0, j + tvtime[i]]->sum() > tvmax || j == 0) {
 					tvmax = tvfftdata[0, j + tvtime[i]]->sum();
@@ -291,47 +291,59 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 				}
 			}
 			std::vector<int>bdsearch;
-			int smallnum = 0;
-			int midnum = 0;
+			int firnum = 0, secnum = 0, thinum = 0, fornum = 0;
 			for (int j = findnum; j >=0 ; j--) {
 				int bdin = findstart + j * interval;
-				int delta = abs(bdfftdata[0, bdin + tvmaxtime]->sum() - tvmax);
-				delta >>= rightshift;
-				if (delta < 5) {
+				
+				int delta = labs(bdfftdata[0, bdin + tvmaxtime]->sum() - tvmax) >> rightshift;
+				if (delta == 0) {
 					bdsearch.insert(bdsearch.begin(), bdin);
-					smallnum++;
-					midnum++;
+					firnum++;
 				}
-				else if (delta < 15) {
-					bdsearch.insert(bdsearch.begin() + smallnum, bdin);
-					midnum++;
+				else if (delta < 5) {
+					bdsearch.insert(bdsearch.begin() + firnum, bdin);
+					secnum++;
 				}
-				else if (delta < 27)bdsearch.insert(bdsearch.begin() + midnum, bdin);
+				else if (delta < 10) {
+					bdsearch.insert(bdsearch.begin() + firnum + secnum, bdin);
+					thinum++;
+				}
+				else if (delta < 18) {
+					bdsearch.insert(bdsearch.begin() + firnum + secnum + thinum, bdin);
+					fornum++;
+				}
+				else if (delta < 27)bdsearch.insert(bdsearch.begin() + firnum + secnum + thinum + fornum, bdin);
 				else if (delta < 41)bdsearch.push_back(bdin);
+				
+				//bdsearch.insert(bdsearch.begin(), bdin);//调试用
 			}
 			diftime[0] = 0;
 			diftime[1] = 9223372036854775807;
+			diftime[2] = 20;
 			List<Task^>^ tasks = gcnew List<Task^>();
 			for (int j = 0; j < bdsearch.size(); j++) {
 				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, tvdecode->getsamprate(), tvtime[i], bdsearch[j],
-					duration, ch, diftime);
+					duration, ch, minroundnum, diftime);
 				Task^ varTask = gcnew Task(gcnew Action(calvar, &Var::caldiff));
 				varTask->Start();
 				tasks->Add(varTask);
 			}
 			Task::WaitAll(tasks->ToArray());
-			int delta1 = abs(bdfftdata[0, diftime[0] + tvmaxtime]->sum() - tvmax) / FFTnum;//调试用
-			if (delta1 > maxdelta) {
-				maxdelta = delta1;
-				maxrow = i + 1;
-			}
+			//调试用->
+			//int delta1 = labs(bdfftdata[0, diftime[0] + tvmaxtime]->sum() - tvmax) >> rightshift;
+			//Result->Text += "\r\n" + delta1.ToString();
+			aveindex = aveindex + (std::find(bdsearch.begin(), bdsearch.end(), (int)diftime[0]) - bdsearch.begin()) / (double)findnum;
+			//
 			bdtime[i] = static_cast<int>(diftime[0]);
 		}
 		tvprogressBar->PerformStep();
 		bdprogressBar->PerformStep();
 	}
 	delete diftime;
-	Result->Text += "\r\nmaxdelta=" + maxdelta.ToString() + "    maxrow=" + maxrow.ToString();
+	//调试用->
+	aveindex /= alltimematch->Count / 100.0;
+	Result->Text += "\r\nAverage Found Index = " + aveindex.ToString() + "%";
+	//
 	for (int i = 0; i < alltimematch->Count; i++) {
 		if (tvtime[i] >= 0) {
 			int duration = static_cast<int>(timelist[i]->end() - timelist[i]->start());
@@ -470,6 +482,11 @@ void BDMatch::MyForm::setmindb(int num)
 void BDMatch::MyForm::setmaxlength(int num)
 {
 	maxlength = num;
+	return System::Void();
+}
+void BDMatch::MyForm::setminroundnum(int num)
+{
+	minroundnum = num;
 	return System::Void();
 }
 void BDMatch::MyForm::setdraw(bool yes) {
@@ -677,9 +694,10 @@ System::Void BDMatch::MyForm::settings_Click(System::Object ^ sender, System::Ev
 	if (!setform) {
 		setform = gcnew Settings(gcnew IntCallback(this, &MyForm::setFFTnum), gcnew BoolCallback(this, &MyForm::setoutpcm),
 			gcnew IntCallback(this, &MyForm::setfindfield), gcnew IntCallback(this, &MyForm::setmindb),
-			gcnew IntCallback(this, &MyForm::setmaxlength), gcnew BoolCallback(this, &MyForm::setdraw),
-			gcnew BoolCallback(this, &MyForm::setmatchass), gcnew NullCallback(this, &MyForm::nullsetform),
-			FFTnum, outputpcm, findfield, minfinddb, maxlength, draw, matchass);
+			gcnew IntCallback(this, &MyForm::setmaxlength), gcnew IntCallback(this, &MyForm::setminroundnum),
+			gcnew BoolCallback(this, &MyForm::setdraw), gcnew BoolCallback(this, &MyForm::setmatchass),
+			gcnew NullCallback(this, &MyForm::nullsetform),
+			FFTnum, outputpcm, findfield, minfinddb, maxlength, minroundnum, draw, matchass);
 	}
 	setform->Show();
 	if (!setform->Focused)setform->Focus();
