@@ -328,7 +328,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			diftime[0] = 0;
 			diftime[1] = 9223372036854775807;
 			int minroundnumcal = minroundnum;
-			if (duration <= 50 * interval)minroundnumcal = findnum;
+			if (duration <= 75 * interval)minroundnumcal = findnum;
 			diftime[2] = minroundnumcal;
 			List<Task^>^ tasks = gcnew List<Task^>();
 			for (int j = 0; j < bdsearch.size(); j++) {
