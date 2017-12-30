@@ -27,6 +27,8 @@ int BDMatch::MyForm::match()
 		for (int i = 0; i < tvdraw.num; i++) {
 			if (tvdraw.data[0, i] != nullptr)tvdraw.data[0, i]->release();
 			if (tvdraw.data[1, i] != nullptr)tvdraw.data[1, i]->release();
+			tvdraw.data[0, i] = nullptr;
+			tvdraw.data[1, i] = nullptr;
 		}
 		tvdraw.num = 0;
 	}
@@ -34,9 +36,13 @@ int BDMatch::MyForm::match()
 		for (int i = 0; i < bddraw.num; i++) {
 			if (bddraw.data[0, i] != nullptr)bddraw.data[0, i]->release();
 			if (bddraw.data[1, i] != nullptr)bddraw.data[1, i]->release();
+			bddraw.data[0, i] = nullptr;
+			bddraw.data[1, i] = nullptr;
 		}
 		bddraw.num = 0;
 	}
+	tvdraw.data = nullptr;
+	bddraw.data = nullptr;
 	ViewSel->Enabled = false;
 	LineSel->Enabled = false;
 	ChSelect->Enabled = false;
@@ -146,11 +152,17 @@ int BDMatch::MyForm::match()
 		for (int i = 0; i < tvsampnum; i++) {
 			if (tvfftdata[0, i] != nullptr)tvfftdata[0, i]->release();
 			if (tvfftdata[1, i] != nullptr)tvfftdata[1, i]->release();
+			tvfftdata[0, i] = nullptr;
+			tvfftdata[1, i] = nullptr;
 		}
 		for (int i = 0; i < bdsampnum; i++) {
 			if (bdfftdata[0, i] != nullptr)bdfftdata[0, i]->release();
 			if (bdfftdata[1, i] != nullptr)bdfftdata[1, i]->release();
+			bdfftdata[0, i] = nullptr;
+			bdfftdata[1, i] = nullptr;
 		}
+		tvfftdata = nullptr;
+		bdfftdata = nullptr;
 	}
 
 	tvprogressBar->Value = tvprogressBar->Maximum;

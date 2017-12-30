@@ -389,6 +389,10 @@ void BDMatch::Decode::decodeaudio()
 	//ÊÍ·ÅÄÚ´æ
 	delete[] temp;
 	temp = nullptr;
+	sample_seq_l->release();
+	sample_seq_l = nullptr;
+	sample_seq_r->release();
+	sample_seq_r = nullptr;
 	av_frame_free(&decoded_frame);
 	av_free_packet(packet);
 	avcodec_close(codecfm);
@@ -496,9 +500,11 @@ void BDMatch::FFTC::FFT()
 	fftw_destroy_plan(p);
 	fftw_free(in);
 	fftw_free(out);
-
+	in = nullptr;
+	out = nullptr;
 	FD8(seq, fftseq);
 	seq->release();
+	seq = nullptr;
 	progback();
 	return;
 }
