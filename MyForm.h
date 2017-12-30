@@ -41,7 +41,9 @@ namespace BDMatch {
 		int num = 0;
 		int ch = 0;
 		int milisec = 0;
+		int linenum = 0;
 		array<node^, 2>^ data = nullptr;
+		array<int, 2>^ timelist = nullptr;
 	};
 	private: int FFTnum = 512;
 	private: int minfinddb = -12;
@@ -91,7 +93,12 @@ namespace BDMatch {
 	private: System::Windows::Forms::ComboBox^  ChSelect;
 	private: System::Windows::Forms::Label^  label5;
 	private: System::Windows::Forms::Label^  label4;
-	private: System::Windows::Forms::ComboBox^  FileSelect;
+	private: System::Windows::Forms::ComboBox^  ViewSel;
+	private: System::Windows::Forms::NumericUpDown^  LineSel;
+
+
+
+
 
 	private:
 		/// <summary>
@@ -127,11 +134,12 @@ namespace BDMatch {
 			this->TimeRoll = (gcnew System::Windows::Forms::TrackBar());
 			this->Spectrum = (gcnew System::Windows::Forms::PictureBox());
 			this->tableLayoutPanel2 = (gcnew System::Windows::Forms::TableLayoutPanel());
+			this->ViewSel = (gcnew System::Windows::Forms::ComboBox());
+			this->label4 = (gcnew System::Windows::Forms::Label());
 			this->ChartTime = (gcnew System::Windows::Forms::Label());
 			this->ChSelect = (gcnew System::Windows::Forms::ComboBox());
 			this->label5 = (gcnew System::Windows::Forms::Label());
-			this->label4 = (gcnew System::Windows::Forms::Label());
-			this->FileSelect = (gcnew System::Windows::Forms::ComboBox());
+			this->LineSel = (gcnew System::Windows::Forms::NumericUpDown());
 			this->Folderbrowse = (gcnew System::Windows::Forms::FolderBrowserDialog());
 			this->Filebrowse = (gcnew System::Windows::Forms::OpenFileDialog());
 			this->AllTablePanel->SuspendLayout();
@@ -142,6 +150,7 @@ namespace BDMatch {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->TimeRoll))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->Spectrum))->BeginInit();
 			this->tableLayoutPanel2->SuspendLayout();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->LineSel))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// AllTablePanel
@@ -150,7 +159,7 @@ namespace BDMatch {
 			this->AllTablePanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
 				100)));
 			this->AllTablePanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
-				30)));
+				35)));
 			this->AllTablePanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
 				100)));
 			this->AllTablePanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
@@ -185,7 +194,7 @@ namespace BDMatch {
 			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 40)));
 			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 40)));
 			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 60)));
-			this->AllTablePanel->Size = System::Drawing::Size(1081, 702);
+			this->AllTablePanel->Size = System::Drawing::Size(1081, 803);
 			this->AllTablePanel->TabIndex = 4;
 			// 
 			// bdprogressBar
@@ -270,7 +279,7 @@ namespace BDMatch {
 			this->About->Name = L"About";
 			this->About->Size = System::Drawing::Size(67, 50);
 			this->About->TabIndex = 7;
-			this->About->Text = L"v0.5.0";
+			this->About->Text = L"v0.6.0";
 			this->About->TextAlign = System::Drawing::ContentAlignment::BottomRight;
 			this->About->Click += gcnew System::EventHandler(this, &MyForm::About_Click);
 			// 
@@ -333,7 +342,7 @@ namespace BDMatch {
 			this->Match->Anchor = System::Windows::Forms::AnchorStyles::Top;
 			this->Match->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->Match->Location = System::Drawing::Point(490, 182);
+			this->Match->Location = System::Drawing::Point(493, 182);
 			this->Match->Margin = System::Windows::Forms::Padding(3, 10, 3, 3);
 			this->Match->MinimumSize = System::Drawing::Size(82, 43);
 			this->Match->Name = L"Match";
@@ -388,7 +397,7 @@ namespace BDMatch {
 			this->Result->Name = L"Result";
 			this->Result->ReadOnly = true;
 			this->Result->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
-			this->Result->Size = System::Drawing::Size(1071, 144);
+			this->Result->Size = System::Drawing::Size(1071, 184);
 			this->Result->TabIndex = 14;
 			// 
 			// tvprogressBar
@@ -408,7 +417,7 @@ namespace BDMatch {
 			this->AllTablePanel->SetColumnSpan(this->splitContainer1, 2);
 			this->splitContainer1->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->splitContainer1->FixedPanel = System::Windows::Forms::FixedPanel::Panel1;
-			this->splitContainer1->Location = System::Drawing::Point(133, 473);
+			this->splitContainer1->Location = System::Drawing::Point(138, 513);
 			this->splitContainer1->Margin = System::Windows::Forms::Padding(3, 3, 5, 3);
 			this->splitContainer1->Name = L"splitContainer1";
 			this->splitContainer1->Orientation = System::Windows::Forms::Orientation::Horizontal;
@@ -420,8 +429,8 @@ namespace BDMatch {
 			// splitContainer1.Panel2
 			// 
 			this->splitContainer1->Panel2->Controls->Add(this->Spectrum);
-			this->splitContainer1->Size = System::Drawing::Size(943, 226);
-			this->splitContainer1->SplitterDistance = 40;
+			this->splitContainer1->Size = System::Drawing::Size(938, 287);
+			this->splitContainer1->SplitterDistance = 30;
 			this->splitContainer1->TabIndex = 21;
 			// 
 			// TimeRoll
@@ -432,7 +441,7 @@ namespace BDMatch {
 			this->TimeRoll->Location = System::Drawing::Point(0, 0);
 			this->TimeRoll->Maximum = 200;
 			this->TimeRoll->Name = L"TimeRoll";
-			this->TimeRoll->Size = System::Drawing::Size(943, 40);
+			this->TimeRoll->Size = System::Drawing::Size(938, 30);
 			this->TimeRoll->TabIndex = 0;
 			this->TimeRoll->TickFrequency = 100;
 			this->TimeRoll->Scroll += gcnew System::EventHandler(this, &MyForm::TimeRoll_Scroll);
@@ -442,7 +451,7 @@ namespace BDMatch {
 			this->Spectrum->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->Spectrum->Location = System::Drawing::Point(0, 0);
 			this->Spectrum->Name = L"Spectrum";
-			this->Spectrum->Size = System::Drawing::Size(943, 182);
+			this->Spectrum->Size = System::Drawing::Size(938, 253);
 			this->Spectrum->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
 			this->Spectrum->TabIndex = 0;
 			this->Spectrum->TabStop = false;
@@ -453,32 +462,59 @@ namespace BDMatch {
 			this->AllTablePanel->SetColumnSpan(this->tableLayoutPanel2, 2);
 			this->tableLayoutPanel2->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
 				100)));
-			this->tableLayoutPanel2->Controls->Add(this->ChartTime, 0, 4);
-			this->tableLayoutPanel2->Controls->Add(this->ChSelect, 0, 3);
-			this->tableLayoutPanel2->Controls->Add(this->label5, 0, 2);
-			this->tableLayoutPanel2->Controls->Add(this->label4, 0, 0);
-			this->tableLayoutPanel2->Controls->Add(this->FileSelect, 0, 1);
+			this->tableLayoutPanel2->Controls->Add(this->ViewSel, 0, 3);
+			this->tableLayoutPanel2->Controls->Add(this->label4, 0, 2);
+			this->tableLayoutPanel2->Controls->Add(this->ChartTime, 0, 5);
+			this->tableLayoutPanel2->Controls->Add(this->ChSelect, 0, 1);
+			this->tableLayoutPanel2->Controls->Add(this->label5, 0, 0);
+			this->tableLayoutPanel2->Controls->Add(this->LineSel, 0, 4);
 			this->tableLayoutPanel2->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->tableLayoutPanel2->Location = System::Drawing::Point(5, 473);
+			this->tableLayoutPanel2->Location = System::Drawing::Point(5, 513);
 			this->tableLayoutPanel2->Margin = System::Windows::Forms::Padding(5, 3, 3, 3);
 			this->tableLayoutPanel2->Name = L"tableLayoutPanel2";
-			this->tableLayoutPanel2->RowCount = 5;
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 44)));
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 44)));
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 44)));
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 44)));
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 40)));
-			this->tableLayoutPanel2->Size = System::Drawing::Size(122, 226);
+			this->tableLayoutPanel2->RowCount = 6;
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 45)));
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 45)));
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 45)));
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 45)));
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 45)));
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 45)));
+			this->tableLayoutPanel2->Size = System::Drawing::Size(127, 287);
 			this->tableLayoutPanel2->TabIndex = 22;
+			// 
+			// ViewSel
+			// 
+			this->ViewSel->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->ViewSel->Enabled = false;
+			this->ViewSel->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
+			this->ViewSel->FormattingEnabled = true;
+			this->ViewSel->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"Ê±¼ä", L"ÐÐÊý" });
+			this->ViewSel->Location = System::Drawing::Point(3, 138);
+			this->ViewSel->Name = L"ViewSel";
+			this->ViewSel->Size = System::Drawing::Size(121, 35);
+			this->ViewSel->TabIndex = 7;
+			this->ViewSel->SelectedIndexChanged += gcnew System::EventHandler(this, &MyForm::ViewSel_SelectedIndexChanged);
+			// 
+			// label4
+			// 
+			this->label4->BackColor = System::Drawing::Color::Transparent;
+			this->label4->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->label4->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
+			this->label4->Location = System::Drawing::Point(3, 90);
+			this->label4->Name = L"label4";
+			this->label4->Size = System::Drawing::Size(121, 45);
+			this->label4->TabIndex = 6;
+			this->label4->Text = L"²é¿´£º";
+			this->label4->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			// 
 			// ChartTime
 			// 
 			this->ChartTime->BackColor = System::Drawing::Color::Transparent;
 			this->ChartTime->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->ChartTime->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
-			this->ChartTime->Location = System::Drawing::Point(3, 176);
+			this->ChartTime->Location = System::Drawing::Point(3, 225);
 			this->ChartTime->Name = L"ChartTime";
-			this->ChartTime->Size = System::Drawing::Size(116, 50);
+			this->ChartTime->Size = System::Drawing::Size(121, 62);
 			this->ChartTime->TabIndex = 5;
 			this->ChartTime->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			// 
@@ -489,9 +525,9 @@ namespace BDMatch {
 			this->ChSelect->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
 			this->ChSelect->FormattingEnabled = true;
 			this->ChSelect->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"×ó", L"ÓÒ" });
-			this->ChSelect->Location = System::Drawing::Point(3, 135);
+			this->ChSelect->Location = System::Drawing::Point(3, 48);
 			this->ChSelect->Name = L"ChSelect";
-			this->ChSelect->Size = System::Drawing::Size(116, 35);
+			this->ChSelect->Size = System::Drawing::Size(121, 35);
 			this->ChSelect->TabIndex = 4;
 			this->ChSelect->SelectedIndexChanged += gcnew System::EventHandler(this, &MyForm::ChSelect_SelectedIndexChanged);
 			// 
@@ -500,37 +536,24 @@ namespace BDMatch {
 			this->label5->BackColor = System::Drawing::Color::Transparent;
 			this->label5->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->label5->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
-			this->label5->Location = System::Drawing::Point(3, 88);
+			this->label5->Location = System::Drawing::Point(3, 0);
 			this->label5->Name = L"label5";
-			this->label5->Size = System::Drawing::Size(116, 44);
+			this->label5->Size = System::Drawing::Size(121, 45);
 			this->label5->TabIndex = 2;
 			this->label5->Text = L"ÉùµÀ£º";
 			this->label5->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			// 
-			// label4
+			// LineSel
 			// 
-			this->label4->BackColor = System::Drawing::Color::Transparent;
-			this->label4->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label4->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
-			this->label4->Location = System::Drawing::Point(3, 0);
-			this->label4->Name = L"label4";
-			this->label4->Size = System::Drawing::Size(116, 44);
-			this->label4->TabIndex = 1;
-			this->label4->Text = L"ÎÄ¼þ£º";
-			this->label4->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
-			// 
-			// FileSelect
-			// 
-			this->FileSelect->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->FileSelect->Enabled = false;
-			this->FileSelect->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
-			this->FileSelect->FormattingEnabled = true;
-			this->FileSelect->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"TV", L"BD" });
-			this->FileSelect->Location = System::Drawing::Point(3, 47);
-			this->FileSelect->Name = L"FileSelect";
-			this->FileSelect->Size = System::Drawing::Size(116, 35);
-			this->FileSelect->TabIndex = 3;
-			this->FileSelect->SelectedIndexChanged += gcnew System::EventHandler(this, &MyForm::FileSelect_SelectedIndexChanged);
+			this->LineSel->Enabled = false;
+			this->LineSel->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
+			this->LineSel->Location = System::Drawing::Point(3, 183);
+			this->LineSel->Minimum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1, 0, 0, 0 });
+			this->LineSel->Name = L"LineSel";
+			this->LineSel->Size = System::Drawing::Size(120, 38);
+			this->LineSel->TabIndex = 8;
+			this->LineSel->Value = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1, 0, 0, 0 });
+			this->LineSel->ValueChanged += gcnew System::EventHandler(this, &MyForm::LineSel_ValueChanged);
 			// 
 			// Filebrowse
 			// 
@@ -538,10 +561,9 @@ namespace BDMatch {
 			// 
 			// MyForm
 			// 
-			this->AcceptButton = this->Match;
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 15);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(1081, 702);
+			this->ClientSize = System::Drawing::Size(1081, 803);
 			this->Controls->Add(this->AllTablePanel);
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->Name = L"MyForm";
@@ -557,6 +579,7 @@ namespace BDMatch {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->TimeRoll))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->Spectrum))->EndInit();
 			this->tableLayoutPanel2->ResumeLayout(false);
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->LineSel))->EndInit();
 			this->ResumeLayout(false);
 
 		}
@@ -598,9 +621,9 @@ namespace BDMatch {
 	private: System::Void About_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void settings_Click(System::Object^  sender, System::EventArgs^  e);
 
-	private: System::Void FileSelect_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void ChSelect_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void ViewSel_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void TimeRoll_Scroll(System::Object^  sender, System::EventArgs^  e);
-
-	};
+	private: System::Void LineSel_ValueChanged(System::Object^  sender, System::EventArgs^  e);
+};
 }

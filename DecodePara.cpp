@@ -485,7 +485,7 @@ void BDMatch::FFTC::FFT()
 		*(in + i) = seq->read0(i);
 	}
 	fftw_execute(p);
-	for (int i = FFTnum / 2 - 1; i >= 0; i--) {
+	for (int i = 0; i < FFTnum / 2; i++) {
 		double real = *(out + i)[0];
 		double imag = *(out + i)[1];
 		seq->add(real * real + imag * imag);

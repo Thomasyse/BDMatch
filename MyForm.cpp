@@ -37,15 +37,21 @@ int BDMatch::MyForm::match()
 		}
 		bddraw.num = 0;
 	}
-	FileSelect->Enabled = false;
+	ViewSel->Enabled = false;
+	LineSel->Enabled = false;
 	ChSelect->Enabled = false;
 	TimeRoll->Enabled = false;
-	FileSelect->SelectedIndex = 0;
+	ViewSel->SelectedIndex = 0;
 	ChSelect->SelectedIndex = 0;
+	LineSel->Value = 1;
 	tvdraw.ch = 0;
 	bddraw.ch = 0;
 	tvdraw.milisec = 0;
 	bddraw.milisec = 0;
+	tvdraw.linenum = 0;
+	bddraw.linenum = 0;
+	tvdraw.timelist = nullptr;
+	bddraw.timelist = nullptr;
 	ChartTime->Text = "";
 	if (!draw)setrows();
 
@@ -68,7 +74,6 @@ int BDMatch::MyForm::match()
 	}
 	int tvch = 0, bdch = 0;
 	int tvsampnum = 0, bdsampnum = 0;
-	int tvmilisec = 0, bdmilisec = 0;
 	array<node^, 2>^ tvfftdata;
 	array<node^, 2>^ bdfftdata;
 	Result->Text = "";
@@ -108,16 +113,15 @@ int BDMatch::MyForm::match()
 	bdfftdata = bddecode->getfftdata();
 	tvsampnum = tvdecode->getfftsampnum();
 	bdsampnum = bddecode->getfftsampnum();
-	tvmilisec = tvdecode->getmilisecnum();
-	bdmilisec = bddecode->getmilisecnum();
 
 	tvprogressBar->Value = tvprogressBar->Maximum;
 	bdprogressBar->Value = bdprogressBar->Maximum;
 	
+	int re = 0;
 	if (matchass) {
-		writeass(tvdecode, bddecode);
+		re = writeass(tvdecode, bddecode);
 	}
-
+	if (re < 0)return -2;
 	if (draw) {
 		tvdraw.data = tvfftdata;
 		bddraw.data = bdfftdata;
@@ -125,15 +129,15 @@ int BDMatch::MyForm::match()
 		bddraw.num = bdsampnum;
 		tvdraw.ch = tvdecode->getchannels();
 		bddraw.ch = bddecode->getchannels();
-		tvdraw.milisec = tvmilisec;
-		bddraw.milisec = bdmilisec;
-		FileSelect->SelectedIndex = 0;
-		FileSelect->Enabled = true;
+		tvdraw.milisec = tvdecode->getmilisecnum();
+		bddraw.milisec = bddecode->getmilisecnum();
+		ViewSel->SelectedIndex = 0;
 		ChSelect->SelectedIndex = 0;
 		ChSelect->Enabled = true;
-		TimeRoll->Maximum = tvdraw.milisec;
+		TimeRoll->Maximum = max(tvdraw.milisec, bddraw.milisec);
 		TimeRoll->Value = 0;
 		TimeRoll->Enabled = true;
+		if (!re)ViewSel->Enabled = true;
 		setrows();
 		drawchart();
 	}
@@ -179,7 +183,6 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	String^ tvass;
 	String^ head = "";
 	String^ content = "";
-	UTF8Encoding^ temp = gcnew UTF8Encoding(true);
 	tvass = File::ReadAllText(ASStext->Text);
 	int eventpos = tvass->IndexOf("\r\n[Events]\r\n");
 	if (eventpos == -1) {
@@ -199,7 +202,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	bdprogressBar->Maximum = alltimematch->Count;
 	array<timec^>^ timelist = gcnew array<timec^>(alltimematch->Count);//储存时间
 	std::vector<int>tvtime, bdtime;
-	int rightshift = log2(FFTnum);
+	int rightshift = static_cast<int>(log2(FFTnum));
+	//计算每行时间，屏蔽不必要的行
 	for (int i = 0; i < alltimematch->Count; i++) {
 		String^ match = alltimematch[i]->ToString();
 		String^ timehead = headregex->Match(match)->Value;
@@ -251,20 +255,22 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			continue;
 		}
 		bool existed = false;
-		for (int j = 0; j < i; j++) {
-			if (start == tvtime[j] && end == timelist[j]->end()) {
+		int sameline;
+		for (sameline = 0; sameline < i; sameline++) {
+			if (start == tvtime[sameline] && end == timelist[sameline]->end()) {
 				existed = true;
 				break;
 			}
 		}
 		if (existed) {
-			tvtime.push_back(-1);
-			bdtime.push_back(-1);
+			tvtime.push_back(-sameline - 2);
+			bdtime.push_back(-sameline - 2);
 			continue;
 		}
 		tvtime.push_back(start);
 		bdtime.push_back(0);
 	}
+	//搜索匹配
 	int ch = min(tvch, bdch);
 	ch = min(ch, 2);
 	int find0 = findfield * 100;
@@ -290,6 +296,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 					tvmaxtime = j;
 				}
 			}
+			//初筛
 			std::vector<int>bdsearch;
 			int firnum = 0, secnum = 0, thinum = 0, fornum = 0;
 			for (int j = findnum; j >=0 ; j--) {
@@ -317,13 +324,16 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 				
 				//bdsearch.insert(bdsearch.begin(), bdin);//调试用
 			}
+			//精确匹配
 			diftime[0] = 0;
 			diftime[1] = 9223372036854775807;
-			diftime[2] = 20;
+			int minroundnumcal = minroundnum;
+			if (duration <= 50 * interval)minroundnumcal = findnum;
+			diftime[2] = minroundnumcal;
 			List<Task^>^ tasks = gcnew List<Task^>();
 			for (int j = 0; j < bdsearch.size(); j++) {
 				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, tvdecode->getsamprate(), tvtime[i], bdsearch[j],
-					duration, ch, minroundnum, diftime);
+					duration, ch, minroundnumcal, diftime);
 				Task^ varTask = gcnew Task(gcnew Action(calvar, &Var::caldiff));
 				varTask->Start();
 				tasks->Add(varTask);
@@ -344,7 +354,19 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	aveindex /= alltimematch->Count / 100.0;
 	Result->Text += "\r\nAverage Found Index = " + aveindex.ToString() + "%";
 	//
+	//绘图相关
+	if (draw) {
+		tvdraw.timelist = gcnew array<int, 2>(alltimematch->Count, 2);
+		bddraw.timelist = gcnew array<int, 2>(alltimematch->Count, 2);
+		tvdraw.linenum = alltimematch->Count;
+		bddraw.linenum = alltimematch->Count;
+	}
+	//写字幕
 	for (int i = 0; i < alltimematch->Count; i++) {
+		if (draw) {
+			tvdraw.timelist[i, 0] = timelist[i]->start();
+			tvdraw.timelist[i, 1] = timelist[i]->end();
+		}
 		if (tvtime[i] >= 0) {
 			int duration = static_cast<int>(timelist[i]->end() - timelist[i]->start());
 			timelist[i]->start(bdtime[i]);
@@ -352,6 +374,22 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			if (i < alltimematch->Count - 1 && timelist[i]->end() > bdtime[i+1] && (timelist[i]->end() - bdtime[i+1]) <= interval) {
 				timelist[i]->end(bdtime[i + 1]);
 				Result->Text += "\r\n信息：第" + (i + 1).ToString() + "行和第" + (i + 2).ToString() + "行发生微小重叠，已自动修正。";
+			}
+			if (draw) {
+				bddraw.timelist[i, 0] = timelist[i]->start();
+				bddraw.timelist[i, 1] = timelist[i]->end();
+			}
+		}
+		else if (draw) {
+			if (tvtime[i] == -1) {
+				bddraw.timelist[i, 0] = -1;
+				bddraw.timelist[i, 1] = -1;
+				tvdraw.timelist[i, 0] = -1;
+				tvdraw.timelist[i, 1] = -1;
+			}
+			else {
+				bddraw.timelist[i, 0] = timelist[-tvtime[i] - 2]->start();
+				bddraw.timelist[i, 1] = timelist[-tvtime[i] - 2]->end();
 			}
 		}
 		int start = static_cast<int>(timelist[i]->start() / double(bdfftnum) * bdmilisec);
@@ -387,36 +425,112 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 int BDMatch::MyForm::drawchart()
 {
 	using namespace System::Threading::Tasks;
-	int milisec = FileSelect->SelectedIndex == 0 ? tvdraw.milisec : bddraw.milisec;
+	int milisec = max(tvdraw.milisec, bddraw.milisec);
 	int offset = 0;
-	if (milisec < 10000) offset = 100;
+	if (milisec < 10000) offset = 150;
 	else if (milisec < 100000)offset = 250;
-	else offset = 500;
+	else offset = 350;
 	TimeRoll->TickFrequency = offset;
-	int sampnum = FileSelect->SelectedIndex == 0 ? tvdraw.num : bddraw.num;
-	ChartTime->Text = mstotime(TimeRoll->Value);
-	int start = max(0, TimeRoll->Value - offset);
-	start = int(start / float(milisec) *sampnum);
-	int end = min(milisec, TimeRoll->Value + offset);
-	end = int(end / float(milisec) * sampnum);
-	end = min(end, sampnum - 1);
-	int duration = end - start + 1;
-	Bitmap^ spectrum1 = gcnew Bitmap(duration, FFTnum / 2);
+	TimeRoll->LargeChange = offset;
+	TimeRoll->SmallChange = offset / 4;
+	int maxsampnum = max(tvdraw.num, bddraw.num);
+	int tvstart = 0, tvend = 0, bdstart = 0;
+	if (ViewSel->SelectedIndex == 0) {
+		tvstart = int((TimeRoll->Value - offset) / float(milisec) *maxsampnum);
+		tvend = int((TimeRoll->Value + offset) / float(milisec) * maxsampnum);
+		bdstart = tvstart;
+		ChartTime->Text = mstotime(TimeRoll->Value);
+	}
+	else {
+		tvstart = (tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0]
+			+ tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 1]) / 2 - offset;
+		tvend = tvstart + 2 * offset;
+		bdstart = (bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0]
+			+ bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 1]) / 2 - offset;
+		if (tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] == -1)ChartTime->Text = "未匹配！";
+		else ChartTime->Text = mstotime(static_cast<int>(tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / double(tvdraw.num)*tvdraw.milisec))
+			+ "\n" + mstotime(static_cast<int>(bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / double(bddraw.num)*bddraw.milisec));
+	}
+	int duration = tvend - tvstart + 1;
+	Bitmap^ spectrum1 = gcnew Bitmap(duration, FFTnum);
 	int x;
 	int y;
 
 	// Loop through the images pixels to reset color.
 	for (x = 0; x < spectrum1->Width; x++)
 	{
+		bool tvinline = false, bdinline = false;
+		int tvedge = 0, bdedge = 0;
+		for (int i = 0; i < tvdraw.linenum; i++) {
+			if (tvdraw.timelist[i, 0] >= 0) {
+				if (tvdraw.timelist[i, 0] <= x + tvstart && tvdraw.timelist[i, 1] >= x + tvstart) {
+					tvinline = true;
+					if (tvdraw.timelist[i, 0] == x + tvstart || tvdraw.timelist[i, 1] == x + tvstart) {
+						if (i == static_cast<int>(LineSel->Value) - 1 || ViewSel->SelectedIndex == 0) {
+							if (tvdraw.timelist[i, 0] == x + tvstart)tvedge = 1;
+							else if (tvedge != 1)tvedge = 2;
+						}
+						else if (tvedge != 1 && tvedge != 2)tvedge = 3;
+					}
+				}
+				if (bddraw.timelist[i, 0] <= x + bdstart && bddraw.timelist[i, 1] >= x + bdstart) {
+					bdinline = true;
+					if (bddraw.timelist[i, 0] == x + bdstart || bddraw.timelist[i, 1] == x + bdstart) {
+						if (i == static_cast<int>(LineSel->Value) - 1 || ViewSel->SelectedIndex == 0) {
+							if (bddraw.timelist[i, 0] == x + bdstart)bdedge = 1;
+							else if (bdedge != 1)bdedge = 2;
+						}
+						else if (bdedge != 1 && bdedge != 2)bdedge = 3;
+					}
+				}
+			}
+		}
 		for (y = 0; y < spectrum1->Height; y++)
 		{
-			int color = 0;
-			if (FileSelect->SelectedIndex == 0)color = tvdraw.data[ChSelect->SelectedIndex, x + start]->read0(y);
-			if (FileSelect->SelectedIndex == 1)color = bddraw.data[ChSelect->SelectedIndex, x + start]->read0(y);
+			int color = -128;
+			if (y >= FFTnum / 2) {
+				if (0 <= x + bdstart && x + bdstart < bddraw.num)color = bddraw.data[ChSelect->SelectedIndex, x + bdstart]->read0(FFTnum - y);
+			}
+			else if (0 <= x + tvstart && x + tvstart < tvdraw.num)
+				color = tvdraw.data[ChSelect->SelectedIndex, x + tvstart]->read0(FFTnum / 2 - y);
 			color += 128;
 			color = max(0, color);
 			color = min(255, color);
-			Color newColor = Color::FromArgb(0, color, color);
+			Color newColor = Color::FromArgb(color / 4, color, color);
+			if (y >= FFTnum / 2) {
+				if (bdinline)
+					switch (bdedge) {
+					case 1:
+						newColor = Color::FromArgb(0, 255, 0);
+						break;
+					case 2:
+						newColor = Color::FromArgb(255, 255, 0);
+						break;
+					case 3:
+						newColor = Color::FromArgb(180, 180, 180);
+						break;
+					default:
+						newColor = Color::FromArgb(color / 4 + 70, color, max(color, 70));
+						break;
+					}
+			}
+			else {
+				if (tvinline)
+					switch (tvedge) {
+					case 1:
+						newColor = Color::FromArgb(0, 255, 0);
+						break;
+					case 2:
+						newColor = Color::FromArgb(255, 255, 0);
+						break;
+					case 3:
+						newColor = Color::FromArgb(180, 180, 180);
+						break;
+					default:
+						newColor = Color::FromArgb(color / 4 + 70, color, max(color, 70));
+						break;
+					}
+			}
 			spectrum1->SetPixel(x, y, newColor);
 		}
 	}
@@ -448,8 +562,8 @@ String ^ BDMatch::MyForm::mstotime(int ms)
 int BDMatch::MyForm::setrows()
 {
 	if (draw) {
-		AllTablePanel->RowStyles[7]->Height = 0.4;
-		AllTablePanel->RowStyles[8]->Height = 0.6;
+		AllTablePanel->RowStyles[7]->Height = static_cast<float>(0.4);
+		AllTablePanel->RowStyles[8]->Height = static_cast<float>(0.6);
 	}
 	else
 	{
@@ -684,7 +798,7 @@ System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::Event
 
 System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	MessageBox::Show(this, "BDMatch\nVersion 0.5.0\nBy Thomasys, 2017\n\nReference:\nFFmpeg3.4.1\nFFTW3.3.7\n" +
+	MessageBox::Show(this, "BDMatch\nVersion 0.6.0\nBy Thomasys, 2017\n\nReference:\nFFmpeg3.4.1\nFFTW3.3.7\n" +
 		"Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005). ", "关于", MessageBoxButtons::OK);
 	return System::Void();
 }
@@ -704,39 +818,34 @@ System::Void BDMatch::MyForm::settings_Click(System::Object ^ sender, System::Ev
 	return System::Void();
 }
 
-System::Void BDMatch::MyForm::FileSelect_SelectedIndexChanged(System::Object ^ sender, System::EventArgs ^ e)
-{
-	if (FileSelect->Enabled) {
-		ChSelect->Enabled = false;
-		TimeRoll->Enabled = false;
-		if (FileSelect->SelectedIndex == 0) {
-			if (tvdraw.ch < 2) {
-				ChSelect->SelectedIndex = 0;
-			}
-			else ChSelect->Enabled = true;
-			TimeRoll->Maximum = tvdraw.milisec;
-		}
-		else {
-			if (bddraw.ch < 2) {
-				ChSelect->SelectedIndex = 0;
-			}
-			else ChSelect->Enabled = true;
-			TimeRoll->Maximum = bddraw.milisec;
-		}
-		TimeRoll->Value = 0;
-		TimeRoll->Enabled = true;
-		drawchart();
-	}
-	return System::Void();
-}
 System::Void BDMatch::MyForm::ChSelect_SelectedIndexChanged(System::Object ^ sender, System::EventArgs ^ e)
 {
 	if (ChSelect->Enabled)drawchart();
 	return System::Void();
 }
+System::Void BDMatch::MyForm::ViewSel_SelectedIndexChanged(System::Object ^ sender, System::EventArgs ^ e)
+{
+	if (ViewSel->Enabled) {
+		if (ViewSel->SelectedIndex == 0) {
+			TimeRoll->Enabled = true;
+			LineSel->Enabled = false;
+		}
+		else {
+			TimeRoll->Enabled = false;
+			LineSel->Enabled = true;
+		}
+		drawchart();
+	}
+	return System::Void();
+}
 System::Void BDMatch::MyForm::TimeRoll_Scroll(System::Object ^ sender, System::EventArgs ^ e)
 {
 	if (TimeRoll->Enabled)drawchart();
+	return System::Void();
+}
+System::Void BDMatch::MyForm::LineSel_ValueChanged(System::Object ^ sender, System::EventArgs ^ e)
+{
+	if (LineSel->Enabled)drawchart();
 	return System::Void();
 }
 
