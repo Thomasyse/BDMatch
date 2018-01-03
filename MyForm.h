@@ -42,7 +42,7 @@ namespace BDMatch {
 		int ch = 0;
 		int milisec = 0;
 		int linenum = 0;
-		array<node^, 2>^ data = nullptr;
+		std::vector<std::vector<node*>>* data = nullptr;
 		array<int, 2>^ timelist = nullptr;
 	};
 	private: int FFTnum = 512;
@@ -279,7 +279,7 @@ namespace BDMatch {
 			this->About->Name = L"About";
 			this->About->Size = System::Drawing::Size(67, 50);
 			this->About->TabIndex = 7;
-			this->About->Text = L"v0.6.0";
+			this->About->Text = L"v0.7.0";
 			this->About->TextAlign = System::Drawing::ContentAlignment::BottomRight;
 			this->About->Click += gcnew System::EventHandler(this, &MyForm::About_Click);
 			// 

@@ -9,13 +9,13 @@ Node::noded::noded(int num)
 	for (int i = 0; i < *count; i++) *(data + i) = 0;
 }
 
-Node::noded::noded(noded ^ a)
+Node::noded::noded(noded& a)
 {
-	count = new int(a->size());
-	head = new int(a->gethead());
+	count = new int(a.size());
+	head = new int(a.gethead());
 	data = new double[*count];
 	for (int i = 0; i < *count; i++)
-		*(data + i) = *(a->data + i);
+		*(data + i) = *(a.data + i);
 }
 
 double noded::read0(int m)
@@ -59,7 +59,7 @@ int Node::noded::gethead()
 	return *head;
 }
 
-int noded::release()
+noded::~noded()
 {
 	if (data != nullptr) {
 		delete[] data;
@@ -73,7 +73,6 @@ int noded::release()
 		delete head;
 		head = nullptr;
 	}
-	return 0;
 }
 
 Node::node::node(int num)
@@ -84,13 +83,13 @@ Node::node::node(int num)
 	for (int i = 0; i < *count; i++) *(data + i) = 0;
 }
 
-Node::node::node(node ^ a)
+Node::node::node(node& a)
 {
-	count = new int(a->size());
-	head = new int(a->gethead());
+	count = new int(a.size());
+	head = new int(a.gethead());
 	data = new char[*count];
 	for (int i = 0; i < *count; i++)
-		*(data + i) = *(a->data + i);
+		*(data + i) = *(a.data + i);
 }
 
 char Node::node::read0(int m)
@@ -140,7 +139,7 @@ int Node::node::gethead()
 	return *head;
 }
 
-int node::release()
+node::~node()
 {
 	if (data != nullptr) {
 		delete[] data;
@@ -154,7 +153,6 @@ int node::release()
 		delete head;
 		head = nullptr;
 	}
-	return 0;
 }
 
 Node::timec::timec(int start0, int end0, bool iscom0, String^ head0)
@@ -209,7 +207,7 @@ String ^ Node::timec::head(String ^ head0)
 	return "";
 }
 
-Node::Var::Var(array<node^, 2>^ tv0, array<node^, 2>^ bd0, int samprate0,
+Node::Var::Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0, int samprate0,
 	int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, array<Int64>^ diffa0)
 {
 	tv = tv0;
@@ -228,7 +226,7 @@ void Node::Var::caldiff()
 	using namespace System::Threading;
 	if (diffa[2] <= 0)return;
 	Int64 sum = 0;
-	int size = tv[0, 0]->size();
+	int size = (*tv)[0][0]->size();
 	int minfreq = static_cast<int>(100.0 / samprate * 2 * size);
 	int maxfreq = static_cast<int>(25000.0 / samprate * 2 * size);
 	for(int i = 0; i <= duration; i++) {
@@ -237,7 +235,7 @@ void Node::Var::caldiff()
 		for (int j = 0; j < ch; j++) {
 			for (int k = 0; k < size; k++) {
 				if (k > minfreq && k < maxfreq) {
-					sum += labs(tv[j, tvpos]->read0(k) - bd[j, bdpos]->read0(k))*(tv[j, tvpos]->read0(k) + 128);
+					sum += labs((*tv)[j][tvpos]->read0(k) - (*bd)[j][bdpos]->read0(k))*((*tv)[j][tvpos]->read0(k) + 128);
 				}
 			}
 		}	

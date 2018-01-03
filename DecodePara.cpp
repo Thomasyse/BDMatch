@@ -195,10 +195,10 @@ void BDMatch::Decode::decodeaudio()
 	AVPacket *packet = av_packet_alloc();
 	double shiftf = 0;
 	progmax(progmaxnum);
-	fftdata = gcnew array<node^, 2>(2, efftnum);
+	fftdata = new std::vector<std::vector<node*>>(2, std::vector<node*>(efftnum));
 	fftsampnum = 0;
-	noded^ sample_seq_l = gcnew noded(FFTnum);
-	noded^ sample_seq_r = gcnew noded(FFTnum);
+	noded* sample_seq_l = new noded(FFTnum);
+	noded* sample_seq_r = new noded(FFTnum);
 	AVFrame *decoded_frame = NULL;
 	int realch = 1;
 	String ^chfmt = "Packed";
@@ -265,7 +265,8 @@ void BDMatch::Decode::decodeaudio()
 					if (!setsampnum) {
 						samplenum = static_cast<int>(ceil(samplenum / double(decoded_frame->nb_samples)*nb_samples));
 						efftnum = static_cast<int>(ceil(samplenum / float(FFTnum)));
-						fftdata = gcnew array<node^, 2>(2, efftnum);
+						delete fftdata;
+						fftdata = new std::vector<std::vector<node*>>(2, std::vector<node*>(efftnum));;
 						setsampnum = true;
 					}
 					if (ret < 0) {
@@ -323,12 +324,12 @@ void BDMatch::Decode::decodeaudio()
 						}
 					}
 					if (sample_seq_l->gethead() == 0 && samplecount > 0) {
-						noded^ inseql = gcnew noded(sample_seq_l);
-						fftdata[0, fftsampnum] = gcnew node(FFTnum / 2);
+						noded* inseql = new noded(*sample_seq_l);
+						(*fftdata)[0][fftsampnum] = new node(FFTnum / 2);
 						double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
 						fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*FFTnum);
 						fftw_plan p = fftw_plan_dft_r2c_1d(FFTnum, in, out, FFTW_MEASURE);
-						FFTC^ fftcl = gcnew FFTC(inseql, fftdata[0, fftsampnum], p, in, out, mindb,
+						FFTC^ fftcl = gcnew FFTC(inseql, (*fftdata)[0][fftsampnum], p, in, out, mindb,
 							gcnew ProgressCallback(this, &Decode::subprogback));
 						Task^ taskl = gcnew Task(gcnew Action(fftcl, &FFTC::FFT));
 						taskl->Start();
@@ -337,12 +338,12 @@ void BDMatch::Decode::decodeaudio()
 						fftsampnum++;
 					}
 					if (sample_seq_r->gethead() == 0 && samplecount > 0 && codecfm->channels > 1) {
-						noded^ inseqr = gcnew noded(sample_seq_r);
-						fftdata[1, fftsampnum - 1] = gcnew node(FFTnum / 2);
+						noded* inseqr = new noded(*sample_seq_r);
+						(*fftdata)[1][fftsampnum - 1] = new node(FFTnum / 2);
 						double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
 						fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*FFTnum);
 						fftw_plan p = fftw_plan_dft_r2c_1d(FFTnum, in, out, FFTW_MEASURE);
-						FFTC^ fftcr = gcnew FFTC(inseqr, fftdata[1, fftsampnum - 1], p, in, out, mindb,
+						FFTC^ fftcr = gcnew FFTC(inseqr, (*fftdata)[1][fftsampnum - 1], p, in, out, mindb,
 							gcnew ProgressCallback(this, &Decode::subprogback));
 						Task^ taskr = gcnew Task(gcnew Action(fftcr, &FFTC::FFT));
 						taskr->Start();
@@ -389,9 +390,9 @@ void BDMatch::Decode::decodeaudio()
 	//ÊÍ·ÅÄÚ´æ
 	delete[] temp;
 	temp = nullptr;
-	sample_seq_l->release();
+	delete sample_seq_l;
 	sample_seq_l = nullptr;
-	sample_seq_r->release();
+	delete sample_seq_r;
 	sample_seq_r = nullptr;
 	av_frame_free(&decoded_frame);
 	av_free_packet(packet);
@@ -427,7 +428,7 @@ int BDMatch::Decode::getsamprate()
 	return samplerate;
 }
 
-array<node^, 2>^ BDMatch::Decode::getfftdata()
+std::vector<std::vector<node*>>* BDMatch::Decode::getfftdata()
 {
 	return fftdata;
 }
@@ -469,7 +470,7 @@ void BDMatch::Decode::subprogback()
 	}
 }
 
-BDMatch::FFTC::FFTC(noded ^ seq0, node^ fftseq0, fftw_plan p0, double* in0, fftw_complex* out0, int mindb0, ProgressCallback^ progback0)
+BDMatch::FFTC::FFTC(noded* seq0, node* fftseq0, fftw_plan p0, double* in0, fftw_complex* out0, int mindb0, ProgressCallback^ progback0)
 {
 	seq = seq0;
 	fftseq = fftseq0;
@@ -500,16 +501,17 @@ void BDMatch::FFTC::FFT()
 	fftw_destroy_plan(p);
 	fftw_free(in);
 	fftw_free(out);
+	p = nullptr;
 	in = nullptr;
 	out = nullptr;
 	FD8(seq, fftseq);
-	seq->release();
+	delete seq;
 	seq = nullptr;
 	progback();
 	return;
 }
 
-int BDMatch::FFTC::FD8(Node::noded ^ inseq, Node::node ^ outseq)
+int BDMatch::FFTC::FD8(Node::noded* inseq, Node::node* outseq)
 {
 	using namespace Node;
 	for (int i = 0; i < outseq->size(); i++) {

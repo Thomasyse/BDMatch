@@ -25,22 +25,20 @@ int BDMatch::MyForm::match()
 
 	if (tvdraw.num > 0) {
 		for (int i = 0; i < tvdraw.num; i++) {
-			if (tvdraw.data[0, i] != nullptr)tvdraw.data[0, i]->release();
-			if (tvdraw.data[1, i] != nullptr)tvdraw.data[1, i]->release();
-			tvdraw.data[0, i] = nullptr;
-			tvdraw.data[1, i] = nullptr;
+			if ((*tvdraw.data)[0][i] != nullptr)delete (*tvdraw.data)[0][i];
+			if ((*tvdraw.data)[1][i] != nullptr)delete (*tvdraw.data)[1][i];
 		}
 		tvdraw.num = 0;
 	}
 	if (bddraw.num > 0) {
 		for (int i = 0; i < bddraw.num; i++) {
-			if (bddraw.data[0, i] != nullptr)bddraw.data[0, i]->release();
-			if (bddraw.data[1, i] != nullptr)bddraw.data[1, i]->release();
-			bddraw.data[0, i] = nullptr;
-			bddraw.data[1, i] = nullptr;
+			if ((*bddraw.data)[0][i] != nullptr)delete (*bddraw.data)[0][i];
+			if ((*bddraw.data)[1][i] != nullptr)delete (*bddraw.data)[1][i];
 		}
 		bddraw.num = 0;
 	}
+	delete tvdraw.data;
+	delete bddraw.data;
 	tvdraw.data = nullptr;
 	bddraw.data = nullptr;
 	ViewSel->Enabled = false;
@@ -80,8 +78,8 @@ int BDMatch::MyForm::match()
 	}
 	int tvch = 0, bdch = 0;
 	int tvsampnum = 0, bdsampnum = 0;
-	array<node^, 2>^ tvfftdata;
-	array<node^, 2>^ bdfftdata;
+	std::vector<std::vector<node*>>* tvfftdata;
+	std::vector<std::vector<node*>>* bdfftdata;
 	Result->Text = "";
 	tvprogressBar->Value = 0;
 	bdprogressBar->Value = 0;
@@ -150,17 +148,15 @@ int BDMatch::MyForm::match()
 	else
 	{
 		for (int i = 0; i < tvsampnum; i++) {
-			if (tvfftdata[0, i] != nullptr)tvfftdata[0, i]->release();
-			if (tvfftdata[1, i] != nullptr)tvfftdata[1, i]->release();
-			tvfftdata[0, i] = nullptr;
-			tvfftdata[1, i] = nullptr;
+			if ((*tvfftdata)[0][i] != nullptr)delete (*tvfftdata)[0][i];
+			if ((*tvfftdata)[1][i] != nullptr)delete (*tvfftdata)[1][i];
 		}
 		for (int i = 0; i < bdsampnum; i++) {
-			if (bdfftdata[0, i] != nullptr)bdfftdata[0, i]->release();
-			if (bdfftdata[1, i] != nullptr)bdfftdata[1, i]->release();
-			bdfftdata[0, i] = nullptr;
-			bdfftdata[1, i] = nullptr;
+			if ((*bdfftdata)[0][i] != nullptr)delete (*bdfftdata)[0][i];
+			if ((*bdfftdata)[1][i] != nullptr)delete (*bdfftdata)[1][i];
 		}
+		delete tvfftdata;
+		delete bdfftdata;
 		tvfftdata = nullptr;
 		bdfftdata = nullptr;
 	}
@@ -185,8 +181,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	int bdmilisec = bddecode->getmilisecnum();
 	int tvfftnum = tvdecode->getfftsampnum();
 	int bdfftnum = bddecode->getfftsampnum();
-	array<node^, 2>^ tvfftdata = tvdecode->getfftdata();
-	array<node^, 2>^ bdfftdata = bddecode->getfftdata();
+	std::vector<std::vector<node*>>* tvfftdata = tvdecode->getfftdata();
+	std::vector<std::vector<node*>>* bdfftdata = bddecode->getfftdata();
 	int tvch = tvdecode->getchannels();
 	int bdch = bddecode->getchannels();
 	
@@ -213,7 +209,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	tvprogressBar->Maximum = alltimematch->Count;
 	bdprogressBar->Maximum = alltimematch->Count;
 	array<timec^>^ timelist = gcnew array<timec^>(alltimematch->Count);//储存时间
-	std::vector<int>tvtime, bdtime;
+	std::vector<int>tvtime(alltimematch->Count), bdtime(alltimematch->Count);
 	int rightshift = static_cast<int>(log2(FFTnum));
 	//计算每行时间，屏蔽不必要的行
 	for (int i = 0; i < alltimematch->Count; i++) {
@@ -231,38 +227,38 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 		end = static_cast<int>(end / double(tvmilisec)* tvfftnum);
 		timelist[i] = gcnew timec(start, end, iscom, timehead);
 		if (iscom) {
-			tvtime.push_back(-1);
-			bdtime.push_back(-1);
+			tvtime[i] = -1;
+			bdtime[i] = -1;
 			Result->Text += "\r\n信息：第" + (i + 1).ToString() + "行为注释，将不作处理。";
 			continue;
 		}
 		if (end == start) {
-			tvtime.push_back(-1);
-			bdtime.push_back(-1);
+			tvtime[i] = -1;
+			bdtime[i] = -1;
 			Result->Text += "\r\n信息：第" + (i + 1).ToString() + "行时长为零，将不作处理。";
 			continue;
 		}
 		if (end - start > maxlength * 100 / double(tvmilisec)* tvfftnum) {
-			tvtime.push_back(-1);
-			bdtime.push_back(-1);
+			tvtime[i] = -1;
+			bdtime[i] = -1;
 			Result->Text += "\r\n警告：第" + (i + 1).ToString() + "行时长过长，将不作处理。";
 			continue;
 		}
 		if (end >= tvfftnum) {
-			tvtime.push_back(-1);
-			bdtime.push_back(-1);
+			tvtime[i] = -1;
+			bdtime[i] = -1;
 			Result->Text += "\r\n警告：第" + (i + 1).ToString() + "行超过音频长度，将不作处理。";
 			continue;
 		}
 		int maxdb = -128;
 		for (int j = start; j <= end; j++) {
-			if (tvfftdata[0, j]->maxv() > maxdb) {
-				maxdb = tvfftdata[0, j]->maxv();
+			if ((*tvfftdata)[0][j]->maxv() > maxdb) {
+				maxdb = (*tvfftdata)[0][j]->maxv();
 			}
 		}
 		if (maxdb <= -128) {
-			tvtime.push_back(-1);
-			bdtime.push_back(-1);
+			tvtime[i] = -1;
+			bdtime[i] = -1;
 			Result->Text += "\r\n警告：第" + (i + 1).ToString() + "行声音过小，将不作处理。";
 			continue;
 		}
@@ -275,12 +271,12 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			}
 		}
 		if (existed) {
-			tvtime.push_back(-sameline - 2);
-			bdtime.push_back(-sameline - 2);
+			tvtime[i] = -sameline - 2;
+			bdtime[i] = -sameline - 2;
 			continue;
 		}
-		tvtime.push_back(start);
-		bdtime.push_back(0);
+		tvtime[i] = start;
+		bdtime[i] = 0;
 	}
 	//搜索匹配
 	int ch = min(tvch, bdch);
@@ -303,8 +299,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			int findnum = (findend - findstart) / interval;
 			int tvmax = -128 * FFTnum / 2, tvmaxtime = 0;
 			for (int j = 0; j <= duration; j++) {
-				if (tvfftdata[0, j + tvtime[i]]->sum() > tvmax || j == 0) {
-					tvmax = tvfftdata[0, j + tvtime[i]]->sum();
+				if ((*tvfftdata)[0][j + tvtime[i]]->sum() > tvmax || j == 0) {
+					tvmax = (*tvfftdata)[0][j + tvtime[i]]->sum();
 					tvmaxtime = j;
 				}
 			}
@@ -314,7 +310,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			for (int j = findnum; j >=0 ; j--) {
 				int bdin = findstart + j * interval;
 				
-				int delta = labs(bdfftdata[0, bdin + tvmaxtime]->sum() - tvmax) >> rightshift;
+				int delta = labs((*bdfftdata)[0][bdin + tvmaxtime]->sum() - tvmax) >> rightshift;
 				if (delta == 0) {
 					bdsearch.insert(bdsearch.begin(), bdin);
 					firnum++;
@@ -428,6 +424,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 		if (fs)
 			delete (IDisposable^)fs;
 	}
+	tvfftdata = nullptr;
+	bdfftdata = nullptr;
 	long endclock = clock();
 	double spend = double(endclock - startclock) / (double)CLOCKS_PER_SEC;
 	Result->Text += "\r\n匹配时间：" + spend.ToString() + "秒";
@@ -436,7 +434,6 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 
 int BDMatch::MyForm::drawchart()
 {
-	using namespace System::Threading::Tasks;
 	int milisec = max(tvdraw.milisec, bddraw.milisec);
 	int offset = 0;
 	if (milisec < 10000) offset = 150;
@@ -501,10 +498,10 @@ int BDMatch::MyForm::drawchart()
 		{
 			int color = -128;
 			if (y >= FFTnum / 2) {
-				if (0 <= x + bdstart && x + bdstart < bddraw.num)color = bddraw.data[ChSelect->SelectedIndex, x + bdstart]->read0(FFTnum - y);
+				if (0 <= x + bdstart && x + bdstart < bddraw.num)color = (*bddraw.data)[ChSelect->SelectedIndex][x + bdstart]->read0(FFTnum - y);
 			}
 			else if (0 <= x + tvstart && x + tvstart < tvdraw.num)
-				color = tvdraw.data[ChSelect->SelectedIndex, x + tvstart]->read0(FFTnum / 2 - y);
+				color = (*tvdraw.data)[ChSelect->SelectedIndex][x + tvstart]->read0(FFTnum / 2 - y);
 			color += 128;
 			color = max(0, color);
 			color = min(255, color);
@@ -810,7 +807,7 @@ System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::Event
 
 System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	MessageBox::Show(this, "BDMatch\nVersion 0.6.0\nBy Thomasys, 2017\n\nReference:\nFFmpeg3.4.1\nFFTW3.3.7\n" +
+	MessageBox::Show(this, "BDMatch\nVersion 0.7.0\nBy Thomasys, 2018\n\nReference:\nFFmpeg3.4.1\nFFTW3.3.7\n" +
 		"Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005). ", "关于", MessageBoxButtons::OK);
 	return System::Void();
 }

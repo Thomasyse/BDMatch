@@ -4,29 +4,29 @@
 
 namespace Node {
 	
-	public ref class noded
+	public class noded
 	{
 	public:
 		noded(int num);
-		noded(noded^ a);
+		noded(noded& a);
 		double read0(int m);
 		int add(double val);
 		int set(int pos, double val);
 		double maxabs();
 		int size();
 		int gethead();
-		int release();
+		~noded();
 	private:
 		int *count = nullptr;
 		int *head = nullptr;
 		double *data = nullptr;
 	};
 	
-	public ref class node
+	public class node
 	{
 	public:
 		node(int num);
-		node(node ^a);
+		node(node& a);
 		char read0(int m);
 		int add(char val);
 		int set(int pos, char val);
@@ -34,7 +34,7 @@ namespace Node {
 		char maxv();
 		int size();
 		int gethead();
-		int release();
+		~node();
 	private:
 		int *count = nullptr;
 		int *head = nullptr;
@@ -63,12 +63,12 @@ namespace Node {
 
 	public ref class Var {
 	public:
-		Var(array<node^, 2>^ tv0, array<node^, 2>^ bd0, int samprate0,
+		Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0, int samprate0,
 			int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, array<Int64>^ diffa0);
 		void caldiff();
 	private:
-		array<node^, 2>^ tv;
-		array<node^,2>^ bd;
+		std::vector<std::vector<node*>>* tv;
+		std::vector<std::vector<node*>>* bd;
 		int samprate;
 		int tvstart;
 		int bdstart;

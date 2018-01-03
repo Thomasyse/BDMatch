@@ -53,13 +53,13 @@ namespace BDMatch{
 		int getmilisecnum();
 		int getchannels();
 		int getsamprate();
-		array<node^, 2>^ getfftdata();
+		std::vector<std::vector<node*>>* getfftdata();
 		ProgressCallback^ progback = nullptr;
 		ProgMaxCallback^ progmax = nullptr;
 	private:
 		String^ filename;
 		String^ feedback;
-		array<node^, 2>^ fftdata;
+		std::vector<std::vector<node*>>* fftdata;
 		List<Task^>^ tasks;
 		int FFTnum;
 		int out_bitdepth = 0;
@@ -80,18 +80,18 @@ namespace BDMatch{
 	ref class FFTC
 	{
 	public:
-		FFTC(noded ^ seq0, node^ fftseq0, fftw_plan p0, double* in0, fftw_complex* out0, int mindb0, ProgressCallback^ progback0);
+		FFTC(noded* seq0, node* fftseq0, fftw_plan p0, double* in0, fftw_complex* out0, int mindb0, ProgressCallback^ progback0);
 		void FFT();
 	private:
-		noded ^ seq;
+		noded* seq;
 		int FFTnum;
 		int mindb;
 		ProgressCallback^ progback;
-		node^ fftseq;
+		node* fftseq;
 		fftw_plan p;
 		double *in = nullptr;
 		fftw_complex *out = nullptr;
-		int FD8(noded ^ inseq, node ^ outseq);
+		int FD8(noded* inseq, node* outseq);
 	};
 }
 
