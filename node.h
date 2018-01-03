@@ -17,8 +17,8 @@ namespace Node {
 		int gethead();
 		~noded();
 	private:
-		int *count = nullptr;
-		int *head = nullptr;
+		int count = 0;
+		int head = 0;
 		double *data = nullptr;
 	};
 	
@@ -36,8 +36,8 @@ namespace Node {
 		int gethead();
 		~node();
 	private:
-		int *count = nullptr;
-		int *head = nullptr;
+		int count = 0;
+		int head = 0;
 		char *data = nullptr;
 	};
 

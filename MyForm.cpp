@@ -141,7 +141,7 @@ int BDMatch::MyForm::match()
 		TimeRoll->Maximum = max(tvdraw.milisec, bddraw.milisec);
 		TimeRoll->Value = 0;
 		TimeRoll->Enabled = true;
-		if (!re)ViewSel->Enabled = true;
+		if (!re && matchass)ViewSel->Enabled = true;
 		setrows();
 		drawchart();
 	}

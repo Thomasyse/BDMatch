@@ -3,18 +3,18 @@ using namespace Node;
 
 Node::noded::noded(int num)
 {
-	count = new int(num);
-	head = new int(0);
-	data = new double[*count];
-	for (int i = 0; i < *count; i++) *(data + i) = 0;
+	count = num;
+	head = 0;
+	data = new double[count];
+	for (int i = 0; i < count; i++) *(data + i) = 0;
 }
 
 Node::noded::noded(noded& a)
 {
-	count = new int(a.size());
-	head = new int(a.gethead());
-	data = new double[*count];
-	for (int i = 0; i < *count; i++)
+	count = a.size();
+	head = a.gethead();
+	data = new double[count];
+	for (int i = 0; i < count; i++)
 		*(data + i) = *(a.data + i);
 }
 
@@ -26,16 +26,16 @@ double noded::read0(int m)
 
 int noded::add(double val)
 {
-	*(data + *head) = val;
-	if (1 + *head >= *count) *head = 0;
-	else (*head)++;
+	*(data + head) = val;
+	if (1 + head >= count) head = 0;
+	else (head)++;
 	return 0;
 }
 
 int Node::noded::set(int pos, double val)
 {
-	if (pos + *head >= *count)pos = pos + *head - *count + 1;
-	else pos = pos + *head;
+	if (pos + head >= count)pos = pos + head - count + 1;
+	else pos = pos + head;
 	*(data + pos) = val;
 	return 0;
 }
@@ -43,7 +43,7 @@ int Node::noded::set(int pos, double val)
 double Node::noded::maxabs()
 {
 	double maxx = fabs(*data);
-	for (int i = 0; i < *count; i++) {
+	for (int i = 0; i < count; i++) {
 		if (fabs(*(data + i)) > maxx) maxx = fabs(*(data + i));
 	}
 	return maxx;
@@ -51,12 +51,12 @@ double Node::noded::maxabs()
 
 int noded::size()
 {
-	return *count;
+	return count;
 }
 
 int Node::noded::gethead()
 {
-	return *head;
+	return head;
 }
 
 noded::~noded()
@@ -65,30 +65,22 @@ noded::~noded()
 		delete[] data;
 		data = nullptr;
 	}
-	if (count != nullptr) {
-		delete count;
-		count = nullptr;
-	}
-	if (head != nullptr) {
-		delete head;
-		head = nullptr;
-	}
 }
 
 Node::node::node(int num)
 {
-	count = new int(num);
-	head = new int(0);
-	data = new char[*count];
-	for (int i = 0; i < *count; i++) *(data + i) = 0;
+	count = num;
+	head = 0;
+	data = new char[count];
+	for (int i = 0; i < count; i++) *(data + i) = 0;
 }
 
 Node::node::node(node& a)
 {
-	count = new int(a.size());
-	head = new int(a.gethead());
-	data = new char[*count];
-	for (int i = 0; i < *count; i++)
+	count = a.size();
+	head = a.gethead();
+	data = new char[count];
+	for (int i = 0; i < count; i++)
 		*(data + i) = *(a.data + i);
 }
 
@@ -99,16 +91,16 @@ char Node::node::read0(int m)
 
 int node::add(char val)
 {
-	*(data + *head) = val;
-	if (1 + *head >= *count) *head = 0;
-	else (*head)++;
+	*(data + head) = val;
+	if (1 + head >= count) head = 0;
+	else (head)++;
 	return 0;
 }
 
 int Node::node::set(int pos, char val)
 {
-	if (pos + *head >= *count)pos = pos + *head - *count + 1;
-	else pos = pos + *head;
+	if (pos + head >= count)pos = pos + head - count + 1;
+	else pos = pos + head;
 	*(data + pos) = val;
 	return 0;
 }
@@ -116,7 +108,7 @@ int Node::node::set(int pos, char val)
 int Node::node::sum()
 {
 	int sum = 0;
-	for (int i = 0; i < *count; i++)
+	for (int i = 0; i < count; i++)
 		sum += *(data + i);
 	return sum;
 }
@@ -124,19 +116,19 @@ int Node::node::sum()
 char Node::node::maxv()
 {
 	char max = -128;
-	for (int i = 0; i < *count; i++)
+	for (int i = 0; i < count; i++)
 		if (*(data + i) > max)max = *(data + i);
 	return max;
 }
 
 int node::size()
 {
-	return *count;
+	return count;
 }
 
 int Node::node::gethead()
 {
-	return *head;
+	return head;
 }
 
 node::~node()
@@ -144,14 +136,6 @@ node::~node()
 	if (data != nullptr) {
 		delete[] data;
 		data = nullptr;
-	}
-	if (count != nullptr) {
-		delete count;
-		count = nullptr;
-	}
-	if (head != nullptr) {
-		delete head;
-		head = nullptr;
 	}
 }
 
