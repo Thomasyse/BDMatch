@@ -1,4 +1,5 @@
 #include "node.h"
+#include<algorithm>  
 using namespace Node;
 
 Node::noded::noded(int num)
@@ -66,6 +67,7 @@ noded::~noded()
 		data = nullptr;
 	}
 }
+
 
 Node::node::node(int num)
 {
@@ -138,6 +140,50 @@ node::~node()
 		data = nullptr;
 	}
 }
+
+
+Node::bdsearch::bdsearch(int num)
+{
+	bditem.reserve(num);
+}
+
+int Node::bdsearch::push(int time, int diff)
+{
+	std::array<int, 2> a;
+	a[0] = time;
+	a[1] = diff;
+	bditem.push_back(a);
+	return 0;
+}
+
+int Node::bdsearch::read(int index)
+{
+	return bditem[index][0];
+}
+
+int Node::bdsearch::find(int searchnum)
+{
+	int index = 0;
+	for (auto &i : bditem) {
+		if (i[0] == searchnum)break;
+		index++;
+	}
+	return index;
+}
+
+int Node::bdsearch::sort()
+{
+	std::sort(bditem.begin(), bditem.end(), [](std::array<int, 2> &a, std::array<int, 2>&b) {
+		return a[1] < b[1];
+	});
+	return 0;
+}
+
+int Node::bdsearch::size()
+{
+	return bditem.size();
+}
+
 
 Node::timec::timec(int start0, int end0, bool iscom0, String^ head0)
 {
@@ -234,3 +280,5 @@ void Node::Var::caldiff()
 		Interlocked::Decrement(diffa[2]);
 	}
 }
+
+

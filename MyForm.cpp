@@ -305,33 +305,14 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 				}
 			}
 			//初筛
-			std::vector<int>bdsearch;
-			int firnum = 0, secnum = 0, thinum = 0, fornum = 0;
-			for (int j = findnum; j >=0 ; j--) {
-				int bdin = findstart + j * interval;
-				
-				int delta = labs((*bdfftdata)[0][bdin + tvmaxtime]->sum() - tvmax) >> rightshift;
-				if (delta == 0) {
-					bdsearch.insert(bdsearch.begin(), bdin);
-					firnum++;
-				}
-				else if (delta < 5) {
-					bdsearch.insert(bdsearch.begin() + firnum, bdin);
-					secnum++;
-				}
-				else if (delta < 10) {
-					bdsearch.insert(bdsearch.begin() + firnum + secnum, bdin);
-					thinum++;
-				}
-				else if (delta < 18) {
-					bdsearch.insert(bdsearch.begin() + firnum + secnum + thinum, bdin);
-					fornum++;
-				}
-				else if (delta < 27)bdsearch.insert(bdsearch.begin() + firnum + secnum + thinum + fornum, bdin);
-				else if (delta < 41)bdsearch.push_back(bdin);
-				
+			bdsearch bdse(findnum);
+			for (int j = 0; j <=findnum ; j++) {
+				int bdtimein = findstart + j * interval;
+				int delta = labs((*bdfftdata)[0][bdtimein + tvmaxtime]->sum() - tvmax) >> rightshift;
+				if (delta < 41)bdse.push(bdtimein, delta);
 				//bdsearch.insert(bdsearch.begin(), bdin);//调试用
 			}
+			bdse.sort();
 			//精确匹配
 			diftime[0] = 0;
 			diftime[1] = 9223372036854775807;
@@ -339,8 +320,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			if (duration <= 75 * interval)minroundnumcal = findnum;
 			diftime[2] = minroundnumcal;
 			List<Task^>^ tasks = gcnew List<Task^>();
-			for (int j = 0; j < bdsearch.size(); j++) {
-				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, tvdecode->getsamprate(), tvtime[i], bdsearch[j],
+			for (int j = 0; j < bdse.size(); j++) {
+				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, tvdecode->getsamprate(), tvtime[i], bdse.read(j),
 					duration, ch, minroundnumcal, diftime);
 				Task^ varTask = gcnew Task(gcnew Action(calvar, &Var::caldiff));
 				varTask->Start();
@@ -350,7 +331,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			//调试用->
 			//int delta1 = labs(bdfftdata[0, diftime[0] + tvmaxtime]->sum() - tvmax) >> rightshift;
 			//Result->Text += "\r\n" + delta1.ToString();
-			aveindex = aveindex + (std::find(bdsearch.begin(), bdsearch.end(), (int)diftime[0]) - bdsearch.begin()) / (double)findnum;
+			aveindex = aveindex + bdse.find(static_cast<int>(diftime[0])) / (double)findnum;
 			//
 			bdtime[i] = static_cast<int>(diftime[0]);
 		}
@@ -431,6 +412,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	Result->Text += "\r\n匹配时间：" + spend.ToString() + "秒";
 	return 0;
 }
+
 
 int BDMatch::MyForm::drawchart()
 {

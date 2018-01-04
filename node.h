@@ -1,6 +1,7 @@
 #pragma once
 #include <math.h> 
 #include <vector>
+#include <array>
 
 namespace Node {
 	
@@ -39,6 +40,19 @@ namespace Node {
 		int count = 0;
 		int head = 0;
 		char *data = nullptr;
+	};
+
+	public class bdsearch
+	{
+	public:
+		bdsearch(int num);
+		int push(int time,int diff);
+		int read(int index);
+		int find(int searchnum);
+		int sort();
+		int size();
+	private:
+		std::vector<std::array<int, 2>>bditem;
 	};
 
 	using namespace System;
