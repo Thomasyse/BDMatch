@@ -48,7 +48,7 @@ namespace Node {
 		bdsearch(int num);
 		int push(int time,int diff);
 		int read(int index);
-		int find(int searchnum);
+		int find(int searchnum, int retype);
 		int sort();
 		int size();
 	private:

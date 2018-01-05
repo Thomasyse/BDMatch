@@ -3,7 +3,6 @@
 // π© BDMatch.rc  π”√
 //
 #define IDI_ICON2                       107
-#define ID_BUTTON2                      40001
 
 // Next default values for new objects
 // 

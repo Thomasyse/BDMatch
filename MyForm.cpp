@@ -1,4 +1,7 @@
 #include "MyForm.h"
+#define appversion "0.8.0"
+#define tvmaxnum 6
+#define secpurple 45
 
 using namespace BDMatch;
 [STAThreadAttribute]
@@ -84,34 +87,37 @@ int BDMatch::MyForm::match()
 	tvprogressBar->Value = 0;
 	bdprogressBar->Value = 0;
 
-	List<Task^>^ tvtasks = gcnew List<Task^>();
-	List<Task^>^ bdtasks = gcnew List<Task^>();
-	long tvstart = clock();//开始计时
-	Decode^ tvdecode = gcnew Decode(TVtext->Text, FFTnum, outputpcm, minfinddb, 0, tvtasks,
+	List<Task^>^ decodetasks = gcnew List<Task^>();
+	long start = clock();//开始计时
+	double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
+	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*FFTnum);
+	fftw_plan plan = fftw_plan_dft_r2c_1d(FFTnum, in, out, FFTW_MEASURE);
+	fftw_free(in);
+	fftw_free(out);
+	Decode^ tvdecode = gcnew Decode(TVtext->Text, FFTnum, outputpcm, minfinddb, 0, decodetasks, plan,
 		gcnew ProgressCallback(this, &MyForm::progtv), gcnew ProgMaxCallback(this, &MyForm::progtvmax));//解码TV文件
 	Task^ tvTask = gcnew Task(gcnew Action(tvdecode, &Decode::decodeaudio));
 	tvTask->Start();
-	tvTask->Wait();
-	
-	long bdstart = clock();//开始计时
-	Decode^ bddecode = gcnew Decode(BDtext->Text, FFTnum, outputpcm, minfinddb, tvdecode->getsamprate(), bdtasks,
+	decodetasks->Add(tvTask);
+
+	do {
+		Thread::Sleep(1);
+	} while (tvdecode->getsamprate() == 0);
+
+	Decode^ bddecode = gcnew Decode(BDtext->Text, FFTnum, outputpcm, minfinddb, tvdecode->getsamprate(), decodetasks, plan,
 		gcnew ProgressCallback(this, &MyForm::progbd), gcnew ProgMaxCallback(this, &MyForm::progbdmax));//解码BD文件
 	Task^ bdTask = gcnew Task(gcnew Action(bddecode, &Decode::decodeaudio));
 	bdTask->Start();
-	bdTask->Wait();
-
-	Task::WaitAll(tvtasks->ToArray());
+	decodetasks->Add(bdTask);
+	
+	Task::WaitAll(decodetasks->ToArray());
+	fftw_destroy_plan(plan);
 	//输出解码时间
-	long tvend = clock();
-	double tvspend = double(tvend - tvstart) / (double)CLOCKS_PER_SEC;
-	Task::WaitAll(bdtasks->ToArray());
-	//输出解码时间
-	long bdend = clock();
-	double bdspend = double(bdend - bdstart) / (double)CLOCKS_PER_SEC;
-	tvspend = tvspend - bdspend;
+	long end = clock();
+	double spend = double(end - start) / (double)CLOCKS_PER_SEC;
 
-	Result->Text += "TV文件：\r\n" + tvdecode->getfeedback() + "\r\n解码时间：" + tvspend.ToString() + "秒";
-	Result->Text += "\r\nBD文件：\r\n" + bddecode->getfeedback()+ "\r\n解码时间：" + bdspend.ToString() + "秒";
+	Result->Text += "TV文件：\r\n" + tvdecode->getfeedback();
+	Result->Text += "\r\nBD文件：\r\n" + bddecode->getfeedback()+ "\r\n解码时间：" + spend.ToString() + "秒";
 	if (tvdecode->getreturn() < 0 || bddecode->getreturn() < 0) return-1;
 	tvfftdata = tvdecode->getfftdata();
 	bdfftdata = bddecode->getfftdata();
@@ -185,7 +191,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	std::vector<std::vector<node*>>* bdfftdata = bddecode->getfftdata();
 	int tvch = tvdecode->getchannels();
 	int bdch = bddecode->getchannels();
-	
+
 	tvprogressBar->Value = 0;
 	bdprogressBar->Value = 0;
 	String^ tvass;
@@ -288,7 +294,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 		interval = 1;
 	}
 	array<Int64> ^diftime = gcnew array<Int64>(3);
-	double aveindex = 0;//调试用
+	double aveindex = 0, maxindex = 0; int maxdelta = 0, maxline = 0;//调试用
 	for (int i = 0; i < alltimematch->Count; i++) {
 		if (tvtime[i] >= 0) {
 			int findstart = static_cast<int>(tvtime[i] - find0 * interval);
@@ -297,20 +303,29 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			findstart = max(0, findstart);
 			findend = static_cast<int>(min(bdfftnum - duration, findend));
 			int findnum = (findend - findstart) / interval;
-			int tvmax = -128 * FFTnum / 2, tvmaxtime = 0;
+			int tvmax[tvmaxnum] , tvmaxtime[tvmaxnum];
+			for (auto& j : tvmax) j = -128 * FFTnum / 2;
+			for (auto& j : tvmaxtime) j = 0;
 			for (int j = 0; j <= duration; j++) {
-				if ((*tvfftdata)[0][j + tvtime[i]]->sum() > tvmax || j == 0) {
-					tvmax = (*tvfftdata)[0][j + tvtime[i]]->sum();
-					tvmaxtime = j;
+				if ((*tvfftdata)[0][j + tvtime[i]]->sum() > tvmax[0] || j == 0) {
+					for (int k = tvmaxnum - 1; k > 0; k--) {
+						tvmax[k] = tvmax[k - 1];
+						tvmaxtime[k] = tvmaxtime[k - 1];
+					}
+					tvmax[0] = (*tvfftdata)[0][j + tvtime[i]]->sum();
+					tvmaxtime[0] = j;
 				}
 			}
 			//初筛
 			bdsearch bdse(findnum);
-			for (int j = 0; j <=findnum ; j++) {
+			for (int j = 0; j <= findnum; j++) {
 				int bdtimein = findstart + j * interval;
-				int delta = labs((*bdfftdata)[0][bdtimein + tvmaxtime]->sum() - tvmax) >> rightshift;
-				if (delta < 41)bdse.push(bdtimein, delta);
-				//bdsearch.insert(bdsearch.begin(), bdin);//调试用
+				int delta = 0;
+				for (int k = 0; k < tvmaxnum; k++) {
+					delta += labs((*bdfftdata)[0][bdtimein + tvmaxtime[k]]->sum() - tvmax[k]);
+				}
+				delta = delta >> rightshift;
+				if (delta < 250)bdse.push(bdtimein, delta);
 			}
 			bdse.sort();
 			//精确匹配
@@ -329,9 +344,15 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			}
 			Task::WaitAll(tasks->ToArray());
 			//调试用->
-			//int delta1 = labs(bdfftdata[0, diftime[0] + tvmaxtime]->sum() - tvmax) >> rightshift;
-			//Result->Text += "\r\n" + delta1.ToString();
-			aveindex = aveindex + bdse.find(static_cast<int>(diftime[0])) / (double)findnum;
+			int delta1 = bdse.find(static_cast<int>(diftime[0]), 1);
+			if (delta1 > maxdelta)maxdelta = delta1;
+		    //Result->Text += "\r\n" + delta1.ToString();
+			double foundindex = bdse.find(static_cast<int>(diftime[0]), 0) / (double)findnum;
+			aveindex = aveindex + foundindex;
+			if (foundindex > maxindex&&duration > 75 * interval) {
+				maxindex = foundindex;
+				maxline = i + 1;
+			}
 			//
 			bdtime[i] = static_cast<int>(diftime[0]);
 		}
@@ -341,7 +362,9 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	delete diftime;
 	//调试用->
 	aveindex /= alltimematch->Count / 100.0;
-	Result->Text += "\r\nAverage Found Index = " + aveindex.ToString() + "%";
+	maxindex *= 100;
+	Result->Text += "\r\nAverage Found Index = " + aveindex.ToString() + "%    " + "Max Found Index= " + maxindex.ToString() +
+		"%\r\nMax Found Line= " + maxline.ToString() + "    Max Delta= " + maxdelta.ToString();
 	//
 	//绘图相关
 	if (draw) {
@@ -349,6 +372,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 		bddraw.timelist = gcnew array<int, 2>(alltimematch->Count, 2);
 		tvdraw.linenum = alltimematch->Count;
 		bddraw.linenum = alltimematch->Count;
+		LineSel->Maximum = alltimematch->Count;
 	}
 	//写字幕
 	for (int i = 0; i < alltimematch->Count; i++) {
@@ -360,7 +384,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			int duration = static_cast<int>(timelist[i]->end() - timelist[i]->start());
 			timelist[i]->start(bdtime[i]);
 			timelist[i]->end(bdtime[i] + duration);
-			if (i < alltimematch->Count - 1 && timelist[i]->end() > bdtime[i+1] && (timelist[i]->end() - bdtime[i+1]) <= interval) {
+			if (i < alltimematch->Count - 1 && timelist[i]->end() > bdtime[i + 1] && (timelist[i]->end() - bdtime[i + 1]) <= interval) {
 				timelist[i]->end(bdtime[i + 1]);
 				Result->Text += "\r\n信息：第" + (i + 1).ToString() + "行和第" + (i + 2).ToString() + "行发生微小重叠，已自动修正。";
 			}
@@ -413,7 +437,6 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	return 0;
 }
 
-
 int BDMatch::MyForm::drawchart()
 {
 	int milisec = max(tvdraw.milisec, bddraw.milisec);
@@ -450,12 +473,13 @@ int BDMatch::MyForm::drawchart()
 	// Loop through the images pixels to reset color.
 	for (x = 0; x < spectrum1->Width; x++)
 	{
-		bool tvinline = false, bdinline = false;
+		int tvinline = 0, bdinline = 0;
 		int tvedge = 0, bdedge = 0;
 		for (int i = 0; i < tvdraw.linenum; i++) {
 			if (tvdraw.timelist[i, 0] >= 0) {
 				if (tvdraw.timelist[i, 0] <= x + tvstart && tvdraw.timelist[i, 1] >= x + tvstart) {
-					tvinline = true;
+					if (i == static_cast<int>(LineSel->Value) - 1 || ViewSel->SelectedIndex == 0) tvinline = 1;
+					else if (!tvinline) tvinline = 2;
 					if (tvdraw.timelist[i, 0] == x + tvstart || tvdraw.timelist[i, 1] == x + tvstart) {
 						if (i == static_cast<int>(LineSel->Value) - 1 || ViewSel->SelectedIndex == 0) {
 							if (tvdraw.timelist[i, 0] == x + tvstart)tvedge = 1;
@@ -465,7 +489,8 @@ int BDMatch::MyForm::drawchart()
 					}
 				}
 				if (bddraw.timelist[i, 0] <= x + bdstart && bddraw.timelist[i, 1] >= x + bdstart) {
-					bdinline = true;
+					if (i == static_cast<int>(LineSel->Value) - 1 || ViewSel->SelectedIndex == 0) bdinline = 1;
+					else if (!bdinline) bdinline = 2;
 					if (bddraw.timelist[i, 0] == x + bdstart || bddraw.timelist[i, 1] == x + bdstart) {
 						if (i == static_cast<int>(LineSel->Value) - 1 || ViewSel->SelectedIndex == 0) {
 							if (bddraw.timelist[i, 0] == x + bdstart)bdedge = 1;
@@ -501,7 +526,17 @@ int BDMatch::MyForm::drawchart()
 						newColor = Color::FromArgb(180, 180, 180);
 						break;
 					default:
-						newColor = Color::FromArgb(color / 4 + 70, color, max(color, 70));
+						switch (bdinline) {
+						case 1:
+							newColor = Color::FromArgb(color / 4 + 70, color, max(color, 70));
+							break;
+						case 2:
+							newColor = Color::FromArgb(color / 4 + secpurple, color, max(color, secpurple));
+							break;
+						default:
+							newColor = Color::FromArgb(color / 4 + secpurple, color, max(color, secpurple));
+							break;
+						}
 						break;
 					}
 			}
@@ -518,7 +553,17 @@ int BDMatch::MyForm::drawchart()
 						newColor = Color::FromArgb(180, 180, 180);
 						break;
 					default:
-						newColor = Color::FromArgb(color / 4 + 70, color, max(color, 70));
+						switch (tvinline) {
+						case 1:
+							newColor = Color::FromArgb(color / 4 + 70, color, max(color, 70));
+							break;
+						case 2:
+							newColor = Color::FromArgb(color / 4 + secpurple, color, max(color, secpurple));
+							break;
+						default:
+							newColor = Color::FromArgb(color / 4 + secpurple, color, max(color, secpurple));
+							break;
+						}
 						break;
 					}
 			}
@@ -632,6 +677,7 @@ System::Void BDMatch::MyForm::MyForm_Load(System::Object ^ sender, System::Event
 {
 	tvprogressBar->CheckForIllegalCrossThreadCalls = false;
 	bdprogressBar->CheckForIllegalCrossThreadCalls = false;
+	About->Text = "v" + appversion;
 	setrows();
 	return System::Void();
 }
@@ -789,7 +835,7 @@ System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::Event
 
 System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	MessageBox::Show(this, "BDMatch\nVersion 0.7.0\nBy Thomasys, 2018\n\nReference:\nFFmpeg3.4.1\nFFTW3.3.7\n" +
+	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nBy Thomasys, 2018\n\nReference:\nFFmpeg3.4.1\nFFTW3.3.7\n" +
 		"Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005). ", "关于", MessageBoxButtons::OK);
 	return System::Void();
 }

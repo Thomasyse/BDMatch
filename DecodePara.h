@@ -44,7 +44,7 @@ namespace BDMatch{
 	ref class Decode
 	{
 	public:
-		Decode(String^ filename0, int FFTnum0, bool outputpcm0, int mindb0, int resamprate0, List<Task^>^ tasks0,
+		Decode(String^ filename0, int FFTnum0, bool outputpcm0, int mindb0, int resamprate0, List<Task^>^ tasks0, fftw_plan plan0,
 			ProgressCallback^ progback0, ProgMaxCallback^ progmax0);
 		void decodeaudio();
 		String^ getfeedback();
@@ -61,6 +61,7 @@ namespace BDMatch{
 		String^ feedback;
 		std::vector<std::vector<node*>>* fftdata;
 		List<Task^>^ tasks;
+		fftw_plan plan;
 		int FFTnum;
 		int out_bitdepth = 0;
 		int audiostream = 0;
@@ -80,18 +81,16 @@ namespace BDMatch{
 	ref class FFTC
 	{
 	public:
-		FFTC(noded* seq0, node* fftseq0, fftw_plan p0, double* in0, fftw_complex* out0, int mindb0, ProgressCallback^ progback0);
+		FFTC(node* fftseq0, fftw_plan p0, double* in0, int mindb0, ProgressCallback^ progback0);
 		void FFT();
 	private:
-		noded* seq;
 		int FFTnum;
 		int mindb;
 		ProgressCallback^ progback;
 		node* fftseq;
 		fftw_plan p;
 		double *in = nullptr;
-		fftw_complex *out = nullptr;
-		int FD8(noded* inseq, node* outseq);
+		int FD8(double* inseq, node* outseq);
 	};
 }
 

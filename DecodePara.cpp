@@ -3,7 +3,7 @@
 #define progmaxnum 150
 using namespace BDMatch;
 
-BDMatch::Decode::Decode(String^ filename0, int FFTnum0, bool outputpcm0, int mindb0, int resamprate0, List<Task^>^ tasks0,
+BDMatch::Decode::Decode(String^ filename0, int FFTnum0, bool outputpcm0, int mindb0, int resamprate0, List<Task^>^ tasks0, fftw_plan plan0,
 	ProgressCallback^ progback0, ProgMaxCallback^ progmax0)
 {
 	filename = filename0;
@@ -14,12 +14,14 @@ BDMatch::Decode::Decode(String^ filename0, int FFTnum0, bool outputpcm0, int min
 	mindb = mindb0;
 	resamprate = resamprate0;
 	tasks = tasks0;
+	plan = plan0;
 }
 
 void BDMatch::Decode::decodeaudio()
 {
 	using namespace System::IO;
 	using namespace Node;
+	using namespace System::Threading;
 
 	AVFormatContext *filefm = NULL;//文件格式
 	std::string filestr = marshal_as<std::string>(filename->ToString());
@@ -191,7 +193,7 @@ void BDMatch::Decode::decodeaudio()
 		samplenum = static_cast<int>(ceil(samplerate / 1000.0*filefm->duration / 1000.0));
 	}
 	efftnum = static_cast<int>(ceil(samplenum / float(FFTnum)));
-	
+
 	AVPacket *packet = av_packet_alloc();
 	double shiftf = 0;
 	progmax(progmaxnum);
@@ -324,12 +326,12 @@ void BDMatch::Decode::decodeaudio()
 						}
 					}
 					if (sample_seq_l->gethead() == 0 && samplecount > 0) {
-						noded* inseql = new noded(*sample_seq_l);
 						(*fftdata)[0][fftsampnum] = new node(FFTnum / 2);
 						double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
-						fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*FFTnum);
-						fftw_plan p = fftw_plan_dft_r2c_1d(FFTnum, in, out, FFTW_MEASURE);
-						FFTC^ fftcl = gcnew FFTC(inseql, (*fftdata)[0][fftsampnum], p, in, out, mindb,
+						for (int i = 0; i < FFTnum; i++) {
+							*(in + i) = sample_seq_l->read0(i);
+						}
+						FFTC^ fftcl = gcnew FFTC((*fftdata)[0][fftsampnum], plan, in, mindb,
 							gcnew ProgressCallback(this, &Decode::subprogback));
 						Task^ taskl = gcnew Task(gcnew Action(fftcl, &FFTC::FFT));
 						taskl->Start();
@@ -338,12 +340,12 @@ void BDMatch::Decode::decodeaudio()
 						fftsampnum++;
 					}
 					if (sample_seq_r->gethead() == 0 && samplecount > 0 && codecfm->channels > 1) {
-						noded* inseqr = new noded(*sample_seq_r);
 						(*fftdata)[1][fftsampnum - 1] = new node(FFTnum / 2);
 						double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
-						fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*FFTnum);
-						fftw_plan p = fftw_plan_dft_r2c_1d(FFTnum, in, out, FFTW_MEASURE);
-						FFTC^ fftcr = gcnew FFTC(inseqr, (*fftdata)[1][fftsampnum - 1], p, in, out, mindb,
+						for (int i = 0; i < FFTnum; i++) {
+							*(in + i) = sample_seq_r->read0(i);
+						}
+						FFTC^ fftcr = gcnew FFTC((*fftdata)[1][fftsampnum - 1], plan, in, mindb,
 							gcnew ProgressCallback(this, &Decode::subprogback));
 						Task^ taskr = gcnew Task(gcnew Action(fftcr, &FFTC::FFT));
 						taskr->Start();
@@ -470,52 +472,43 @@ void BDMatch::Decode::subprogback()
 	}
 }
 
-BDMatch::FFTC::FFTC(noded* seq0, node* fftseq0, fftw_plan p0, double* in0, fftw_complex* out0, int mindb0, ProgressCallback^ progback0)
+BDMatch::FFTC::FFTC(node* fftseq0, fftw_plan p0, double* in0, int mindb0, ProgressCallback^ progback0)
 {
-	seq = seq0;
 	fftseq = fftseq0;
-	FFTnum = seq0->size();
+	FFTnum = fftseq0->size() * 2;
 	progback = progback0;
 	mindb = mindb0;
 	p = p0;
 	in = in0;
-	out = out0;
 }
 
 void BDMatch::FFTC::FFT()
 {
 	using namespace Node;
 	using namespace std;
-	for (int i = 0; i < FFTnum; i++) {
-		*(in + i) = seq->read0(i);
-	}
-	fftw_execute(p);
+
+	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*FFTnum);
+	fftw_execute_dft_r2c(p, in, out);
 	for (int i = 0; i < FFTnum / 2; i++) {
 		double real = *(out + i)[0];
 		double imag = *(out + i)[1];
-		seq->add(real * real + imag * imag);
+		*(in + i) = real * real + imag * imag;
 	}
-	for (int i = FFTnum /2; i < FFTnum; i++) {
-		seq->add(0);
-	}
-	fftw_destroy_plan(p);
+	FD8(in, fftseq);
 	fftw_free(in);
 	fftw_free(out);
 	p = nullptr;
 	in = nullptr;
 	out = nullptr;
-	FD8(seq, fftseq);
-	delete seq;
-	seq = nullptr;
 	progback();
 	return;
 }
 
-int BDMatch::FFTC::FD8(Node::noded* inseq, Node::node* outseq)
+int BDMatch::FFTC::FD8(double *inseq, Node::node* outseq)
 {
 	using namespace Node;
 	for (int i = 0; i < outseq->size(); i++) {
-		double addx = inseq->read0(i);
+		double addx = *(inseq + i);
 		addx = 10 * log10(addx);
 		addx -= 15;
 		addx *= 2 * 128 / (15 - mindb);
@@ -526,4 +519,5 @@ int BDMatch::FFTC::FD8(Node::noded* inseq, Node::node* outseq)
 	}
 	return 0;
 }
+
 

@@ -279,7 +279,7 @@ namespace BDMatch {
 			this->About->Name = L"About";
 			this->About->Size = System::Drawing::Size(67, 50);
 			this->About->TabIndex = 7;
-			this->About->Text = L"v0.7.0";
+			this->About->Text = L"v0.0.0";
 			this->About->TextAlign = System::Drawing::ContentAlignment::BottomRight;
 			this->About->Click += gcnew System::EventHandler(this, &MyForm::About_Click);
 			// 
@@ -488,7 +488,7 @@ namespace BDMatch {
 			this->ViewSel->Enabled = false;
 			this->ViewSel->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11.8F));
 			this->ViewSel->FormattingEnabled = true;
-			this->ViewSel->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"时间", L"行数" });
+			this->ViewSel->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"按时间", L"按行" });
 			this->ViewSel->Location = System::Drawing::Point(3, 138);
 			this->ViewSel->Name = L"ViewSel";
 			this->ViewSel->Size = System::Drawing::Size(121, 35);

@@ -29,7 +29,7 @@ int noded::add(double val)
 {
 	*(data + head) = val;
 	if (1 + head >= count) head = 0;
-	else (head)++;
+	else head++;
 	return 0;
 }
 
@@ -95,7 +95,7 @@ int node::add(char val)
 {
 	*(data + head) = val;
 	if (1 + head >= count) head = 0;
-	else (head)++;
+	else head++;
 	return 0;
 }
 
@@ -161,11 +161,14 @@ int Node::bdsearch::read(int index)
 	return bditem[index][0];
 }
 
-int Node::bdsearch::find(int searchnum)
+int Node::bdsearch::find(int searchnum, int retype)
 {
 	int index = 0;
 	for (auto &i : bditem) {
-		if (i[0] == searchnum)break;
+		if (i[0] == searchnum) {
+			if (!retype)return index;
+			else return i[1];
+		};
 		index++;
 	}
 	return index;
