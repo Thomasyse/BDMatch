@@ -24,6 +24,7 @@ BDMatch::Settings::Settings(SettingIntCallback^ setintbackin, SettingBoolCallbac
 	DrawSet->Checked = setting->draw;
 	MatchAssSet->Checked = setting->matchass;
 	MinCheckNumSet->Value = setting->minchecknum;
+	ParaDecode->Checked = setting->paralleldecode;
 }
 
 System::Void BDMatch::Settings::Settings_FormClosed(System::Object ^ sender, System::Windows::Forms::FormClosedEventArgs ^ e)
@@ -68,7 +69,7 @@ System::Void BDMatch::Settings::MindB_ValueChanged(System::Object ^ sender, Syst
 	if (this->Visible) {
 		int mindb = static_cast<int>(MindB->Value);
 		if (mindb > 5) {
-			MessageBox::Show(this, "最小匹配响度过大会使很多行字幕不会进行匹配，请谨慎选择！", "BDMatch", MessageBoxButtons::OK);
+			MessageBox::Show(this, "最小响度过大会使很多时间轴不会进行匹配，请谨慎选择！", "BDMatch", MessageBoxButtons::OK);
 		}
 		setintback->Invoke(MinFindDb, mindb);
 	}

@@ -498,7 +498,7 @@ namespace BDMatch {
 			this->tabPage2->Location = System::Drawing::Point(4, 39);
 			this->tabPage2->Name = L"tabPage2";
 			this->tabPage2->Padding = System::Windows::Forms::Padding(3, 3, 30, 3);
-			this->tabPage2->Size = System::Drawing::Size(842, 449);
+			this->tabPage2->Size = System::Drawing::Size(867, 449);
 			this->tabPage2->TabIndex = 1;
 			this->tabPage2->Text = L"匹配设置";
 			this->tabPage2->UseVisualStyleBackColor = true;
@@ -542,7 +542,7 @@ namespace BDMatch {
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->MatchLayoutPanel->Size = System::Drawing::Size(809, 443);
+			this->MatchLayoutPanel->Size = System::Drawing::Size(834, 443);
 			this->MatchLayoutPanel->TabIndex = 25;
 			// 
 			// label17
@@ -553,7 +553,7 @@ namespace BDMatch {
 				static_cast<System::Byte>(134)));
 			this->label17->Location = System::Drawing::Point(309, 169);
 			this->label17->Name = L"label17";
-			this->label17->Size = System::Drawing::Size(494, 44);
+			this->label17->Size = System::Drawing::Size(519, 44);
 			this->label17->TabIndex = 23;
 			this->label17->Text = L"秒";
 			this->label17->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
@@ -567,7 +567,7 @@ namespace BDMatch {
 			this->label14->Location = System::Drawing::Point(48, 284);
 			this->label14->Margin = System::Windows::Forms::Padding(45, 0, 3, 0);
 			this->label14->Name = L"label14";
-			this->label14->Size = System::Drawing::Size(755, 156);
+			this->label14->Size = System::Drawing::Size(780, 156);
 			this->label14->TabIndex = 24;
 			this->label14->Text = L"对搜索到的暂优选点进行确认，确认足够次数后即会取作最佳选点。过小的确认次数会导致匹配不精确，过大的确认次数会加长匹配时间。";
 			// 
@@ -579,7 +579,7 @@ namespace BDMatch {
 				static_cast<System::Byte>(134)));
 			this->label16->Location = System::Drawing::Point(309, 71);
 			this->label16->Name = L"label16";
-			this->label16->Size = System::Drawing::Size(494, 44);
+			this->label16->Size = System::Drawing::Size(519, 44);
 			this->label16->TabIndex = 22;
 			this->label16->Text = L"秒";
 			this->label16->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
@@ -593,7 +593,7 @@ namespace BDMatch {
 			this->label13->Location = System::Drawing::Point(48, 213);
 			this->label13->Margin = System::Windows::Forms::Padding(45, 0, 3, 0);
 			this->label13->Name = L"label13";
-			this->label13->Size = System::Drawing::Size(755, 27);
+			this->label13->Size = System::Drawing::Size(780, 27);
 			this->label13->TabIndex = 23;
 			this->label13->Text = L"超过最大查找句长的时间轴将不会进行匹配，以防止过长的空行影响匹配速度。";
 			// 
@@ -606,7 +606,7 @@ namespace BDMatch {
 			this->label10->Location = System::Drawing::Point(48, 44);
 			this->label10->Margin = System::Windows::Forms::Padding(45, 0, 3, 0);
 			this->label10->Name = L"label10";
-			this->label10->Size = System::Drawing::Size(755, 27);
+			this->label10->Size = System::Drawing::Size(780, 27);
 			this->label10->TabIndex = 21;
 			this->label10->Text = L"取消勾选则会只进行音频解码，不会进行匹配。";
 			// 
@@ -619,7 +619,7 @@ namespace BDMatch {
 			this->label11->Location = System::Drawing::Point(48, 115);
 			this->label11->Margin = System::Windows::Forms::Padding(45, 0, 3, 0);
 			this->label11->Name = L"label11";
-			this->label11->Size = System::Drawing::Size(755, 54);
+			this->label11->Size = System::Drawing::Size(780, 54);
 			this->label11->TabIndex = 22;
 			this->label11->Text = L"决定在ASS时间轴多大时间范围内查找最佳匹配时间。查找范围增加会加长匹配时间，过小的查找范围会导致无法匹配到正确的时间。";
 			// 
@@ -630,7 +630,7 @@ namespace BDMatch {
 			this->tabPage3->Location = System::Drawing::Point(4, 39);
 			this->tabPage3->Name = L"tabPage3";
 			this->tabPage3->Padding = System::Windows::Forms::Padding(3, 3, 30, 3);
-			this->tabPage3->Size = System::Drawing::Size(842, 449);
+			this->tabPage3->Size = System::Drawing::Size(867, 449);
 			this->tabPage3->TabIndex = 2;
 			this->tabPage3->Text = L"声谱设置";
 			this->tabPage3->UseVisualStyleBackColor = true;
@@ -654,7 +654,7 @@ namespace BDMatch {
 			this->SpectrumLayoutPanel->RowCount = 2;
 			this->SpectrumLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->SpectrumLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->SpectrumLayoutPanel->Size = System::Drawing::Size(809, 443);
+			this->SpectrumLayoutPanel->Size = System::Drawing::Size(834, 443);
 			this->SpectrumLayoutPanel->TabIndex = 23;
 			// 
 			// label12
@@ -666,7 +666,7 @@ namespace BDMatch {
 			this->label12->Location = System::Drawing::Point(48, 44);
 			this->label12->Margin = System::Windows::Forms::Padding(45, 0, 3, 0);
 			this->label12->Name = L"label12";
-			this->label12->Size = System::Drawing::Size(755, 396);
+			this->label12->Size = System::Drawing::Size(780, 396);
 			this->label12->TabIndex = 22;
 			this->label12->Text = L"打开此选项可以查看解码得到的声谱图，并对原字幕时间轴和匹配生成的时间轴对应的声谱进行对比。";
 			// 
