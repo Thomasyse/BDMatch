@@ -1,8 +1,8 @@
-#include "node.h"
+#include "datastruct.h"
 #include<algorithm>  
-using namespace Node;
+using namespace DataStruct;
 
-Node::noded::noded(int num)
+DataStruct::noded::noded(int num)
 {
 	count = num;
 	head = 0;
@@ -10,7 +10,7 @@ Node::noded::noded(int num)
 	for (int i = 0; i < count; i++) *(data + i) = 0;
 }
 
-Node::noded::noded(noded& a)
+DataStruct::noded::noded(noded& a)
 {
 	count = a.size();
 	head = a.gethead();
@@ -19,13 +19,13 @@ Node::noded::noded(noded& a)
 		*(data + i) = *(a.data + i);
 }
 
-double noded::read0(int m)
+double DataStruct::noded::read0(int m)
 {
 	return *(data + m);
 	return 0;
 }
 
-int noded::add(double val)
+int DataStruct::noded::add(double val)
 {
 	*(data + head) = val;
 	if (1 + head >= count) head = 0;
@@ -33,7 +33,7 @@ int noded::add(double val)
 	return 0;
 }
 
-int Node::noded::set(int pos, double val)
+int DataStruct::noded::set(int pos, double val)
 {
 	if (pos + head >= count)pos = pos + head - count + 1;
 	else pos = pos + head;
@@ -41,7 +41,7 @@ int Node::noded::set(int pos, double val)
 	return 0;
 }
 
-double Node::noded::maxabs()
+double DataStruct::noded::maxabs()
 {
 	double maxx = fabs(*data);
 	for (int i = 0; i < count; i++) {
@@ -50,17 +50,17 @@ double Node::noded::maxabs()
 	return maxx;
 }
 
-int noded::size()
+int DataStruct::noded::size()
 {
 	return count;
 }
 
-int Node::noded::gethead()
+int DataStruct::noded::gethead()
 {
 	return head;
 }
 
-noded::~noded()
+DataStruct::noded::~noded()
 {
 	if (data != nullptr) {
 		delete[] data;
@@ -69,7 +69,7 @@ noded::~noded()
 }
 
 
-Node::node::node(int num)
+DataStruct::node::node(int num)
 {
 	count = num;
 	head = 0;
@@ -77,7 +77,7 @@ Node::node::node(int num)
 	for (int i = 0; i < count; i++) *(data + i) = 0;
 }
 
-Node::node::node(node& a)
+DataStruct::node::node(node& a)
 {
 	count = a.size();
 	head = a.gethead();
@@ -86,12 +86,12 @@ Node::node::node(node& a)
 		*(data + i) = *(a.data + i);
 }
 
-char Node::node::read0(int m)
+char DataStruct::node::read0(int m)
 {
 	return *(data + m);
 }
 
-int node::add(char val)
+int DataStruct::node::add(char val)
 {
 	*(data + head) = val;
 	if (1 + head >= count) head = 0;
@@ -99,7 +99,7 @@ int node::add(char val)
 	return 0;
 }
 
-int Node::node::set(int pos, char val)
+int DataStruct::node::set(int pos, char val)
 {
 	if (pos + head >= count)pos = pos + head - count + 1;
 	else pos = pos + head;
@@ -107,7 +107,7 @@ int Node::node::set(int pos, char val)
 	return 0;
 }
 
-int Node::node::sum()
+int DataStruct::node::sum()
 {
 	int sum = 0;
 	for (int i = 0; i < count; i++)
@@ -115,7 +115,7 @@ int Node::node::sum()
 	return sum;
 }
 
-char Node::node::maxv()
+char DataStruct::node::maxv()
 {
 	char max = -128;
 	for (int i = 0; i < count; i++)
@@ -123,17 +123,17 @@ char Node::node::maxv()
 	return max;
 }
 
-int node::size()
+int DataStruct::node::size()
 {
 	return count;
 }
 
-int Node::node::gethead()
+int DataStruct::node::gethead()
 {
 	return head;
 }
 
-node::~node()
+DataStruct::node::~node()
 {
 	if (data != nullptr) {
 		delete[] data;
@@ -142,12 +142,12 @@ node::~node()
 }
 
 
-Node::bdsearch::bdsearch(int num)
+DataStruct::bdsearch::bdsearch(int num)
 {
 	bditem.reserve(num);
 }
 
-int Node::bdsearch::push(int time, int diff)
+int DataStruct::bdsearch::push(int time, int diff)
 {
 	std::array<int, 2> a;
 	a[0] = time;
@@ -156,12 +156,12 @@ int Node::bdsearch::push(int time, int diff)
 	return 0;
 }
 
-int Node::bdsearch::read(int index)
+int DataStruct::bdsearch::read(int index)
 {
 	return bditem[index][0];
 }
 
-int Node::bdsearch::find(int searchnum, int retype)
+int DataStruct::bdsearch::find(int searchnum, int retype)
 {
 	int index = 0;
 	for (auto &i : bditem) {
@@ -174,7 +174,7 @@ int Node::bdsearch::find(int searchnum, int retype)
 	return index;
 }
 
-int Node::bdsearch::sort()
+int DataStruct::bdsearch::sort()
 {
 	std::sort(bditem.begin(), bditem.end(), [](std::array<int, 2> &a, std::array<int, 2>&b) {
 		return a[1] < b[1];
@@ -182,13 +182,13 @@ int Node::bdsearch::sort()
 	return 0;
 }
 
-int Node::bdsearch::size()
+int DataStruct::bdsearch::size()
 {
 	return bditem.size();
 }
 
 
-Node::timec::timec(int start0, int end0, bool iscom0, String^ head0)
+DataStruct::timec::timec(int start0, int end0, bool iscom0, String^ head0)
 {
 	start1 = start0;
 	end1 = end0;
@@ -196,51 +196,51 @@ Node::timec::timec(int start0, int end0, bool iscom0, String^ head0)
 	head1 = head0;
 }
 
-int Node::timec::start()
+int DataStruct::timec::start()
 {
 	return start1;
 }
 
-int Node::timec::end()
+int DataStruct::timec::end()
 {
 	return end1;
 }
 
-bool Node::timec::iscom()
+bool DataStruct::timec::iscom()
 {
 	return iscom1;
 }
 
-String ^ Node::timec::head()
+String ^ DataStruct::timec::head()
 {
 	return head1;
 }
 
-int Node::timec::start(int start0)
+int DataStruct::timec::start(int start0)
 {
 	start1 = start0;
 	return 0;
 }
 
-int Node::timec::end(int end0)
+int DataStruct::timec::end(int end0)
 {
 	end1 = end0;
 	return 0;
 }
 
-bool Node::timec::iscom(bool iscom0)
+bool DataStruct::timec::iscom(bool iscom0)
 {
 	iscom1 = iscom0;
 	return false;
 }
 
-String ^ Node::timec::head(String ^ head0)
+String ^ DataStruct::timec::head(String ^ head0)
 {
 	head1 = head0;
 	return "";
 }
 
-Node::Var::Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0, int samprate0,
+DataStruct::Var::Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0, int samprate0,
 	int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, array<Int64>^ diffa0)
 {
 	tv = tv0;
@@ -254,7 +254,7 @@ Node::Var::Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<nod
 	minroundnum = minroundnum0;
 }
 
-void Node::Var::caldiff()
+void DataStruct::Var::caldiff()
 {
 	using namespace System::Threading;
 	if (diffa[2] <= 0)return;
@@ -284,4 +284,20 @@ void Node::Var::caldiff()
 	}
 }
 
+DataStruct::SettingVals::SettingVals()
+{
+}
+
+DataStruct::SettingVals::SettingVals(SettingVals ^ in)
+{
+	FFTnum = in->FFTnum;
+	minfinddb = in->minfinddb;
+	findfield = in->findfield;
+	maxlength = in->maxlength;
+	minchecknum = in->minchecknum;
+	outputpcm = in->outputpcm;
+	draw = in->draw;
+	matchass = in->matchass;
+	paralleldecode = in->paralleldecode;
+}
 

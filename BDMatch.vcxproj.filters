@@ -18,21 +18,18 @@
     <ClCompile Include="DecodePara.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="node.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="MyForm.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Settings.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="datastruct.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DecodePara.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="node.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="MyForm.h">
@@ -42,6 +39,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="datastruct.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

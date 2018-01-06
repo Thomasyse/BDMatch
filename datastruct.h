@@ -3,7 +3,7 @@
 #include <vector>
 #include <array>
 
-namespace Node {
+namespace DataStruct {
 	
 	public class noded
 	{
@@ -90,6 +90,21 @@ namespace Node {
 		int ch;
 		int minroundnum;
 		array<Int64>^ diffa;
+	};
+
+	public ref struct SettingVals {
+	public:
+		SettingVals();
+		SettingVals(SettingVals ^ in);
+		int FFTnum = 512;
+		int minfinddb = -12;
+		int findfield = 8;
+		int maxlength = 20;
+		int minchecknum = 20;
+		bool outputpcm = false;
+		bool draw = false;
+		bool matchass = true;
+		bool paralleldecode = false;
 	};
 }
 

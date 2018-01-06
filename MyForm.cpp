@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "0.8.0"
+#define appversion "0.9.0"
 #define tvmaxnum 6
 #define secpurple 45
 
@@ -22,7 +22,6 @@ int BDMatch::MyForm::match()
 	using namespace System::Threading::Tasks;
 	using namespace System::Collections::Concurrent;
 	using namespace System::Collections::Generic;
-	using namespace Node;
 
 	using namespace System::Text;
 
@@ -60,7 +59,7 @@ int BDMatch::MyForm::match()
 	tvdraw.timelist = nullptr;
 	bddraw.timelist = nullptr;
 	ChartTime->Text = "";
-	if (!draw)setrows();
+	if (!Setting->draw)setrows();
 
 	Result->Text = "";
 	if (!File::Exists(ASStext->Text)) {
@@ -89,22 +88,23 @@ int BDMatch::MyForm::match()
 
 	List<Task^>^ decodetasks = gcnew List<Task^>();
 	long start = clock();//开始计时
-	double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
-	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*FFTnum);
-	fftw_plan plan = fftw_plan_dft_r2c_1d(FFTnum, in, out, FFTW_MEASURE);
+	double* in = (double*)fftw_malloc(sizeof(double)*Setting->FFTnum);
+	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*Setting->FFTnum);
+	fftw_plan plan = fftw_plan_dft_r2c_1d(Setting->FFTnum, in, out, FFTW_MEASURE);
 	fftw_free(in);
 	fftw_free(out);
-	Decode^ tvdecode = gcnew Decode(TVtext->Text, FFTnum, outputpcm, minfinddb, 0, decodetasks, plan,
+	Decode^ tvdecode = gcnew Decode(TVtext->Text, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, 0, decodetasks, plan,
 		gcnew ProgressCallback(this, &MyForm::progtv), gcnew ProgMaxCallback(this, &MyForm::progtvmax));//解码TV文件
 	Task^ tvTask = gcnew Task(gcnew Action(tvdecode, &Decode::decodeaudio));
 	tvTask->Start();
-	decodetasks->Add(tvTask);
+	if (Setting->paralleldecode)decodetasks->Add(tvTask);
+	else tvTask->Wait();
 
 	do {
 		Thread::Sleep(1);
 	} while (tvdecode->getsamprate() == 0);
 
-	Decode^ bddecode = gcnew Decode(BDtext->Text, FFTnum, outputpcm, minfinddb, tvdecode->getsamprate(), decodetasks, plan,
+	Decode^ bddecode = gcnew Decode(BDtext->Text, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, tvdecode->getsamprate(), decodetasks, plan,
 		gcnew ProgressCallback(this, &MyForm::progbd), gcnew ProgMaxCallback(this, &MyForm::progbdmax));//解码BD文件
 	Task^ bdTask = gcnew Task(gcnew Action(bddecode, &Decode::decodeaudio));
 	bdTask->Start();
@@ -128,11 +128,11 @@ int BDMatch::MyForm::match()
 	bdprogressBar->Value = bdprogressBar->Maximum;
 	
 	int re = 0;
-	if (matchass) {
+	if (Setting->matchass) {
 		re = writeass(tvdecode, bddecode);
 	}
 	if (re < 0)return -2;
-	if (draw) {
+	if (Setting->draw) {
 		tvdraw.data = tvfftdata;
 		bddraw.data = bdfftdata;
 		tvdraw.num = tvsampnum;
@@ -147,7 +147,7 @@ int BDMatch::MyForm::match()
 		TimeRoll->Maximum = max(tvdraw.milisec, bddraw.milisec);
 		TimeRoll->Value = 0;
 		TimeRoll->Enabled = true;
-		if (!re && matchass)ViewSel->Enabled = true;
+		if (!re && Setting->matchass)ViewSel->Enabled = true;
 		setrows();
 		drawchart();
 	}
@@ -216,7 +216,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	bdprogressBar->Maximum = alltimematch->Count;
 	array<timec^>^ timelist = gcnew array<timec^>(alltimematch->Count);//储存时间
 	std::vector<int>tvtime(alltimematch->Count), bdtime(alltimematch->Count);
-	int rightshift = static_cast<int>(log2(FFTnum));
+	int rightshift = static_cast<int>(log2(Setting->FFTnum));
 	//计算每行时间，屏蔽不必要的行
 	for (int i = 0; i < alltimematch->Count; i++) {
 		String^ match = alltimematch[i]->ToString();
@@ -244,7 +244,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			Result->Text += "\r\n信息：第" + (i + 1).ToString() + "行时长为零，将不作处理。";
 			continue;
 		}
-		if (end - start > maxlength * 100 / double(tvmilisec)* tvfftnum) {
+		if (end - start > Setting->maxlength * 100 / double(tvmilisec)* tvfftnum) {
 			tvtime[i] = -1;
 			bdtime[i] = -1;
 			Result->Text += "\r\n警告：第" + (i + 1).ToString() + "行时长过长，将不作处理。";
@@ -287,7 +287,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	//搜索匹配
 	int ch = min(tvch, bdch);
 	ch = min(ch, 2);
-	int find0 = findfield * 100;
+	int find0 = Setting->findfield * 100;
 	int interval = tvfftnum / tvmilisec;
 	if (interval < 1) {
 		find0 = static_cast<int>(find0 / double(tvmilisec)*tvfftnum);
@@ -304,7 +304,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			findend = static_cast<int>(min(bdfftnum - duration, findend));
 			int findnum = (findend - findstart) / interval;
 			int tvmax[tvmaxnum] , tvmaxtime[tvmaxnum];
-			for (auto& j : tvmax) j = -128 * FFTnum / 2;
+			for (auto& j : tvmax) j = -128 * Setting->FFTnum / 2;
 			for (auto& j : tvmaxtime) j = 0;
 			for (int j = 0; j <= duration; j++) {
 				if ((*tvfftdata)[0][j + tvtime[i]]->sum() > tvmax[0] || j == 0) {
@@ -331,13 +331,13 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			//精确匹配
 			diftime[0] = 0;
 			diftime[1] = 9223372036854775807;
-			int minroundnumcal = minroundnum;
-			if (duration <= 75 * interval)minroundnumcal = findnum;
-			diftime[2] = minroundnumcal;
+			int minchecknumcal = Setting->minchecknum;
+			if (duration <= 75 * interval)minchecknumcal = findnum;
+			diftime[2] = minchecknumcal;
 			List<Task^>^ tasks = gcnew List<Task^>();
 			for (int j = 0; j < bdse.size(); j++) {
 				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, tvdecode->getsamprate(), tvtime[i], bdse.read(j),
-					duration, ch, minroundnumcal, diftime);
+					duration, ch, minchecknumcal, diftime);
 				Task^ varTask = gcnew Task(gcnew Action(calvar, &Var::caldiff));
 				varTask->Start();
 				tasks->Add(varTask);
@@ -367,7 +367,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 		"%\r\nMax Found Line= " + maxline.ToString() + "    Max Delta= " + maxdelta.ToString();
 	//
 	//绘图相关
-	if (draw) {
+	if (Setting->draw) {
 		tvdraw.timelist = gcnew array<int, 2>(alltimematch->Count, 2);
 		bddraw.timelist = gcnew array<int, 2>(alltimematch->Count, 2);
 		tvdraw.linenum = alltimematch->Count;
@@ -376,7 +376,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	}
 	//写字幕
 	for (int i = 0; i < alltimematch->Count; i++) {
-		if (draw) {
+		if (Setting->draw) {
 			tvdraw.timelist[i, 0] = timelist[i]->start();
 			tvdraw.timelist[i, 1] = timelist[i]->end();
 		}
@@ -388,12 +388,12 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 				timelist[i]->end(bdtime[i + 1]);
 				Result->Text += "\r\n信息：第" + (i + 1).ToString() + "行和第" + (i + 2).ToString() + "行发生微小重叠，已自动修正。";
 			}
-			if (draw) {
+			if (Setting->draw) {
 				bddraw.timelist[i, 0] = timelist[i]->start();
 				bddraw.timelist[i, 1] = timelist[i]->end();
 			}
 		}
-		else if (draw) {
+		else if (Setting->draw) {
 			if (tvtime[i] == -1) {
 				bddraw.timelist[i, 0] = -1;
 				bddraw.timelist[i, 1] = -1;
@@ -466,7 +466,7 @@ int BDMatch::MyForm::drawchart()
 			+ "\n" + mstotime(static_cast<int>(bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / double(bddraw.num)*bddraw.milisec));
 	}
 	int duration = tvend - tvstart + 1;
-	Bitmap^ spectrum1 = gcnew Bitmap(duration, FFTnum);
+	Bitmap^ spectrum1 = gcnew Bitmap(duration, Setting->FFTnum);
 	int x;
 	int y;
 
@@ -504,16 +504,16 @@ int BDMatch::MyForm::drawchart()
 		for (y = 0; y < spectrum1->Height; y++)
 		{
 			int color = -128;
-			if (y >= FFTnum / 2) {
-				if (0 <= x + bdstart && x + bdstart < bddraw.num)color = (*bddraw.data)[ChSelect->SelectedIndex][x + bdstart]->read0(FFTnum - y);
+			if (y >= Setting->FFTnum / 2) {
+				if (0 <= x + bdstart && x + bdstart < bddraw.num)color = (*bddraw.data)[ChSelect->SelectedIndex][x + bdstart]->read0(Setting->FFTnum - y);
 			}
 			else if (0 <= x + tvstart && x + tvstart < tvdraw.num)
-				color = (*tvdraw.data)[ChSelect->SelectedIndex][x + tvstart]->read0(FFTnum / 2 - y);
+				color = (*tvdraw.data)[ChSelect->SelectedIndex][x + tvstart]->read0(Setting->FFTnum / 2 - y);
 			color += 128;
 			color = max(0, color);
 			color = min(255, color);
 			Color newColor = Color::FromArgb(color / 4, color, color);
-			if (y >= FFTnum / 2) {
+			if (y >= Setting->FFTnum / 2) {
 				if (bdinline)
 					switch (bdedge) {
 					case 1:
@@ -597,7 +597,7 @@ String ^ BDMatch::MyForm::mstotime(int ms)
 
 int BDMatch::MyForm::setrows()
 {
-	if (draw) {
+	if (Setting->draw) {
 		AllTablePanel->RowStyles[7]->Height = static_cast<float>(0.4);
 		AllTablePanel->RowStyles[8]->Height = static_cast<float>(0.6);
 	}
@@ -609,49 +609,51 @@ int BDMatch::MyForm::setrows()
 	return 0;
 }
 
-void BDMatch::MyForm::setFFTnum(int num)
-{
-	FFTnum = num;
-	return System::Void();
-}
-void BDMatch::MyForm::setoutpcm(bool yes)
-{
-	outputpcm = yes;
-	return System::Void();
-}
-void BDMatch::MyForm::setfindfield(int num)
-{
-	findfield = num;
-	return System::Void();
-}
-void BDMatch::MyForm::setmindb(int num)
-{
-	minfinddb = num;
-	return System::Void();
-}
-void BDMatch::MyForm::setmaxlength(int num)
-{
-	maxlength = num;
-	return System::Void();
-}
-void BDMatch::MyForm::setminroundnum(int num)
-{
-	minroundnum = num;
-	return System::Void();
-}
-void BDMatch::MyForm::setdraw(bool yes) {
-	draw = yes;
-	return System::Void();
-}
-void BDMatch::MyForm::setmatchass(bool yes)
-{
-	matchass = yes;
-	return System::Void();
-}
 void BDMatch::MyForm::nullsetform() {
 	setform = nullptr;
 }
-
+void BDMatch::MyForm::SetVals(SettingType type,int val)
+{
+	switch (type) {
+	case FFTNum:
+		Setting->FFTnum = val;
+		break;
+	case MinFindDb:
+		Setting->minfinddb = val;
+		break;
+	case FindField:
+		Setting->findfield = val;
+		break;
+	case MaxLength:
+		Setting->findfield = val;
+		break;
+	case MinCheckNum:
+		Setting->minchecknum = val;
+		break;
+	default:
+		break;
+	}
+	return System::Void();
+}
+void BDMatch::MyForm::SetVals(SettingType type, bool val)
+{
+	switch (type) {
+	case OutputPCM:
+		Setting->outputpcm = val;
+		break;
+	case Draw:
+		Setting->draw = val;
+		break;
+	case MatchAss:
+		Setting->matchass = val;
+		break;
+	case ParallelDecode:
+		Setting->paralleldecode = val;
+	default:
+		break;
+	}
+	return System::Void();
+}
 void BDMatch::MyForm::progtv()
 {
 	tvprogressBar->PerformStep();
@@ -843,12 +845,8 @@ System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::Event
 System::Void BDMatch::MyForm::settings_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
 	if (!setform) {
-		setform = gcnew Settings(gcnew IntCallback(this, &MyForm::setFFTnum), gcnew BoolCallback(this, &MyForm::setoutpcm),
-			gcnew IntCallback(this, &MyForm::setfindfield), gcnew IntCallback(this, &MyForm::setmindb),
-			gcnew IntCallback(this, &MyForm::setmaxlength), gcnew IntCallback(this, &MyForm::setminroundnum),
-			gcnew BoolCallback(this, &MyForm::setdraw), gcnew BoolCallback(this, &MyForm::setmatchass),
-			gcnew NullCallback(this, &MyForm::nullsetform),
-			FFTnum, outputpcm, findfield, minfinddb, maxlength, minroundnum, draw, matchass);
+		setform = gcnew Settings(gcnew SettingIntCallback(this, &MyForm::SetVals), gcnew SettingBoolCallback(this, &MyForm::SetVals), 
+			gcnew NullCallback(this, &MyForm::nullsetform),	Setting);
 	}
 	setform->Show();
 	if (!setform->Focused)setform->Focus();

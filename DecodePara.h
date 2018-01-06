@@ -1,5 +1,5 @@
 #pragma once
-#include "node.h"
+#include "datastruct.h"
 #include <msclr\marshal_cppstd.h>  
 #include <string>
 #include <complex>
@@ -36,7 +36,7 @@ namespace BDMatch{
 	using namespace System::Threading::Tasks;
 	using namespace System::Data;
 	using namespace msclr::interop;
-	using namespace Node;
+	using namespace DataStruct;
 
 	public delegate void ProgressCallback();
 	public delegate void ProgMaxCallback(int max);

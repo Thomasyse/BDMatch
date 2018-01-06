@@ -149,7 +149,7 @@
   <ItemGroup>
     <ClCompile Include="DecodePara.cpp" />
     <ClCompile Include="MyForm.cpp" />
-    <ClCompile Include="node.cpp" />
+    <ClCompile Include="datastruct.cpp" />
     <ClCompile Include="Settings.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -157,7 +157,7 @@
     <ClInclude Include="MyForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
-    <ClInclude Include="node.h" />
+    <ClInclude Include="datastruct.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.h">
       <FileType>CppForm</FileType>

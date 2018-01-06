@@ -1,5 +1,5 @@
 #pragma once
-#include "node.h"
+#include "datastruct.h"
 #include "Settings.h"
 #include "DecodePara.h"
 
@@ -11,6 +11,7 @@ namespace BDMatch {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
+	using namespace DataStruct;
 
 	/// <summary>
 	/// MyForm ժҪ
@@ -45,14 +46,7 @@ namespace BDMatch {
 		std::vector<std::vector<node*>>* data = nullptr;
 		array<int, 2>^ timelist = nullptr;
 	};
-	private: int FFTnum = 512;
-	private: int minfinddb = -12;
-	private: int findfield = 8;
-	private: int maxlength = 20;
-	private: int minroundnum = 20;
-	private: bool outputpcm = false;
-	private: bool draw = false;
-	private: bool matchass = true;
+	private: SettingVals ^ Setting = gcnew SettingVals;
 	private: drawpara tvdraw, bddraw;
 	private: Settings ^ setform = nullptr;
 
@@ -586,19 +580,13 @@ namespace BDMatch {
 #pragma endregion
 
 	public:
-		void setFFTnum(int num);
-		void setoutpcm(bool yes);
-		void setfindfield(int num);
-		void setmindb(int num);
-		void setmaxlength(int num);
-		void setminroundnum(int num);
-		void setdraw(bool yes);
-		void setmatchass(bool yes);
-		void progbd();
+		void SetVals(SettingType type, int val);
+		void SetVals(SettingType type, bool val);
+		void nullsetform();
 		void progtv();
+		void progbd();
 		void progtvmax(int max);
 		void progbdmax(int max);
-		void nullsetform();
 
 	private: int match();
 	private: int writeass(Decode^ tvdecode, Decode^ bddecode);

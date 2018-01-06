@@ -20,7 +20,6 @@ BDMatch::Decode::Decode(String^ filename0, int FFTnum0, bool outputpcm0, int min
 void BDMatch::Decode::decodeaudio()
 {
 	using namespace System::IO;
-	using namespace Node;
 	using namespace System::Threading;
 
 	AVFormatContext *filefm = NULL;//文件格式
@@ -484,7 +483,6 @@ BDMatch::FFTC::FFTC(node* fftseq0, fftw_plan p0, double* in0, int mindb0, Progre
 
 void BDMatch::FFTC::FFT()
 {
-	using namespace Node;
 	using namespace std;
 
 	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*FFTnum);
@@ -504,9 +502,8 @@ void BDMatch::FFTC::FFT()
 	return;
 }
 
-int BDMatch::FFTC::FD8(double *inseq, Node::node* outseq)
+int BDMatch::FFTC::FD8(double *inseq, node* outseq)
 {
-	using namespace Node;
 	for (int i = 0; i < outseq->size(); i++) {
 		double addx = *(inseq + i);
 		addx = 10 * log10(addx);
