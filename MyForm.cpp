@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "0.9.0"
+#define appversion "0.9.1"
 #define tvmaxnum 6
 #define secpurple 45
 
@@ -301,7 +301,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			int findend = static_cast<int>(tvtime[i] + find0 * interval);
 			int duration = timelist[i]->end() - timelist[i]->start();
 			findstart = max(0, findstart);
-			findend = static_cast<int>(min(bdfftnum - duration, findend));
+			findend = static_cast<int>(min(bdfftnum - duration - 1, findend));
 			int findnum = (findend - findstart) / interval;
 			int tvmax[tvmaxnum] , tvmaxtime[tvmaxnum];
 			for (auto& j : tvmax) j = -128 * Setting->FFTnum / 2;
@@ -357,6 +357,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			bdtime[i] = static_cast<int>(diftime[0]);
 		}
 		tvprogressBar->PerformStep();
+		
 		bdprogressBar->PerformStep();
 	}
 	delete diftime;
