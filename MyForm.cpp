@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "0.9.1"
+#define appversion "1.0.b1"
 #define tvmaxnum 6
 #define secpurple 45
 
@@ -191,7 +191,6 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	std::vector<std::vector<node*>>* bdfftdata = bddecode->getfftdata();
 	int tvch = tvdecode->getchannels();
 	int bdch = bddecode->getchannels();
-
 	tvprogressBar->Value = 0;
 	bdprogressBar->Value = 0;
 	String^ tvass;
@@ -207,6 +206,10 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	head = tvass->Substring(0, eventpos);
 	content = tvass->Substring(eventpos, tvass->Length - eventpos);
 	tvass = "";
+	Regex^ fileregex1 = gcnew Regex("Audio File: ([ \\S]*)\\r\\n");
+	Regex^ fileregex2 = gcnew Regex("Video File: ([ \\S]*)\\r\\n");
+	head = fileregex1->Replace(head, "Audio File: " + bddecode->getfilename() + "\r\n");
+	head = fileregex2->Replace(head, "Video File: " + bddecode->getfilename() + "\r\n");
 	//: 0,0:22:38.77,0:22:43.35
 	Regex^ alltimeregex = gcnew Regex("\\r\\n[a-zA-Z]+: [0-9],[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},");
 	Regex^ headregex = gcnew Regex("\\r\\n[a-zA-Z]+: [0-9],");
@@ -295,14 +298,25 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	}
 	array<Int64> ^diftime = gcnew array<Int64>(3);
 	double aveindex = 0, maxindex = 0; int maxdelta = 0, maxline = 0;//调试用
+	int offset = 0; int fivesec = 0; int lastlinetime = 0;
+	if (Setting->fastmatch) {
+		fivesec = static_cast<int>(500 / double(tvmilisec)*tvfftnum);
+		Result->Text += "\r\n信息：使用快速匹配。";
+	}
 	for (int i = 0; i < alltimematch->Count; i++) {
 		if (tvtime[i] >= 0) {
+			if (Setting->fastmatch && offset && lastlinetime > fivesec && tvtime[i - 1] > 0 && labs(tvtime[i] - lastlinetime) < fivesec) {
+				bdtime[i] = tvtime[i] + offset;
+				lastlinetime = tvtime[i];
+				continue;
+			}
 			int findstart = static_cast<int>(tvtime[i] - find0 * interval);
 			int findend = static_cast<int>(tvtime[i] + find0 * interval);
 			int duration = timelist[i]->end() - timelist[i]->start();
 			findstart = max(0, findstart);
 			findend = static_cast<int>(min(bdfftnum - duration - 1, findend));
 			int findnum = (findend - findstart) / interval;
+			//初筛
 			int tvmax[tvmaxnum] , tvmaxtime[tvmaxnum];
 			for (auto& j : tvmax) j = -128 * Setting->FFTnum / 2;
 			for (auto& j : tvmaxtime) j = 0;
@@ -316,7 +330,6 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 					tvmaxtime[0] = j;
 				}
 			}
-			//初筛
 			bdsearch bdse(findnum);
 			for (int j = 0; j <= findnum; j++) {
 				int bdtimein = findstart + j * interval;
@@ -333,6 +346,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			diftime[1] = 9223372036854775807;
 			int minchecknumcal = Setting->minchecknum;
 			if (duration <= 75 * interval)minchecknumcal = findnum;
+			else if (Setting->fastmatch)minchecknumcal = Setting->minchecknum / 2 * 3;
 			diftime[2] = minchecknumcal;
 			List<Task^>^ tasks = gcnew List<Task^>();
 			for (int j = 0; j < bdse.size(); j++) {
@@ -355,9 +369,12 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 			}
 			//
 			bdtime[i] = static_cast<int>(diftime[0]);
+			if (Setting->fastmatch) {
+				offset = bdtime[i] - tvtime[i];
+				lastlinetime = tvtime[i];
+			}
 		}
 		tvprogressBar->PerformStep();
-		
 		bdprogressBar->PerformStep();
 	}
 	delete diftime;
@@ -650,6 +667,8 @@ void BDMatch::MyForm::SetVals(SettingType type, bool val)
 		break;
 	case ParallelDecode:
 		Setting->paralleldecode = val;
+	case FastMatch:
+		Setting->fastmatch = val;
 	default:
 		break;
 	}

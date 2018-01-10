@@ -20,7 +20,7 @@ namespace BDMatch {
 	/// <summary>
 	/// Settings 摘要
 	/// </summary>
-	enum SettingType { FFTNum, OutputPCM, FindField, MinFindDb, MaxLength, MinCheckNum, Draw, MatchAss, ParallelDecode };
+	enum SettingType { FFTNum, OutputPCM, FindField, MinFindDb, MaxLength, MinCheckNum, Draw, MatchAss, ParallelDecode, FastMatch };
 	public delegate void SettingIntCallback(SettingType type, int val);
 	public delegate void SettingBoolCallback(SettingType type, bool val);
 	public delegate void NullCallback();
@@ -72,9 +72,13 @@ namespace BDMatch {
 	private: System::Windows::Forms::Label^  label5;
 	private: System::Windows::Forms::CheckBox^  ParaDecode;
 	private: System::Windows::Forms::TabControl^  tabControl1;
-	private: System::Windows::Forms::TabPage^  tabPage1;
-	private: System::Windows::Forms::TabPage^  tabPage2;
-	private: System::Windows::Forms::TabPage^  tabPage3;
+	private: System::Windows::Forms::TabPage^  DecodeTabPage;
+	private: System::Windows::Forms::TabPage^  MatchTabPage;
+	private: System::Windows::Forms::TabPage^  SpectrumTabPage;
+
+
+
+
 	private: System::Windows::Forms::Label^  label6;
 	private: System::Windows::Forms::Label^  label7;
 	private: System::Windows::Forms::Label^  label8;
@@ -93,6 +97,9 @@ namespace BDMatch {
 	private: System::Windows::Forms::Label^  label16;
 	private: System::Windows::Forms::Label^  label17;
 	private: System::Windows::Forms::TableLayoutPanel^  SpectrumLayoutPanel;
+	private: System::Windows::Forms::CheckBox^  FastMatchSet;
+	private: System::Windows::Forms::Label^  label18;
+
 
 
 
@@ -132,22 +139,24 @@ namespace BDMatch {
 			this->label5 = (gcnew System::Windows::Forms::Label());
 			this->ParaDecode = (gcnew System::Windows::Forms::CheckBox());
 			this->tabControl1 = (gcnew System::Windows::Forms::TabControl());
-			this->tabPage1 = (gcnew System::Windows::Forms::TabPage());
+			this->DecodeTabPage = (gcnew System::Windows::Forms::TabPage());
 			this->DecodeLayoutPanel = (gcnew System::Windows::Forms::TableLayoutPanel());
 			this->label15 = (gcnew System::Windows::Forms::Label());
 			this->label8 = (gcnew System::Windows::Forms::Label());
 			this->label7 = (gcnew System::Windows::Forms::Label());
 			this->label6 = (gcnew System::Windows::Forms::Label());
 			this->label9 = (gcnew System::Windows::Forms::Label());
-			this->tabPage2 = (gcnew System::Windows::Forms::TabPage());
+			this->MatchTabPage = (gcnew System::Windows::Forms::TabPage());
 			this->MatchLayoutPanel = (gcnew System::Windows::Forms::TableLayoutPanel());
+			this->label18 = (gcnew System::Windows::Forms::Label());
+			this->FastMatchSet = (gcnew System::Windows::Forms::CheckBox());
 			this->label17 = (gcnew System::Windows::Forms::Label());
 			this->label14 = (gcnew System::Windows::Forms::Label());
 			this->label16 = (gcnew System::Windows::Forms::Label());
 			this->label13 = (gcnew System::Windows::Forms::Label());
 			this->label10 = (gcnew System::Windows::Forms::Label());
 			this->label11 = (gcnew System::Windows::Forms::Label());
-			this->tabPage3 = (gcnew System::Windows::Forms::TabPage());
+			this->SpectrumTabPage = (gcnew System::Windows::Forms::TabPage());
 			this->SpectrumLayoutPanel = (gcnew System::Windows::Forms::TableLayoutPanel());
 			this->label12 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->FindSec))->BeginInit();
@@ -155,11 +164,11 @@ namespace BDMatch {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MaxLengthSet))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MinCheckNumSet))->BeginInit();
 			this->tabControl1->SuspendLayout();
-			this->tabPage1->SuspendLayout();
+			this->DecodeTabPage->SuspendLayout();
 			this->DecodeLayoutPanel->SuspendLayout();
-			this->tabPage2->SuspendLayout();
+			this->MatchTabPage->SuspendLayout();
 			this->MatchLayoutPanel->SuspendLayout();
-			this->tabPage3->SuspendLayout();
+			this->SpectrumTabPage->SuspendLayout();
 			this->SpectrumLayoutPanel->SuspendLayout();
 			this->SuspendLayout();
 			// 
@@ -362,27 +371,27 @@ namespace BDMatch {
 			// 
 			// tabControl1
 			// 
-			this->tabControl1->Controls->Add(this->tabPage1);
-			this->tabControl1->Controls->Add(this->tabPage2);
-			this->tabControl1->Controls->Add(this->tabPage3);
+			this->tabControl1->Controls->Add(this->MatchTabPage);
+			this->tabControl1->Controls->Add(this->DecodeTabPage);
+			this->tabControl1->Controls->Add(this->SpectrumTabPage);
 			this->tabControl1->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->tabControl1->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13));
 			this->tabControl1->Location = System::Drawing::Point(8, 5);
 			this->tabControl1->Name = L"tabControl1";
 			this->tabControl1->SelectedIndex = 0;
-			this->tabControl1->Size = System::Drawing::Size(872, 530);
+			this->tabControl1->Size = System::Drawing::Size(872, 581);
 			this->tabControl1->TabIndex = 17;
 			// 
-			// tabPage1
+			// DecodeTabPage
 			// 
-			this->tabPage1->Controls->Add(this->DecodeLayoutPanel);
-			this->tabPage1->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
-			this->tabPage1->Location = System::Drawing::Point(4, 39);
-			this->tabPage1->Name = L"tabPage1";
-			this->tabPage1->Size = System::Drawing::Size(864, 487);
-			this->tabPage1->TabIndex = 0;
-			this->tabPage1->Text = L"解码设置";
-			this->tabPage1->UseVisualStyleBackColor = true;
+			this->DecodeTabPage->Controls->Add(this->DecodeLayoutPanel);
+			this->DecodeTabPage->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
+			this->DecodeTabPage->Location = System::Drawing::Point(4, 39);
+			this->DecodeTabPage->Name = L"DecodeTabPage";
+			this->DecodeTabPage->Size = System::Drawing::Size(864, 538);
+			this->DecodeTabPage->TabIndex = 0;
+			this->DecodeTabPage->Text = L"解码设置";
+			this->DecodeTabPage->UseVisualStyleBackColor = true;
 			// 
 			// DecodeLayoutPanel
 			// 
@@ -421,7 +430,7 @@ namespace BDMatch {
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->DecodeLayoutPanel->Size = System::Drawing::Size(864, 487);
+			this->DecodeLayoutPanel->Size = System::Drawing::Size(864, 538);
 			this->DecodeLayoutPanel->TabIndex = 22;
 			// 
 			// label15
@@ -490,20 +499,20 @@ namespace BDMatch {
 			this->label9->Location = System::Drawing::Point(51, 380);
 			this->label9->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label9->Name = L"label9";
-			this->label9->Size = System::Drawing::Size(780, 91);
+			this->label9->Size = System::Drawing::Size(780, 142);
 			this->label9->TabIndex = 20;
 			this->label9->Text = L"同时进行TV和BD文件的解码，请在拥有高性能硬盘的设备上开启此选项，否则可能会导致在硬盘负载较大时解码速度急剧下降。";
 			// 
-			// tabPage2
+			// MatchTabPage
 			// 
-			this->tabPage2->Controls->Add(this->MatchLayoutPanel);
-			this->tabPage2->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
-			this->tabPage2->Location = System::Drawing::Point(4, 39);
-			this->tabPage2->Name = L"tabPage2";
-			this->tabPage2->Size = System::Drawing::Size(864, 487);
-			this->tabPage2->TabIndex = 1;
-			this->tabPage2->Text = L"匹配设置";
-			this->tabPage2->UseVisualStyleBackColor = true;
+			this->MatchTabPage->Controls->Add(this->MatchLayoutPanel);
+			this->MatchTabPage->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
+			this->MatchTabPage->Location = System::Drawing::Point(4, 39);
+			this->MatchTabPage->Name = L"MatchTabPage";
+			this->MatchTabPage->Size = System::Drawing::Size(864, 538);
+			this->MatchTabPage->TabIndex = 1;
+			this->MatchTabPage->Text = L"匹配设置";
+			this->MatchTabPage->UseVisualStyleBackColor = true;
 			// 
 			// MatchLayoutPanel
 			// 
@@ -517,6 +526,8 @@ namespace BDMatch {
 				99)));
 			this->MatchLayoutPanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
 				100)));
+			this->MatchLayoutPanel->Controls->Add(this->label18, 0, 9);
+			this->MatchLayoutPanel->Controls->Add(this->FastMatchSet, 0, 8);
 			this->MatchLayoutPanel->Controls->Add(this->label17, 2, 4);
 			this->MatchLayoutPanel->Controls->Add(this->label14, 0, 7);
 			this->MatchLayoutPanel->Controls->Add(this->label16, 2, 2);
@@ -535,7 +546,7 @@ namespace BDMatch {
 			this->MatchLayoutPanel->Location = System::Drawing::Point(0, 0);
 			this->MatchLayoutPanel->Name = L"MatchLayoutPanel";
 			this->MatchLayoutPanel->Padding = System::Windows::Forms::Padding(6, 6, 30, 6);
-			this->MatchLayoutPanel->RowCount = 8;
+			this->MatchLayoutPanel->RowCount = 10;
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
@@ -544,8 +555,39 @@ namespace BDMatch {
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->MatchLayoutPanel->Size = System::Drawing::Size(864, 487);
+			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->MatchLayoutPanel->Size = System::Drawing::Size(864, 538);
 			this->MatchLayoutPanel->TabIndex = 25;
+			// 
+			// label18
+			// 
+			this->label18->AutoEllipsis = true;
+			this->label18->AutoSize = true;
+			this->MatchLayoutPanel->SetColumnSpan(this->label18, 3);
+			this->label18->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->label18->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11));
+			this->label18->Location = System::Drawing::Point(51, 443);
+			this->label18->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
+			this->label18->Name = L"label18";
+			this->label18->Size = System::Drawing::Size(780, 79);
+			this->label18->TabIndex = 26;
+			this->label18->Text = L"只匹配少许时间轴，其余时间轴根据匹配结果直接进行调整。由于BD文件可能会做出一些修改，匹配结果可能会不准确。";
+			// 
+			// FastMatchSet
+			// 
+			this->FastMatchSet->AutoSize = true;
+			this->MatchLayoutPanel->SetColumnSpan(this->FastMatchSet, 3);
+			this->FastMatchSet->Dock = System::Windows::Forms::DockStyle::Left;
+			this->FastMatchSet->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F));
+			this->FastMatchSet->Location = System::Drawing::Point(13, 398);
+			this->FastMatchSet->Margin = System::Windows::Forms::Padding(7, 3, 3, 3);
+			this->FastMatchSet->Name = L"FastMatchSet";
+			this->FastMatchSet->Size = System::Drawing::Size(132, 35);
+			this->FastMatchSet->TabIndex = 25;
+			this->FastMatchSet->Text = L"快速匹配";
+			this->FastMatchSet->UseVisualStyleBackColor = true;
+			this->FastMatchSet->CheckedChanged += gcnew System::EventHandler(this, &Settings::FastMatchSet_CheckedChanged);
 			// 
 			// label17
 			// 
@@ -570,7 +612,7 @@ namespace BDMatch {
 			this->label14->Location = System::Drawing::Point(51, 335);
 			this->label14->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
 			this->label14->Name = L"label14";
-			this->label14->Size = System::Drawing::Size(780, 136);
+			this->label14->Size = System::Drawing::Size(780, 50);
 			this->label14->TabIndex = 24;
 			this->label14->Text = L"对搜索到的暂优选点进行确认，确认足够次数后即会取作最佳选点。过小的确认次数会导致匹配不精确，过大的确认次数会加长匹配时间。";
 			// 
@@ -629,16 +671,16 @@ namespace BDMatch {
 			this->label11->TabIndex = 22;
 			this->label11->Text = L"决定在ASS时间轴多大时间范围内查找最佳匹配时间。查找范围增加会加长匹配时间，过小的查找范围会导致无法匹配到正确的时间。";
 			// 
-			// tabPage3
+			// SpectrumTabPage
 			// 
-			this->tabPage3->Controls->Add(this->SpectrumLayoutPanel);
-			this->tabPage3->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
-			this->tabPage3->Location = System::Drawing::Point(4, 39);
-			this->tabPage3->Name = L"tabPage3";
-			this->tabPage3->Size = System::Drawing::Size(864, 487);
-			this->tabPage3->TabIndex = 2;
-			this->tabPage3->Text = L"声谱设置";
-			this->tabPage3->UseVisualStyleBackColor = true;
+			this->SpectrumTabPage->Controls->Add(this->SpectrumLayoutPanel);
+			this->SpectrumTabPage->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
+			this->SpectrumTabPage->Location = System::Drawing::Point(4, 39);
+			this->SpectrumTabPage->Name = L"SpectrumTabPage";
+			this->SpectrumTabPage->Size = System::Drawing::Size(864, 538);
+			this->SpectrumTabPage->TabIndex = 2;
+			this->SpectrumTabPage->Text = L"声谱设置";
+			this->SpectrumTabPage->UseVisualStyleBackColor = true;
 			// 
 			// SpectrumLayoutPanel
 			// 
@@ -659,7 +701,7 @@ namespace BDMatch {
 			this->SpectrumLayoutPanel->RowCount = 2;
 			this->SpectrumLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->SpectrumLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->SpectrumLayoutPanel->Size = System::Drawing::Size(864, 487);
+			this->SpectrumLayoutPanel->Size = System::Drawing::Size(864, 538);
 			this->SpectrumLayoutPanel->TabIndex = 23;
 			// 
 			// label12
@@ -672,7 +714,7 @@ namespace BDMatch {
 			this->label12->Location = System::Drawing::Point(51, 52);
 			this->label12->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label12->Name = L"label12";
-			this->label12->Size = System::Drawing::Size(780, 419);
+			this->label12->Size = System::Drawing::Size(780, 470);
 			this->label12->TabIndex = 22;
 			this->label12->Text = L"打开此选项可以查看解码得到的声谱图，并对原字幕时间轴和匹配生成的时间轴对应的声谱进行对比。";
 			// 
@@ -680,7 +722,7 @@ namespace BDMatch {
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 15);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(885, 540);
+			this->ClientSize = System::Drawing::Size(885, 591);
 			this->Controls->Add(this->tabControl1);
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->MaximizeBox = false;
@@ -694,16 +736,16 @@ namespace BDMatch {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MaxLengthSet))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MinCheckNumSet))->EndInit();
 			this->tabControl1->ResumeLayout(false);
-			this->tabPage1->ResumeLayout(false);
-			this->tabPage1->PerformLayout();
+			this->DecodeTabPage->ResumeLayout(false);
+			this->DecodeTabPage->PerformLayout();
 			this->DecodeLayoutPanel->ResumeLayout(false);
 			this->DecodeLayoutPanel->PerformLayout();
-			this->tabPage2->ResumeLayout(false);
-			this->tabPage2->PerformLayout();
+			this->MatchTabPage->ResumeLayout(false);
+			this->MatchTabPage->PerformLayout();
 			this->MatchLayoutPanel->ResumeLayout(false);
 			this->MatchLayoutPanel->PerformLayout();
-			this->tabPage3->ResumeLayout(false);
-			this->tabPage3->PerformLayout();
+			this->SpectrumTabPage->ResumeLayout(false);
+			this->SpectrumTabPage->PerformLayout();
 			this->SpectrumLayoutPanel->ResumeLayout(false);
 			this->SpectrumLayoutPanel->PerformLayout();
 			this->ResumeLayout(false);
@@ -723,6 +765,7 @@ namespace BDMatch {
 	private: System::Void DrawSet_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void MatchAssSet_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void ParaDecode_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void FastMatchSet_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 };
 
 }

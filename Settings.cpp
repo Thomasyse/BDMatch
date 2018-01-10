@@ -25,6 +25,7 @@ BDMatch::Settings::Settings(SettingIntCallback^ setintbackin, SettingBoolCallbac
 	MatchAssSet->Checked = setting->matchass;
 	MinCheckNumSet->Value = setting->minchecknum;
 	ParaDecode->Checked = setting->paralleldecode;
+	FastMatchSet->Checked = setting->fastmatch;
 }
 
 System::Void BDMatch::Settings::Settings_FormClosed(System::Object ^ sender, System::Windows::Forms::FormClosedEventArgs ^ e)
@@ -116,6 +117,14 @@ System::Void BDMatch::Settings::ParaDecode_CheckedChanged(System::Object ^ sende
 {
 	if (this->Visible) {
 		setboolback->Invoke(ParallelDecode, ParaDecode->Checked);
+	}
+	return System::Void();
+}
+
+System::Void BDMatch::Settings::FastMatchSet_CheckedChanged(System::Object ^ sender, System::EventArgs ^ e)
+{
+	if (this->Visible) {
+		setboolback->Invoke(FastMatch, FastMatchSet->Checked);
 	}
 	return System::Void();
 }

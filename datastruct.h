@@ -100,11 +100,12 @@ namespace DataStruct {
 		int minfinddb = -12;
 		int findfield = 8;
 		int maxlength = 20;
-		int minchecknum = 20;
+		int minchecknum = 60;
 		bool outputpcm = false;
 		bool draw = false;
 		bool matchass = true;
 		bool paralleldecode = false;
+		bool fastmatch = false;
 	};
 }
 

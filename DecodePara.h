@@ -48,6 +48,7 @@ namespace BDMatch{
 			ProgressCallback^ progback0, ProgMaxCallback^ progmax0);
 		void decodeaudio();
 		String^ getfeedback();
+		String^ getfilename();
 		int getreturn();
 		int getfftsampnum();
 		int getmilisecnum();

@@ -406,6 +406,10 @@ String ^ BDMatch::Decode::getfeedback()
 {
 	return feedback;
 }
+String ^ BDMatch::Decode::getfilename()
+{
+	return filename;
+}
 
 int BDMatch::Decode::getreturn()
 {
@@ -423,7 +427,6 @@ int BDMatch::Decode::getchannels()
 {
 	return channels;
 }
-
 int BDMatch::Decode::getsamprate()
 {
 	return samplerate;

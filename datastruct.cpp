@@ -268,7 +268,7 @@ void DataStruct::Var::caldiff()
 		for (int j = 0; j < ch; j++) {
 			for (int k = 0; k < size; k++) {
 				if (k > minfreq && k < maxfreq) {
-					sum += labs((*tv)[j][tvpos]->read0(k) - (*bd)[j][bdpos]->read0(k))*((*tv)[j][tvpos]->read0(k) + 128);
+					sum += labs((*tv)[j][tvpos]->read0(k) - (*bd)[j][bdpos]->read0(k))*((*tv)[j][tvpos]->read0(k) + 129);
 				}
 			}
 		}	
@@ -299,5 +299,6 @@ DataStruct::SettingVals::SettingVals(SettingVals ^ in)
 	draw = in->draw;
 	matchass = in->matchass;
 	paralleldecode = in->paralleldecode;
+	fastmatch = in->fastmatch;
 }
 
