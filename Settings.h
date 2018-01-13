@@ -20,15 +20,13 @@ namespace BDMatch {
 	/// <summary>
 	/// Settings 摘要
 	/// </summary>
-	enum SettingType { FFTNum, OutputPCM, FindField, MinFindDb, MaxLength, MinCheckNum, Draw, MatchAss, ParallelDecode, FastMatch };
-	public delegate void SettingIntCallback(SettingType type, int val);
-	public delegate void SettingBoolCallback(SettingType type, bool val);
+	public delegate void SettingCallback(SettingType type, int val);
 	public delegate void NullCallback();
 	
 	public ref class Settings : public System::Windows::Forms::Form
 	{
 	public:
-		Settings(SettingIntCallback^ setintbackin, SettingBoolCallback^ setboolbackin, NullCallback^ nullbackin, SettingVals ^ settingin);
+		Settings(SettingCallback^ setbackin, NullCallback^ nullbackin, SettingVals ^ settingin);
 
 	protected:
 		/// <summary>
@@ -42,8 +40,7 @@ namespace BDMatch {
 			}
 		}
 	private: SettingVals ^ setting = nullptr;
-	private: SettingIntCallback ^ setintback = nullptr;
-	private: SettingBoolCallback ^ setboolback = nullptr;
+	private: SettingCallback ^ setback = nullptr;
 	private: NullCallback ^ nullback = nullptr;
 	private: System::Windows::Forms::CheckBox^  OutPCM;
 
@@ -139,13 +136,6 @@ namespace BDMatch {
 			this->label5 = (gcnew System::Windows::Forms::Label());
 			this->ParaDecode = (gcnew System::Windows::Forms::CheckBox());
 			this->tabControl1 = (gcnew System::Windows::Forms::TabControl());
-			this->DecodeTabPage = (gcnew System::Windows::Forms::TabPage());
-			this->DecodeLayoutPanel = (gcnew System::Windows::Forms::TableLayoutPanel());
-			this->label15 = (gcnew System::Windows::Forms::Label());
-			this->label8 = (gcnew System::Windows::Forms::Label());
-			this->label7 = (gcnew System::Windows::Forms::Label());
-			this->label6 = (gcnew System::Windows::Forms::Label());
-			this->label9 = (gcnew System::Windows::Forms::Label());
 			this->MatchTabPage = (gcnew System::Windows::Forms::TabPage());
 			this->MatchLayoutPanel = (gcnew System::Windows::Forms::TableLayoutPanel());
 			this->label18 = (gcnew System::Windows::Forms::Label());
@@ -156,6 +146,13 @@ namespace BDMatch {
 			this->label13 = (gcnew System::Windows::Forms::Label());
 			this->label10 = (gcnew System::Windows::Forms::Label());
 			this->label11 = (gcnew System::Windows::Forms::Label());
+			this->DecodeTabPage = (gcnew System::Windows::Forms::TabPage());
+			this->DecodeLayoutPanel = (gcnew System::Windows::Forms::TableLayoutPanel());
+			this->label15 = (gcnew System::Windows::Forms::Label());
+			this->label8 = (gcnew System::Windows::Forms::Label());
+			this->label7 = (gcnew System::Windows::Forms::Label());
+			this->label6 = (gcnew System::Windows::Forms::Label());
+			this->label9 = (gcnew System::Windows::Forms::Label());
 			this->SpectrumTabPage = (gcnew System::Windows::Forms::TabPage());
 			this->SpectrumLayoutPanel = (gcnew System::Windows::Forms::TableLayoutPanel());
 			this->label12 = (gcnew System::Windows::Forms::Label());
@@ -164,10 +161,10 @@ namespace BDMatch {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MaxLengthSet))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MinCheckNumSet))->BeginInit();
 			this->tabControl1->SuspendLayout();
-			this->DecodeTabPage->SuspendLayout();
-			this->DecodeLayoutPanel->SuspendLayout();
 			this->MatchTabPage->SuspendLayout();
 			this->MatchLayoutPanel->SuspendLayout();
+			this->DecodeTabPage->SuspendLayout();
+			this->DecodeLayoutPanel->SuspendLayout();
 			this->SpectrumTabPage->SuspendLayout();
 			this->SpectrumLayoutPanel->SuspendLayout();
 			this->SuspendLayout();
@@ -194,7 +191,7 @@ namespace BDMatch {
 			this->FindSec->Location = System::Drawing::Point(213, 94);
 			this->FindSec->Margin = System::Windows::Forms::Padding(3, 7, 3, 3);
 			this->FindSec->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 100000, 0, 0, 0 });
-			this->FindSec->Minimum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 2, 0, 0, 0 });
+			this->FindSec->Minimum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1, 0, 0, 0 });
 			this->FindSec->Name = L"FindSec";
 			this->FindSec->Size = System::Drawing::Size(92, 33);
 			this->FindSec->TabIndex = 4;
@@ -333,7 +330,7 @@ namespace BDMatch {
 			this->MinCheckNumSet->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11.8F));
 			this->MinCheckNumSet->Location = System::Drawing::Point(213, 291);
 			this->MinCheckNumSet->Margin = System::Windows::Forms::Padding(3, 7, 3, 3);
-			this->MinCheckNumSet->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 100000, 0, 0, 0 });
+			this->MinCheckNumSet->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1000000, 0, 0, 0 });
 			this->MinCheckNumSet->Minimum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 10, 0, 0, 0 });
 			this->MinCheckNumSet->Name = L"MinCheckNumSet";
 			this->MinCheckNumSet->Size = System::Drawing::Size(92, 33);
@@ -381,127 +378,6 @@ namespace BDMatch {
 			this->tabControl1->SelectedIndex = 0;
 			this->tabControl1->Size = System::Drawing::Size(872, 581);
 			this->tabControl1->TabIndex = 17;
-			// 
-			// DecodeTabPage
-			// 
-			this->DecodeTabPage->Controls->Add(this->DecodeLayoutPanel);
-			this->DecodeTabPage->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
-			this->DecodeTabPage->Location = System::Drawing::Point(4, 39);
-			this->DecodeTabPage->Name = L"DecodeTabPage";
-			this->DecodeTabPage->Size = System::Drawing::Size(864, 538);
-			this->DecodeTabPage->TabIndex = 0;
-			this->DecodeTabPage->Text = L"解码设置";
-			this->DecodeTabPage->UseVisualStyleBackColor = true;
-			// 
-			// DecodeLayoutPanel
-			// 
-			this->DecodeLayoutPanel->AutoScroll = true;
-			this->DecodeLayoutPanel->AutoSize = true;
-			this->DecodeLayoutPanel->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
-			this->DecodeLayoutPanel->ColumnCount = 3;
-			this->DecodeLayoutPanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
-				144)));
-			this->DecodeLayoutPanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
-				99)));
-			this->DecodeLayoutPanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
-				100)));
-			this->DecodeLayoutPanel->Controls->Add(this->label15, 2, 2);
-			this->DecodeLayoutPanel->Controls->Add(this->label8, 0, 5);
-			this->DecodeLayoutPanel->Controls->Add(this->label7, 0, 3);
-			this->DecodeLayoutPanel->Controls->Add(this->label6, 0, 1);
-			this->DecodeLayoutPanel->Controls->Add(this->OutPCM, 0, 4);
-			this->DecodeLayoutPanel->Controls->Add(this->ParaDecode, 0, 6);
-			this->DecodeLayoutPanel->Controls->Add(this->label1, 0, 2);
-			this->DecodeLayoutPanel->Controls->Add(this->MindB, 1, 2);
-			this->DecodeLayoutPanel->Controls->Add(this->label9, 0, 7);
-			this->DecodeLayoutPanel->Controls->Add(this->label4, 0, 0);
-			this->DecodeLayoutPanel->Controls->Add(this->FFTnumList, 1, 0);
-			this->DecodeLayoutPanel->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->DecodeLayoutPanel->GrowStyle = System::Windows::Forms::TableLayoutPanelGrowStyle::FixedSize;
-			this->DecodeLayoutPanel->Location = System::Drawing::Point(0, 0);
-			this->DecodeLayoutPanel->Name = L"DecodeLayoutPanel";
-			this->DecodeLayoutPanel->Padding = System::Windows::Forms::Padding(6, 6, 30, 6);
-			this->DecodeLayoutPanel->RowCount = 8;
-			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->DecodeLayoutPanel->Size = System::Drawing::Size(864, 538);
-			this->DecodeLayoutPanel->TabIndex = 22;
-			// 
-			// label15
-			// 
-			this->label15->BackColor = System::Drawing::Color::Transparent;
-			this->label15->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label15->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
-				static_cast<System::Byte>(134)));
-			this->label15->Location = System::Drawing::Point(252, 142);
-			this->label15->Name = L"label15";
-			this->label15->Size = System::Drawing::Size(579, 44);
-			this->label15->TabIndex = 21;
-			this->label15->Text = L"dB";
-			this->label15->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
-			// 
-			// label8
-			// 
-			this->label8->AutoEllipsis = true;
-			this->label8->AutoSize = true;
-			this->DecodeLayoutPanel->SetColumnSpan(this->label8, 3);
-			this->label8->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label8->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11));
-			this->label8->Location = System::Drawing::Point(51, 274);
-			this->label8->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
-			this->label8->Name = L"label8";
-			this->label8->Size = System::Drawing::Size(780, 50);
-			this->label8->TabIndex = 19;
-			this->label8->Text = L"生成WAV格式文件，用以检查解码是否正常工作。重采样生成的音频会有噪声，但不会影响匹配。";
-			// 
-			// label7
-			// 
-			this->label7->AutoEllipsis = true;
-			this->label7->AutoSize = true;
-			this->DecodeLayoutPanel->SetColumnSpan(this->label7, 3);
-			this->label7->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label7->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11));
-			this->label7->Location = System::Drawing::Point(51, 193);
-			this->label7->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
-			this->label7->Name = L"label7";
-			this->label7->Size = System::Drawing::Size(780, 25);
-			this->label7->TabIndex = 18;
-			this->label7->Text = L"最小响度以下的噪声会被过滤，以保证解码生成的声谱不被噪声干扰。";
-			// 
-			// label6
-			// 
-			this->label6->AutoEllipsis = true;
-			this->label6->AutoSize = true;
-			this->DecodeLayoutPanel->SetColumnSpan(this->label6, 3);
-			this->label6->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label6->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11));
-			this->label6->Location = System::Drawing::Point(51, 57);
-			this->label6->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
-			this->label6->Name = L"label6";
-			this->label6->Size = System::Drawing::Size(780, 75);
-			this->label6->TabIndex = 17;
-			this->label6->Text = L"进行一次快速傅里叶变换（Fast Fourier Transform）所输入的采样点个数。请设置为接近采样率百分之一的数值。FFT个数过小会导致解码时间缓慢，FF"
-				L"T个数过大会导致匹配精度下降。";
-			// 
-			// label9
-			// 
-			this->label9->AutoEllipsis = true;
-			this->label9->AutoSize = true;
-			this->DecodeLayoutPanel->SetColumnSpan(this->label9, 3);
-			this->label9->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label9->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11));
-			this->label9->Location = System::Drawing::Point(51, 380);
-			this->label9->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
-			this->label9->Name = L"label9";
-			this->label9->Size = System::Drawing::Size(780, 142);
-			this->label9->TabIndex = 20;
-			this->label9->Text = L"同时进行TV和BD文件的解码，请在拥有高性能硬盘的设备上开启此选项，否则可能会导致在硬盘负载较大时解码速度急剧下降。";
 			// 
 			// MatchTabPage
 			// 
@@ -671,6 +547,127 @@ namespace BDMatch {
 			this->label11->TabIndex = 22;
 			this->label11->Text = L"决定在ASS时间轴多大时间范围内查找最佳匹配时间。查找范围增加会加长匹配时间，过小的查找范围会导致无法匹配到正确的时间。";
 			// 
+			// DecodeTabPage
+			// 
+			this->DecodeTabPage->Controls->Add(this->DecodeLayoutPanel);
+			this->DecodeTabPage->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
+			this->DecodeTabPage->Location = System::Drawing::Point(4, 39);
+			this->DecodeTabPage->Name = L"DecodeTabPage";
+			this->DecodeTabPage->Size = System::Drawing::Size(864, 538);
+			this->DecodeTabPage->TabIndex = 0;
+			this->DecodeTabPage->Text = L"解码设置";
+			this->DecodeTabPage->UseVisualStyleBackColor = true;
+			// 
+			// DecodeLayoutPanel
+			// 
+			this->DecodeLayoutPanel->AutoScroll = true;
+			this->DecodeLayoutPanel->AutoSize = true;
+			this->DecodeLayoutPanel->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
+			this->DecodeLayoutPanel->ColumnCount = 3;
+			this->DecodeLayoutPanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
+				144)));
+			this->DecodeLayoutPanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
+				99)));
+			this->DecodeLayoutPanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
+				100)));
+			this->DecodeLayoutPanel->Controls->Add(this->label15, 2, 2);
+			this->DecodeLayoutPanel->Controls->Add(this->label8, 0, 5);
+			this->DecodeLayoutPanel->Controls->Add(this->label7, 0, 3);
+			this->DecodeLayoutPanel->Controls->Add(this->label6, 0, 1);
+			this->DecodeLayoutPanel->Controls->Add(this->OutPCM, 0, 4);
+			this->DecodeLayoutPanel->Controls->Add(this->ParaDecode, 0, 6);
+			this->DecodeLayoutPanel->Controls->Add(this->label1, 0, 2);
+			this->DecodeLayoutPanel->Controls->Add(this->MindB, 1, 2);
+			this->DecodeLayoutPanel->Controls->Add(this->label9, 0, 7);
+			this->DecodeLayoutPanel->Controls->Add(this->label4, 0, 0);
+			this->DecodeLayoutPanel->Controls->Add(this->FFTnumList, 1, 0);
+			this->DecodeLayoutPanel->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->DecodeLayoutPanel->GrowStyle = System::Windows::Forms::TableLayoutPanelGrowStyle::FixedSize;
+			this->DecodeLayoutPanel->Location = System::Drawing::Point(0, 0);
+			this->DecodeLayoutPanel->Name = L"DecodeLayoutPanel";
+			this->DecodeLayoutPanel->Padding = System::Windows::Forms::Padding(6, 6, 30, 6);
+			this->DecodeLayoutPanel->RowCount = 8;
+			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->DecodeLayoutPanel->Size = System::Drawing::Size(864, 538);
+			this->DecodeLayoutPanel->TabIndex = 22;
+			// 
+			// label15
+			// 
+			this->label15->BackColor = System::Drawing::Color::Transparent;
+			this->label15->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->label15->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(134)));
+			this->label15->Location = System::Drawing::Point(252, 142);
+			this->label15->Name = L"label15";
+			this->label15->Size = System::Drawing::Size(579, 44);
+			this->label15->TabIndex = 21;
+			this->label15->Text = L"dB";
+			this->label15->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
+			// 
+			// label8
+			// 
+			this->label8->AutoEllipsis = true;
+			this->label8->AutoSize = true;
+			this->DecodeLayoutPanel->SetColumnSpan(this->label8, 3);
+			this->label8->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->label8->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11));
+			this->label8->Location = System::Drawing::Point(51, 274);
+			this->label8->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
+			this->label8->Name = L"label8";
+			this->label8->Size = System::Drawing::Size(780, 50);
+			this->label8->TabIndex = 19;
+			this->label8->Text = L"生成WAV格式文件，用以检查解码是否正常工作。重采样生成的音频会有噪声，但不会影响匹配。";
+			// 
+			// label7
+			// 
+			this->label7->AutoEllipsis = true;
+			this->label7->AutoSize = true;
+			this->DecodeLayoutPanel->SetColumnSpan(this->label7, 3);
+			this->label7->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->label7->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11));
+			this->label7->Location = System::Drawing::Point(51, 193);
+			this->label7->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
+			this->label7->Name = L"label7";
+			this->label7->Size = System::Drawing::Size(780, 25);
+			this->label7->TabIndex = 18;
+			this->label7->Text = L"最小响度以下的噪声会被过滤，以保证解码生成的声谱不被噪声干扰。";
+			// 
+			// label6
+			// 
+			this->label6->AutoEllipsis = true;
+			this->label6->AutoSize = true;
+			this->DecodeLayoutPanel->SetColumnSpan(this->label6, 3);
+			this->label6->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->label6->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11));
+			this->label6->Location = System::Drawing::Point(51, 57);
+			this->label6->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
+			this->label6->Name = L"label6";
+			this->label6->Size = System::Drawing::Size(780, 75);
+			this->label6->TabIndex = 17;
+			this->label6->Text = L"进行一次快速傅里叶变换（Fast Fourier Transform）所输入的采样点个数。请设置为接近采样率百分之一的数值。FFT个数过小会导致解码时间缓慢，FF"
+				L"T个数过大会导致匹配精度下降。";
+			// 
+			// label9
+			// 
+			this->label9->AutoEllipsis = true;
+			this->label9->AutoSize = true;
+			this->DecodeLayoutPanel->SetColumnSpan(this->label9, 3);
+			this->label9->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->label9->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11));
+			this->label9->Location = System::Drawing::Point(51, 380);
+			this->label9->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
+			this->label9->Name = L"label9";
+			this->label9->Size = System::Drawing::Size(780, 142);
+			this->label9->TabIndex = 20;
+			this->label9->Text = L"同时进行TV和BD文件的解码，请在拥有高性能硬盘的设备上开启此选项，否则可能会导致在硬盘负载较大时解码速度急剧下降。";
+			// 
 			// SpectrumTabPage
 			// 
 			this->SpectrumTabPage->Controls->Add(this->SpectrumLayoutPanel);
@@ -736,14 +733,14 @@ namespace BDMatch {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MaxLengthSet))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MinCheckNumSet))->EndInit();
 			this->tabControl1->ResumeLayout(false);
-			this->DecodeTabPage->ResumeLayout(false);
-			this->DecodeTabPage->PerformLayout();
-			this->DecodeLayoutPanel->ResumeLayout(false);
-			this->DecodeLayoutPanel->PerformLayout();
 			this->MatchTabPage->ResumeLayout(false);
 			this->MatchTabPage->PerformLayout();
 			this->MatchLayoutPanel->ResumeLayout(false);
 			this->MatchLayoutPanel->PerformLayout();
+			this->DecodeTabPage->ResumeLayout(false);
+			this->DecodeTabPage->PerformLayout();
+			this->DecodeLayoutPanel->ResumeLayout(false);
+			this->DecodeLayoutPanel->PerformLayout();
 			this->SpectrumTabPage->ResumeLayout(false);
 			this->SpectrumTabPage->PerformLayout();
 			this->SpectrumLayoutPanel->ResumeLayout(false);

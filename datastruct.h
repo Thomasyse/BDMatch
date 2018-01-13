@@ -92,10 +92,15 @@ namespace DataStruct {
 		array<Int64>^ diffa;
 	};
 
+	enum SettingType { FFTNum, MinCheckNum, FindField, MinFinddB, MaxLength, OutputPCM, Draw, MatchAss, ParallelDecode, FastMatch };
+
 	public ref struct SettingVals {
 	public:
 		SettingVals();
 		SettingVals(SettingVals ^ in);
+		String^ getname(SettingType &type);
+		int getval(SettingType &type);
+		int setval(SettingType &type, int val);
 		int FFTnum = 512;
 		int minfinddb = -12;
 		int findfield = 8;

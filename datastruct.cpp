@@ -302,3 +302,132 @@ DataStruct::SettingVals::SettingVals(SettingVals ^ in)
 	fastmatch = in->fastmatch;
 }
 
+String^ DataStruct::SettingVals::getname(SettingType &type)
+{
+	String^ name;
+	switch (type) {
+	case FFTNum:
+		name = "FFTNum";
+		break;
+	case MinFinddB:
+		name = "MinFinddB";
+		break;
+	case FindField:
+		name = "FindField";
+		break;
+	case MaxLength:
+		name = "MaxLength";
+		break;
+	case MinCheckNum:
+		name = "MaxCheckNum";
+		break;
+	case MatchAss:
+		name = "MatchAss";
+		break;
+	case OutputPCM:
+		name = "OutputPCM";
+		break;
+	case Draw:
+		name = "Draw";
+		break;
+	case ParallelDecode:
+		name = "ParallelDecode";
+		break;
+	case FastMatch:
+		name = "FastMatch";
+		break;
+	default:
+		break;
+	}
+	return name;
+}
+
+int DataStruct::SettingVals::getval(SettingType & type)
+{
+	int val;
+	switch (type) {
+	case FFTNum:
+		val = FFTnum;
+		break;
+	case MinFinddB:
+		val = minfinddb;
+		break;
+	case FindField:
+		val = findfield;
+		break;
+	case MaxLength:
+		val = maxlength;
+		break;
+	case MinCheckNum:
+		val = minchecknum;
+		break;
+	case MatchAss:
+		val = static_cast<int>(matchass);
+		break;
+	case OutputPCM:
+		val = static_cast<int>(outputpcm);
+		break;
+	case Draw:
+		val = static_cast<int>(draw);
+		break;
+	case ParallelDecode:
+		val = static_cast<int>(paralleldecode);
+		break;
+	case FastMatch:
+		val = static_cast<int>(fastmatch);
+		break;
+	default:
+		val = 0;
+		break;
+	}
+	return val;
+}
+
+int DataStruct::SettingVals::setval(SettingType & type, int val)
+{
+	using namespace std;
+	switch (type) {
+	case FFTNum:
+		val = max(val, 64);
+		val = min(val, 16384);
+		FFTnum = val;
+		break;
+	case MinFinddB:
+		val = max(val, -80);
+		val = min(val, 5);
+		minfinddb = val;
+		break;
+	case FindField:
+		val = max(val, 1);
+		val = min(val, 100000);
+		findfield = val;
+		break;
+	case MaxLength:
+		val = max(val, 20);
+		val = min(val, 1000);
+		maxlength = val;
+		break;
+	case MinCheckNum:
+		val = max(val, 10);
+		val = min(val, 1000000);
+		minchecknum = val;
+		break;
+	case OutputPCM:
+		outputpcm = static_cast<bool>(val);
+		break;
+	case Draw:
+		draw = static_cast<bool>(val);
+		break;
+	case MatchAss:
+		matchass = static_cast<bool>(val);
+		break;
+	case ParallelDecode:
+		paralleldecode = static_cast<bool>(val);
+	case FastMatch:
+		fastmatch = static_cast<bool>(val);
+	default:
+		break;
+	}
+	return 0;
+}
+

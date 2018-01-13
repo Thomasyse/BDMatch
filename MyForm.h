@@ -205,18 +205,21 @@ namespace BDMatch {
 			// 
 			// settings
 			// 
+			this->settings->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			this->settings->AutoSize = true;
 			this->settings->BackColor = System::Drawing::Color::Transparent;
-			this->settings->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->settings->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 9, System::Drawing::FontStyle::Underline, System::Drawing::GraphicsUnit::Point,
+			this->settings->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->settings->Location = System::Drawing::Point(3, 179);
+			this->settings->Location = System::Drawing::Point(3, 209);
 			this->settings->Margin = System::Windows::Forms::Padding(3, 7, 5, 7);
 			this->settings->Name = L"settings";
-			this->settings->Size = System::Drawing::Size(92, 50);
+			this->settings->Size = System::Drawing::Size(39, 20);
 			this->settings->TabIndex = 16;
 			this->settings->Text = L"ÉèÖÃ";
 			this->settings->TextAlign = System::Drawing::ContentAlignment::BottomLeft;
 			this->settings->Click += gcnew System::EventHandler(this, &MyForm::settings_Click);
+			this->settings->MouseEnter += gcnew System::EventHandler(this, &MyForm::settings_MouseEnter);
+			this->settings->MouseLeave += gcnew System::EventHandler(this, &MyForm::settings_MouseLeave);
 			// 
 			// ASStext
 			// 
@@ -227,7 +230,7 @@ namespace BDMatch {
 			this->ASStext->FormattingEnabled = true;
 			this->ASStext->Location = System::Drawing::Point(103, 25);
 			this->ASStext->Margin = System::Windows::Forms::Padding(3, 5, 0, 0);
-			this->ASStext->MaxDropDownItems = 20;
+			this->ASStext->MaxDropDownItems = 10;
 			this->ASStext->Name = L"ASStext";
 			this->ASStext->Size = System::Drawing::Size(903, 32);
 			this->ASStext->TabIndex = 13;
@@ -264,18 +267,21 @@ namespace BDMatch {
 			// 
 			// About
 			// 
+			this->About->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Right));
+			this->About->AutoSize = true;
 			this->About->BackColor = System::Drawing::Color::Transparent;
-			this->About->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->About->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 9, System::Drawing::FontStyle::Underline, System::Drawing::GraphicsUnit::Point,
+			this->About->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->About->Location = System::Drawing::Point(1009, 179);
+			this->About->Location = System::Drawing::Point(1024, 209);
 			this->About->Margin = System::Windows::Forms::Padding(3, 7, 5, 7);
 			this->About->Name = L"About";
-			this->About->Size = System::Drawing::Size(67, 50);
+			this->About->Size = System::Drawing::Size(52, 20);
 			this->About->TabIndex = 7;
 			this->About->Text = L"v0.0.0";
 			this->About->TextAlign = System::Drawing::ContentAlignment::BottomRight;
 			this->About->Click += gcnew System::EventHandler(this, &MyForm::About_Click);
+			this->About->MouseEnter += gcnew System::EventHandler(this, &MyForm::About_MouseEnter);
+			this->About->MouseLeave += gcnew System::EventHandler(this, &MyForm::About_MouseLeave);
 			// 
 			// label3
 			// 
@@ -355,7 +361,7 @@ namespace BDMatch {
 			this->TVtext->FormattingEnabled = true;
 			this->TVtext->Location = System::Drawing::Point(103, 80);
 			this->TVtext->Margin = System::Windows::Forms::Padding(3, 16, 0, 0);
-			this->TVtext->MaxDropDownItems = 20;
+			this->TVtext->MaxDropDownItems = 10;
 			this->TVtext->Name = L"TVtext";
 			this->TVtext->Size = System::Drawing::Size(903, 32);
 			this->TVtext->TabIndex = 4;
@@ -371,7 +377,7 @@ namespace BDMatch {
 			this->BDtext->FormattingEnabled = true;
 			this->BDtext->Location = System::Drawing::Point(103, 134);
 			this->BDtext->Margin = System::Windows::Forms::Padding(3, 16, 0, 0);
-			this->BDtext->MaxDropDownItems = 21;
+			this->BDtext->MaxDropDownItems = 10;
 			this->BDtext->Name = L"BDtext";
 			this->BDtext->Size = System::Drawing::Size(903, 32);
 			this->BDtext->TabIndex = 9;
@@ -562,6 +568,7 @@ namespace BDMatch {
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->Name = L"MyForm";
 			this->Text = L"BDMatch";
+			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &MyForm::MyForm_FormClosing);
 			this->Load += gcnew System::EventHandler(this, &MyForm::MyForm_Load);
 			this->AllTablePanel->ResumeLayout(false);
 			this->AllTablePanel->PerformLayout();
@@ -581,20 +588,22 @@ namespace BDMatch {
 
 	public:
 		void SetVals(SettingType type, int val);
-		void SetVals(SettingType type, bool val);
 		void nullsetform();
 		void progtv();
 		void progbd();
 		void progtvmax(int max);
 		void progbdmax(int max);
 
-	private: int match();
-	private: int writeass(Decode^ tvdecode, Decode^ bddecode);
+	private: int match(String^ ASSText, String^ TVText, String^ BDText);
+	private: int writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSText);
 	private: int drawchart();
 	private: String ^ mstotime(int ms);
 	private: int setrows();
+	private: int adddropdown(ComboBox^ combo, String^ text);
 
 	private: System::Void MyForm_Load(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void MyForm_FormClosing(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e);
+
 	private: System::Void TVfind_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void TVtext_DragEnter(System::Object^  sender, System::Windows::Forms::DragEventArgs^  e);
 	private: System::Void TVtext_DragDrop(System::Object^  sender, System::Windows::Forms::DragEventArgs^  e);
@@ -606,12 +615,18 @@ namespace BDMatch {
 	private: System::Void ASStext_DragDrop(System::Object^  sender, System::Windows::Forms::DragEventArgs^  e);
 
 	private: System::Void Match_Click(System::Object^  sender, System::EventArgs^  e);
+
 	private: System::Void About_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void About_MouseEnter(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void About_MouseLeave(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void settings_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void settings_MouseEnter(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void settings_MouseLeave(System::Object^  sender, System::EventArgs^  e);
 
 	private: System::Void ChSelect_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void ViewSel_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void TimeRoll_Scroll(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void LineSel_ValueChanged(System::Object^  sender, System::EventArgs^  e);
+
 };
 }

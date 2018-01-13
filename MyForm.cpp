@@ -2,6 +2,7 @@
 #define appversion "1.0.b1"
 #define tvmaxnum 6
 #define secpurple 45
+#define setintnum 5
 
 using namespace BDMatch;
 [STAThreadAttribute]
@@ -15,7 +16,7 @@ int main(array<System::String^>^args)
 }
 
 
-int BDMatch::MyForm::match()
+int BDMatch::MyForm::match(String^ ASSText, String^ TVText, String^ BDText)
 {
 	using namespace System::IO;
 	using namespace System::Threading;
@@ -62,19 +63,19 @@ int BDMatch::MyForm::match()
 	if (!Setting->draw)setrows();
 
 	Result->Text = "";
-	if (!File::Exists(ASStext->Text)) {
+	if (!File::Exists(ASSText)) {
 		MessageBox::Show(this, "ASS文件不存在！", "BDMatch", MessageBoxButtons::OK);
 		return -1;
 	}
-	if (!File::Exists(TVtext->Text)) {
+	if (!File::Exists(TVText)) {
 		MessageBox::Show(this, "TV文件不存在！", "BDMatch", MessageBoxButtons::OK);
 		return -1;
 	}
-	if (!File::Exists(BDtext->Text)) {
+	if (!File::Exists(BDText)) {
 		MessageBox::Show(this, "BD文件不存在！", "BDMatch", MessageBoxButtons::OK);
 		return -1;
 	}
-	if (TVtext->Text == BDtext->Text) {
+	if (TVtext->Text == BDText) {
 		MessageBox::Show(this, "BD和TV文件相同！", "BDMatch", MessageBoxButtons::OK);
 		return -1;
 	}
@@ -93,7 +94,7 @@ int BDMatch::MyForm::match()
 	fftw_plan plan = fftw_plan_dft_r2c_1d(Setting->FFTnum, in, out, FFTW_MEASURE);
 	fftw_free(in);
 	fftw_free(out);
-	Decode^ tvdecode = gcnew Decode(TVtext->Text, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, 0, decodetasks, plan,
+	Decode^ tvdecode = gcnew Decode(TVText, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, 0, decodetasks, plan,
 		gcnew ProgressCallback(this, &MyForm::progtv), gcnew ProgMaxCallback(this, &MyForm::progtvmax));//解码TV文件
 	Task^ tvTask = gcnew Task(gcnew Action(tvdecode, &Decode::decodeaudio));
 	tvTask->Start();
@@ -104,7 +105,7 @@ int BDMatch::MyForm::match()
 		Thread::Sleep(1);
 	} while (tvdecode->getsamprate() == 0);
 
-	Decode^ bddecode = gcnew Decode(BDtext->Text, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, tvdecode->getsamprate(), decodetasks, plan,
+	Decode^ bddecode = gcnew Decode(BDText, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, tvdecode->getsamprate(), decodetasks, plan,
 		gcnew ProgressCallback(this, &MyForm::progbd), gcnew ProgMaxCallback(this, &MyForm::progbdmax));//解码BD文件
 	Task^ bdTask = gcnew Task(gcnew Action(bddecode, &Decode::decodeaudio));
 	bdTask->Start();
@@ -129,7 +130,7 @@ int BDMatch::MyForm::match()
 	
 	int re = 0;
 	if (Setting->matchass) {
-		re = writeass(tvdecode, bddecode);
+		re = writeass(tvdecode, bddecode, ASSText);
 	}
 	if (re < 0)return -2;
 	if (Setting->draw) {
@@ -173,7 +174,7 @@ int BDMatch::MyForm::match()
 	return 0;
 }
 
-int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
+int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSText)
 {
 	using namespace System::IO;
 	using namespace System::Text;
@@ -196,7 +197,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	String^ tvass;
 	String^ head = "";
 	String^ content = "";
-	tvass = File::ReadAllText(ASStext->Text);
+	tvass = File::ReadAllText(ASSText);
 	int eventpos = tvass->IndexOf("\r\n[Events]\r\n");
 	if (eventpos == -1) {
 		Result->Text += "\r\n输入字幕文件无效！";
@@ -206,8 +207,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode)
 	head = tvass->Substring(0, eventpos);
 	content = tvass->Substring(eventpos, tvass->Length - eventpos);
 	tvass = "";
-	Regex^ fileregex1 = gcnew Regex("Audio File: ([ \\S]*)\\r\\n");
-	Regex^ fileregex2 = gcnew Regex("Video File: ([ \\S]*)\\r\\n");
+	Regex^ fileregex1 = gcnew Regex("Audio File: (.*)\\r\\n");
+	Regex^ fileregex2 = gcnew Regex("Video File: (.*)\\r\\n");
 	head = fileregex1->Replace(head, "Audio File: " + bddecode->getfilename() + "\r\n");
 	head = fileregex2->Replace(head, "Video File: " + bddecode->getfilename() + "\r\n");
 	//: 0,0:22:38.77,0:22:43.35
@@ -627,51 +628,30 @@ int BDMatch::MyForm::setrows()
 	return 0;
 }
 
+int BDMatch::MyForm::adddropdown(ComboBox ^ combo, String ^ text)
+{
+	bool repeat = false;
+	for (int i = 0; i < combo->Items->Count; i++) {
+		if (combo->GetItemText(combo->Items[i]) == text) {
+			repeat = true;
+			break;
+		}
+	}
+	if (!repeat) {
+		if (combo->Items->Count == combo->MaxDropDownItems) {
+			combo->Items->RemoveAt(combo->Items->Count - 1);
+		}
+		combo->Items->Insert(0, text);
+	}
+	return 0;
+}
+
 void BDMatch::MyForm::nullsetform() {
 	setform = nullptr;
 }
 void BDMatch::MyForm::SetVals(SettingType type,int val)
 {
-	switch (type) {
-	case FFTNum:
-		Setting->FFTnum = val;
-		break;
-	case MinFindDb:
-		Setting->minfinddb = val;
-		break;
-	case FindField:
-		Setting->findfield = val;
-		break;
-	case MaxLength:
-		Setting->findfield = val;
-		break;
-	case MinCheckNum:
-		Setting->minchecknum = val;
-		break;
-	default:
-		break;
-	}
-	return System::Void();
-}
-void BDMatch::MyForm::SetVals(SettingType type, bool val)
-{
-	switch (type) {
-	case OutputPCM:
-		Setting->outputpcm = val;
-		break;
-	case Draw:
-		Setting->draw = val;
-		break;
-	case MatchAss:
-		Setting->matchass = val;
-		break;
-	case ParallelDecode:
-		Setting->paralleldecode = val;
-	case FastMatch:
-		Setting->fastmatch = val;
-	default:
-		break;
-	}
+	Setting->setval(type, val);
 	return System::Void();
 }
 void BDMatch::MyForm::progtv()
@@ -697,10 +677,52 @@ void BDMatch::MyForm::progbdmax(int max)
 
 System::Void BDMatch::MyForm::MyForm_Load(System::Object ^ sender, System::EventArgs ^ e)
 {
+	using namespace System::IO;
+	using namespace System::Text::RegularExpressions;
 	tvprogressBar->CheckForIllegalCrossThreadCalls = false;
 	bdprogressBar->CheckForIllegalCrossThreadCalls = false;
 	About->Text = "v" + appversion;
 	setrows();
+	if (File::Exists("\settings.ini")) {
+		String^ settext;
+		try {
+			settext = File::ReadAllText("settings.ini");
+		}
+		finally{
+			Regex^ numkey = gcnew Regex("[\\+-]?[0-9]+");
+			for (int i = 0; i < 10; i++) {
+				SettingType type = static_cast<SettingType>(i);
+				Regex^ setkey = gcnew Regex(Setting->getname(type) + ":[\\+-]?[0-9]+\\r\\n");
+				String^ setting = setkey->Match(settext)->Value;
+				if (setting != "") {
+					int val = int::Parse(numkey->Match(setting)->Value);
+					Setting->setval(type, val);
+				}
+			}
+		}
+	}
+	return System::Void();
+}
+
+System::Void BDMatch::MyForm::MyForm_FormClosing(System::Object ^ sender, System::Windows::Forms::FormClosingEventArgs ^ e)
+{
+	using namespace System::IO;
+	using namespace System::Text;
+	using namespace System::Text::RegularExpressions;
+	FileStream^ fs = File::OpenWrite("\settings.ini");
+	try {
+		for (int i = 0; i < 10; i++) {
+			SettingType type = static_cast<SettingType>(i);
+			String^ outstr = Setting->getname(type) + ":" + Setting->getval(type).ToString() + "\r\n";
+			array<Byte>^info = (gcnew UTF8Encoding(true))->
+				GetBytes(outstr);
+			fs->Write(info, 0, info->Length);
+		}
+	}
+	finally{
+		if (fs)
+			delete (IDisposable^)fs;
+	}
 	return System::Void();
 }
 
@@ -851,7 +873,12 @@ System::Void BDMatch::MyForm::ASStext_DragDrop(System::Object ^ sender, System::
 
 System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	match();
+	int re = match(ASStext->Text, TVtext->Text, BDtext->Text);
+	if (re >= 0) {
+		adddropdown(ASStext, ASStext->Text);
+		adddropdown(TVtext, TVtext->Text);
+		adddropdown(BDtext, BDtext->Text);
+	}
 	return System::Void();
 }
 
@@ -861,15 +888,33 @@ System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::Event
 		"Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005). ", "关于", MessageBoxButtons::OK);
 	return System::Void();
 }
-
+System::Void BDMatch::MyForm::About_MouseEnter(System::Object ^ sender, System::EventArgs ^ e)
+{
+	About->Font = gcnew System::Drawing::Font(About->Font->Name, About->Font->Size, FontStyle::Underline);
+	return System::Void();
+}
+System::Void BDMatch::MyForm::About_MouseLeave(System::Object ^ sender, System::EventArgs ^ e)
+{
+	About->Font = gcnew System::Drawing::Font(About->Font->Name, About->Font->Size, FontStyle::Regular);
+	return System::Void();
+}
 System::Void BDMatch::MyForm::settings_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
 	if (!setform) {
-		setform = gcnew Settings(gcnew SettingIntCallback(this, &MyForm::SetVals), gcnew SettingBoolCallback(this, &MyForm::SetVals), 
-			gcnew NullCallback(this, &MyForm::nullsetform),	Setting);
+		setform = gcnew Settings(gcnew SettingCallback(this, &MyForm::SetVals),gcnew NullCallback(this, &MyForm::nullsetform), Setting);
 	}
 	setform->Show();
 	if (!setform->Focused)setform->Focus();
+	return System::Void();
+}
+System::Void BDMatch::MyForm::settings_MouseEnter(System::Object ^ sender, System::EventArgs ^ e)
+{
+	settings->Font = gcnew System::Drawing::Font(settings->Font->Name, settings->Font->Size, FontStyle::Underline);
+	return System::Void();
+}
+System::Void BDMatch::MyForm::settings_MouseLeave(System::Object ^ sender, System::EventArgs ^ e)
+{
+	settings->Font = gcnew System::Drawing::Font(settings->Font->Name, settings->Font->Size, FontStyle::Regular);
 	return System::Void();
 }
 
