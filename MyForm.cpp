@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.0.b1"
+#define appversion "1.0.b2"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -16,74 +16,29 @@ int main(array<System::String^>^args)
 }
 
 
-int BDMatch::MyForm::match(String^ ASSText, String^ TVText, String^ BDText)
+int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 {
 	using namespace System::IO;
 	using namespace System::Threading;
 	using namespace System::Threading::Tasks;
 	using namespace System::Collections::Concurrent;
 	using namespace System::Collections::Generic;
-
 	using namespace System::Text;
 
-	if (tvdraw.num > 0) {
-		for (int i = 0; i < tvdraw.num; i++) {
-			if ((*tvdraw.data)[0][i] != nullptr)delete (*tvdraw.data)[0][i];
-			if ((*tvdraw.data)[1][i] != nullptr)delete (*tvdraw.data)[1][i];
-		}
-		tvdraw.num = 0;
-	}
-	if (bddraw.num > 0) {
-		for (int i = 0; i < bddraw.num; i++) {
-			if ((*bddraw.data)[0][i] != nullptr)delete (*bddraw.data)[0][i];
-			if ((*bddraw.data)[1][i] != nullptr)delete (*bddraw.data)[1][i];
-		}
-		bddraw.num = 0;
-	}
-	delete tvdraw.data;
-	delete bddraw.data;
-	tvdraw.data = nullptr;
-	bddraw.data = nullptr;
-	ViewSel->Enabled = false;
-	LineSel->Enabled = false;
-	ChSelect->Enabled = false;
-	TimeRoll->Enabled = false;
-	ViewSel->SelectedIndex = 0;
-	ChSelect->SelectedIndex = 0;
-	LineSel->Value = 1;
-	tvdraw.ch = 0;
-	bddraw.ch = 0;
-	tvdraw.milisec = 0;
-	bddraw.milisec = 0;
-	tvdraw.linenum = 0;
-	bddraw.linenum = 0;
-	tvdraw.timelist = nullptr;
-	bddraw.timelist = nullptr;
-	ChartTime->Text = "";
-	if (!Setting->draw)setrows();
-
-	Result->Text = "";
-	if (!File::Exists(ASSText)) {
+	drawpre();
+	if (!File::Exists(asstext)) {
 		MessageBox::Show(this, "ASS文件不存在！", "BDMatch", MessageBoxButtons::OK);
-		return -1;
+		return -3;
 	}
-	if (!File::Exists(TVText)) {
+	if (!File::Exists(tvtext)) {
 		MessageBox::Show(this, "TV文件不存在！", "BDMatch", MessageBoxButtons::OK);
-		return -1;
+		return -3;
 	}
-	if (!File::Exists(BDText)) {
+	if (!File::Exists(bdtext)) {
 		MessageBox::Show(this, "BD文件不存在！", "BDMatch", MessageBoxButtons::OK);
-		return -1;
+		return -3;
 	}
-	if (TVtext->Text == BDText) {
-		MessageBox::Show(this, "BD和TV文件相同！", "BDMatch", MessageBoxButtons::OK);
-		return -1;
-	}
-	int tvch = 0, bdch = 0;
-	int tvsampnum = 0, bdsampnum = 0;
-	std::vector<std::vector<node*>>* tvfftdata;
-	std::vector<std::vector<node*>>* bdfftdata;
-	Result->Text = "";
+	
 	tvprogressBar->Value = 0;
 	bdprogressBar->Value = 0;
 
@@ -94,7 +49,7 @@ int BDMatch::MyForm::match(String^ ASSText, String^ TVText, String^ BDText)
 	fftw_plan plan = fftw_plan_dft_r2c_1d(Setting->FFTnum, in, out, FFTW_MEASURE);
 	fftw_free(in);
 	fftw_free(out);
-	Decode^ tvdecode = gcnew Decode(TVText, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, 0, decodetasks, plan,
+	Decode^ tvdecode = gcnew Decode(tvtext, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, 0, decodetasks, plan,
 		gcnew ProgressCallback(this, &MyForm::progtv), gcnew ProgMaxCallback(this, &MyForm::progtvmax));//解码TV文件
 	Task^ tvTask = gcnew Task(gcnew Action(tvdecode, &Decode::decodeaudio));
 	tvTask->Start();
@@ -105,7 +60,7 @@ int BDMatch::MyForm::match(String^ ASSText, String^ TVText, String^ BDText)
 		Thread::Sleep(1);
 	} while (tvdecode->getsamprate() == 0);
 
-	Decode^ bddecode = gcnew Decode(BDText, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, tvdecode->getsamprate(), decodetasks, plan,
+	Decode^ bddecode = gcnew Decode(bdtext, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, tvdecode->getsamprate(), decodetasks, plan,
 		gcnew ProgressCallback(this, &MyForm::progbd), gcnew ProgMaxCallback(this, &MyForm::progbdmax));//解码BD文件
 	Task^ bdTask = gcnew Task(gcnew Action(bddecode, &Decode::decodeaudio));
 	bdTask->Start();
@@ -117,56 +72,20 @@ int BDMatch::MyForm::match(String^ ASSText, String^ TVText, String^ BDText)
 	long end = clock();
 	double spend = double(end - start) / (double)CLOCKS_PER_SEC;
 
-	Result->Text += "TV文件：\r\n" + tvdecode->getfeedback();
-	Result->Text += "\r\nBD文件：\r\n" + bddecode->getfeedback()+ "\r\n解码时间：" + spend.ToString() + "秒";
-	if (tvdecode->getreturn() < 0 || bddecode->getreturn() < 0) return-1;
-	tvfftdata = tvdecode->getfftdata();
-	bdfftdata = bddecode->getfftdata();
-	tvsampnum = tvdecode->getfftsampnum();
-	bdsampnum = bddecode->getfftsampnum();
+	Result->Text += "TV文件：  " + tvtext->Substring(tvtext->LastIndexOf("\\") + 1) + "\r\n" + tvdecode->getfeedback();
+	Result->Text += "\r\nBD文件：  "+ bdtext->Substring(bdtext->LastIndexOf("\\") + 1) +"\r\n" + bddecode->getfeedback()+ 
+		"\r\n解码时间：" + spend.ToString() + "秒";
+	if (tvdecode->getreturn() < 0 || bddecode->getreturn() < 0) return -4;
 
 	tvprogressBar->Value = tvprogressBar->Maximum;
 	bdprogressBar->Value = bdprogressBar->Maximum;
 	
 	int re = 0;
 	if (Setting->matchass) {
-		re = writeass(tvdecode, bddecode, ASSText);
+		re = writeass(tvdecode, bddecode, asstext);
 	}
-	if (re < 0)return -2;
-	if (Setting->draw) {
-		tvdraw.data = tvfftdata;
-		bddraw.data = bdfftdata;
-		tvdraw.num = tvsampnum;
-		bddraw.num = bdsampnum;
-		tvdraw.ch = tvdecode->getchannels();
-		bddraw.ch = bddecode->getchannels();
-		tvdraw.milisec = tvdecode->getmilisecnum();
-		bddraw.milisec = bddecode->getmilisecnum();
-		ViewSel->SelectedIndex = 0;
-		ChSelect->SelectedIndex = 0;
-		ChSelect->Enabled = true;
-		TimeRoll->Maximum = max(tvdraw.milisec, bddraw.milisec);
-		TimeRoll->Value = 0;
-		TimeRoll->Enabled = true;
-		if (!re && Setting->matchass)ViewSel->Enabled = true;
-		setrows();
-		drawchart();
-	}
-	else
-	{
-		for (int i = 0; i < tvsampnum; i++) {
-			if ((*tvfftdata)[0][i] != nullptr)delete (*tvfftdata)[0][i];
-			if ((*tvfftdata)[1][i] != nullptr)delete (*tvfftdata)[1][i];
-		}
-		for (int i = 0; i < bdsampnum; i++) {
-			if ((*bdfftdata)[0][i] != nullptr)delete (*bdfftdata)[0][i];
-			if ((*bdfftdata)[1][i] != nullptr)delete (*bdfftdata)[1][i];
-		}
-		delete tvfftdata;
-		delete bdfftdata;
-		tvfftdata = nullptr;
-		bdfftdata = nullptr;
-	}
+	drawpre(tvdecode, bddecode, re);
+	if (re < 0)return -5;
 
 	tvprogressBar->Value = tvprogressBar->Maximum;
 	bdprogressBar->Value = bdprogressBar->Maximum;
@@ -174,7 +93,7 @@ int BDMatch::MyForm::match(String^ ASSText, String^ TVText, String^ BDText)
 	return 0;
 }
 
-int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSText)
+int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstext)
 {
 	using namespace System::IO;
 	using namespace System::Text;
@@ -197,7 +116,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSTex
 	String^ tvass;
 	String^ head = "";
 	String^ content = "";
-	tvass = File::ReadAllText(ASSText);
+	tvass = File::ReadAllText(asstext);
 	int eventpos = tvass->IndexOf("\r\n[Events]\r\n");
 	if (eventpos == -1) {
 		Result->Text += "\r\n输入字幕文件无效！";
@@ -207,8 +126,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSTex
 	head = tvass->Substring(0, eventpos);
 	content = tvass->Substring(eventpos, tvass->Length - eventpos);
 	tvass = "";
-	Regex^ fileregex1 = gcnew Regex("Audio File: (.*)\\r\\n");
-	Regex^ fileregex2 = gcnew Regex("Video File: (.*)\\r\\n");
+	Regex^ fileregex1 = gcnew Regex("Audio File: .*?\\r\\n");
+	Regex^ fileregex2 = gcnew Regex("Video File: .*?\\r\\n");
 	head = fileregex1->Replace(head, "Audio File: " + bddecode->getfilename() + "\r\n");
 	head = fileregex2->Replace(head, "Video File: " + bddecode->getfilename() + "\r\n");
 	//: 0,0:22:38.77,0:22:43.35
@@ -289,19 +208,19 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSTex
 		bdtime[i] = 0;
 	}
 	//搜索匹配
+	double mstofft = tvfftnum / static_cast<double>(tvmilisec);
 	int ch = min(tvch, bdch);
 	ch = min(ch, 2);
-	int find0 = Setting->findfield * 100;
-	int interval = tvfftnum / tvmilisec;
+	int find0 = static_cast<int>(Setting->findfield * 100 * mstofft);
+	int interval = static_cast<int>(mstofft);
 	if (interval < 1) {
-		find0 = static_cast<int>(find0 / double(tvmilisec)*tvfftnum);
 		interval = 1;
 	}
 	array<Int64> ^diftime = gcnew array<Int64>(3);
 	double aveindex = 0, maxindex = 0; int maxdelta = 0, maxline = 0;//调试用
 	int offset = 0; int fivesec = 0; int lastlinetime = 0;
 	if (Setting->fastmatch) {
-		fivesec = static_cast<int>(500 / double(tvmilisec)*tvfftnum);
+		fivesec = static_cast<int>(500 * mstofft);
 		Result->Text += "\r\n信息：使用快速匹配。";
 	}
 	for (int i = 0; i < alltimematch->Count; i++) {
@@ -311,8 +230,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSTex
 				lastlinetime = tvtime[i];
 				continue;
 			}
-			int findstart = static_cast<int>(tvtime[i] - find0 * interval);
-			int findend = static_cast<int>(tvtime[i] + find0 * interval);
+			int findstart = static_cast<int>(tvtime[i] - find0);
+			int findend = static_cast<int>(tvtime[i] + find0);
 			int duration = timelist[i]->end() - timelist[i]->start();
 			findstart = max(0, findstart);
 			findend = static_cast<int>(min(bdfftnum - duration - 1, findend));
@@ -431,7 +350,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSTex
 		String^ replacetext = timelist[i]->head() + starttime + "," + endtime + ",";
 		content = content->Replace(alltimematch[i]->Value, replacetext);
 	}
-	String^ outfile = ASStext->Text->Substring(0, ASStext->Text->LastIndexOf(".")) + ".matched.ass";
+	String^ outfile = asstext->Substring(0, asstext->LastIndexOf(".")) + ".matched.ass";
 	if (File::Exists(outfile))
 	{
 		File::Delete(outfile);
@@ -456,9 +375,90 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSTex
 	return 0;
 }
 
+int BDMatch::MyForm::drawpre()
+{
+	if (tvdraw.num > 0) {
+		for (int i = 0; i < tvdraw.num; i++) {
+			if ((*tvdraw.data)[0][i] != nullptr)delete (*tvdraw.data)[0][i];
+			if ((*tvdraw.data)[1][i] != nullptr)delete (*tvdraw.data)[1][i];
+		}
+		tvdraw.num = 0;
+	}
+	if (bddraw.num > 0) {
+		for (int i = 0; i < bddraw.num; i++) {
+			if ((*bddraw.data)[0][i] != nullptr)delete (*bddraw.data)[0][i];
+			if ((*bddraw.data)[1][i] != nullptr)delete (*bddraw.data)[1][i];
+		}
+		bddraw.num = 0;
+	}
+	delete tvdraw.data;
+	delete bddraw.data;
+	tvdraw.data = nullptr;
+	bddraw.data = nullptr;
+	ViewSel->Enabled = false;
+	LineSel->Enabled = false;
+	ChSelect->Enabled = false;
+	TimeRoll->Enabled = false;
+	ViewSel->SelectedIndex = 0;
+	ChSelect->SelectedIndex = 0;
+	LineSel->Value = 1;
+	tvdraw.ch = 0;
+	bddraw.ch = 0;
+	tvdraw.milisec = 0;
+	bddraw.milisec = 0;
+	tvdraw.linenum = 0;
+	bddraw.linenum = 0;
+	tvdraw.timelist = nullptr;
+	bddraw.timelist = nullptr;
+	ChartTime->Text = "";
+	if (!Setting->draw)setrows();
+	return 0;
+}
+int BDMatch::MyForm::drawpre(Decode ^ tvdecode, Decode ^ bddecode,int &re)
+{
+	tvdraw.data = tvdecode->getfftdata();
+	bddraw.data = bddecode->getfftdata();
+	tvdraw.num = tvdecode->getfftsampnum();
+	bddraw.num = bddecode->getfftsampnum();
+	if (Setting->draw) {
+		tvdraw.ch = tvdecode->getchannels();
+		bddraw.ch = bddecode->getchannels();
+		tvdraw.milisec = tvdecode->getmilisecnum();
+		bddraw.milisec = bddecode->getmilisecnum();
+		ViewSel->SelectedIndex = 0;
+		ChSelect->SelectedIndex = 0;
+		ChSelect->Enabled = true;
+		TimeRoll->Maximum = max(tvdraw.milisec, bddraw.milisec);
+		TimeRoll->Value = 0;
+		TimeRoll->Enabled = true;
+		if (!re && Setting->matchass)ViewSel->Enabled = true;
+		setrows();
+		drawchart();
+	}
+	else
+	{
+		for (int i = 0; i < tvdraw.num; i++) {
+			if ((*tvdraw.data)[0][i] != nullptr)delete (*tvdraw.data)[0][i];
+			if ((*tvdraw.data)[1][i] != nullptr)delete (*tvdraw.data)[1][i];
+		}
+		for (int i = 0; i < bddraw.num; i++) {
+			if ((*bddraw.data)[0][i] != nullptr)delete (*bddraw.data)[0][i];
+			if ((*bddraw.data)[1][i] != nullptr)delete (*bddraw.data)[1][i];
+		}
+		delete tvdraw.data;
+		delete bddraw.data;
+		tvdraw.data = nullptr;
+		bddraw.data = nullptr;
+		tvdraw.num = 0;
+		bddraw.num = 0;
+	}
+	return 0;
+}
 int BDMatch::MyForm::drawchart()
 {
+	int maxsampnum = max(tvdraw.num, bddraw.num);
 	int milisec = max(tvdraw.milisec, bddraw.milisec);
+	double mstofft = maxsampnum / static_cast<double>(milisec);
 	int offset = 0;
 	if (milisec < 10000) offset = 150;
 	else if (milisec < 100000)offset = 250;
@@ -466,20 +466,27 @@ int BDMatch::MyForm::drawchart()
 	TimeRoll->TickFrequency = offset;
 	TimeRoll->LargeChange = offset;
 	TimeRoll->SmallChange = offset / 4;
-	int maxsampnum = max(tvdraw.num, bddraw.num);
 	int tvstart = 0, tvend = 0, bdstart = 0;
 	if (ViewSel->SelectedIndex == 0) {
-		tvstart = int((TimeRoll->Value - offset) / float(milisec) *maxsampnum);
-		tvend = int((TimeRoll->Value + offset) / float(milisec) * maxsampnum);
+		tvstart = static_cast<int>((TimeRoll->Value - offset)* mstofft);
+		tvend = static_cast<int>((TimeRoll->Value + offset)* mstofft);
 		bdstart = tvstart;
 		ChartTime->Text = mstotime(TimeRoll->Value);
 	}
 	else {
-		tvstart = (tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0]
-			+ tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 1]) / 2 - offset;
-		tvend = tvstart + 2 * offset;
-		bdstart = (bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0]
-			+ bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 1]) / 2 - offset;
+		if (tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 1] - tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0]
+	> 2 * offset) {
+			tvstart = tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0];
+			tvend = tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 1];
+			bdstart = bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0];
+		}
+		else {
+			tvstart = (tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0]
+				+ tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 1]) / 2 - offset;
+			tvend = tvstart + 2 * offset;
+			bdstart = (bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0]
+				+ bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 1]) / 2 - offset;
+		}
 		if (tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] == -1)ChartTime->Text = "未匹配！";
 		else ChartTime->Text = mstotime(static_cast<int>(tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / double(tvdraw.num)*tvdraw.milisec))
 			+ "\n" + mstotime(static_cast<int>(bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / double(bddraw.num)*bddraw.milisec));
@@ -593,7 +600,6 @@ int BDMatch::MyForm::drawchart()
 	Spectrum->Image = spectrum1;
 	return 0;
 }
-
 String ^ BDMatch::MyForm::mstotime(int ms)
 {
 	int hh, mm, ss;
@@ -646,6 +652,197 @@ int BDMatch::MyForm::adddropdown(ComboBox ^ combo, String ^ text)
 	return 0;
 }
 
+int BDMatch::MyForm::loadsettings(String^ path, SettingVals^ settingvals)
+{
+	using namespace System::IO;
+	using namespace System::Text::RegularExpressions;
+	setrows();
+	if (File::Exists(path)) {
+		String^ settext;
+		try {
+			settext = File::ReadAllText(path);
+		}
+		finally{
+			Regex^ numkey = gcnew Regex("[\\+-]?[0-9]+");
+			for (int i = 0; i < 10; i++) {
+				SettingType type = static_cast<SettingType>(i);
+				Regex^ setkey = gcnew Regex(settingvals->getname(type) + ":[\\+-]?[0-9]+\\r\\n");
+				String^ setting = setkey->Match(settext)->Value;
+				if (setting != "") {
+					int val = int::Parse(numkey->Match(setting)->Value);
+					settingvals->setval(type, val);
+				}
+			}
+		}
+	}
+	return 0;
+}
+int BDMatch::MyForm::savesettings(String^ path, SettingVals^ settingvals)
+{
+	using namespace System::IO;
+	using namespace System::Text;
+	using namespace System::Text::RegularExpressions;
+	FileStream^ fs = File::OpenWrite(path);
+	try {
+		for (int i = 0; i < 10; i++) {
+			SettingType type = static_cast<SettingType>(i);
+			String^ outstr = settingvals->getname(type) + ":" + settingvals->getval(type).ToString() + "\r\n";
+			array<Byte>^info = (gcnew UTF8Encoding(true))->
+				GetBytes(outstr);
+			fs->Write(info, 0, info->Length);
+		}
+	}
+	finally{
+		if (fs)
+			delete (IDisposable^)fs;
+	}
+	return 0;
+}
+
+int BDMatch::MyForm::matchinput(String ^ asstext, String ^ tvtext, String ^ bdtext)
+{
+	using namespace System::IO;
+	using namespace System::Text::RegularExpressions;
+	using namespace System::Collections::Concurrent;
+	using namespace System::Collections::Generic;
+
+	Result->Text = "";
+	//asstext = "E:\\Movie\\[VCB-Studio] Haikyuu!! 3rd Season [Ma10p_1080p]\\[VCB-Studio] Haikyuu!! 3rd Season [*][Ma10p_1080p][x265_flac_aac].ass";
+	//tvtext = "E:\\Movie\\[VCB-Studio] Haikyuu!! 3rd Season [Ma10p_1080p]\\[JYFanSub][Haikyuu!! S3][*][720P][GB].mp4";
+	//bdtext = "E:\\Movie\\[VCB-Studio] Haikyuu!! 3rd Season [Ma10p_1080p]\\[VCB-Studio] Haikyuu!! 3rd Season [*][Ma10p_1080p][x265_flac_aac].mkv";
+	if (tvtext == bdtext) {
+		MessageBox::Show(this, "BD和TV文件相同！", "BDMatch", MessageBoxButtons::OK);
+		return -1;
+	}
+	int re = 0;
+	if (!asstext->Contains("*")) {
+		if (!tvtext->Contains("*") && !bdtext->Contains("*")) {
+			long start = clock();//开始计时
+			Result->Text += "ASS文件：  " + asstext->Substring(asstext->LastIndexOf("\\") + 1) + "\r\n";
+			re = match(ASStext->Text, TVtext->Text, BDtext->Text);
+			long end = clock();
+			double spend = double(end - start) / (double)CLOCKS_PER_SEC;
+			Result->Text += "\r\n总时间：" + spend.ToString() + "秒";
+			return re;
+		}
+		else {
+			MessageBox::Show(this, "文件名格式错误！", "BDMatch", MessageBoxButtons::OK);
+			return -1;
+		}
+	}
+	else {
+		//按*分解
+		Regex^ starkey = gcnew Regex("(\\*.*?$)|(\\*.*?\\*)|(^.*?\\*)");
+		MatchCollection^ assmatch = starkey->Matches(asstext->Replace("*", "**"));
+		MatchCollection^ tvmatch = starkey->Matches(tvtext->Replace("*", "**"));
+		MatchCollection^ bdmatch = starkey->Matches(bdtext->Replace("*", "**"));
+		if (assmatch->Count == tvmatch->Count&& assmatch->Count == bdmatch->Count) {
+			//检查合乎命名规则的文件
+			String^ path = "";
+			array<String^>^ files;
+			List<String^>^ assfiles = gcnew List<String^>();
+			List<String^>^ tvfiles = gcnew List<String^>();
+			List<String^>^ bdfiles = gcnew List<String^>();
+			path = asstext->Substring(0, asstext->LastIndexOf("\\"));
+			if (Directory::Exists(path))files = Directory::GetFiles(path);
+			else {
+				MessageBox::Show(this, "ASS路径不存在！", "BDMatch", MessageBoxButtons::OK);
+				return -2;
+			}
+			Regex^ assfilekey = gcnew Regex(returnregt(asstext));
+			for (int i = 0; i < files->Length; i++)
+				if (assfilekey->IsMatch(files[i])) assfiles->Add(files[i]);
+			path = tvtext->Substring(0, tvtext->LastIndexOf("\\"));
+			if (Directory::Exists(path))files = Directory::GetFiles(path);
+			else {
+				MessageBox::Show(this, "TV路径不存在！", "BDMatch", MessageBoxButtons::OK);
+				return -2;
+			}
+			Regex^ tvfilekey = gcnew Regex(returnregt(tvtext));
+			for (int i = 0; i < files->Length; i++)
+				if (tvfilekey->IsMatch(files[i])) tvfiles->Add(files[i]);
+			path = bdtext->Substring(0, bdtext->LastIndexOf("\\"));
+			if (Directory::Exists(path))files = Directory::GetFiles(path);
+			else {
+				MessageBox::Show(this, "BD路径不存在！", "BDMatch", MessageBoxButtons::OK);
+				return -2;
+			}
+			Regex^ bdfilekey = gcnew Regex(returnregt(bdtext));
+			for (int i = 0; i < files->Length; i++)
+				if (bdfilekey->IsMatch(files[i])) bdfiles->Add(files[i]);
+			bool drawstore = Setting->draw;
+			if (Setting->draw == true) {
+				Result->Text += "批量处理将不作声谱图。\r\n";
+				Setting->draw = false;
+			}
+			long start = clock();//开始计时
+			for (int i = 0; i < assfiles->Count; i++) {
+				String^ asskey = assfiles[i];
+				for (int j = 0; j < assmatch->Count; j++) {
+					asskey = asskey->Replace(assmatch[j]->Value->Replace("*", ""), "|");
+				}
+				int tvfileindex = -1, bdfileindex = -1;
+				for (int j = 0; j < tvfiles->Count; j++) {
+					String^ tvkey = tvfiles[j];
+					for (int k = 0; k < tvmatch->Count; k++) {
+						tvkey = tvkey->Replace(tvmatch[k]->Value->Replace("*", ""), "|");
+					}
+					if (tvkey == asskey) {
+						tvfileindex = j;
+						break;
+					}
+				}
+				for (int j = 0; j < bdfiles->Count; j++) {
+					String^ bdkey = bdfiles[j];
+					for (int k = 0; k < bdmatch->Count; k++) {
+						bdkey = bdkey->Replace(bdmatch[k]->Value->Replace("*", ""), "|");
+					}
+					if (bdkey == asskey) {
+						bdfileindex = j;
+						break;
+					}
+				}
+				if (i)Result->Text += "\r\n";
+				Result->Text += "ASS文件：  " + assfiles[i]->Substring(assfiles[i]->LastIndexOf("\\") + 1) + "\r\n";
+				if (tvfileindex >= 0 && bdfileindex >= 0) {
+					match(assfiles[i], tvfiles[tvfileindex], bdfiles[bdfileindex]);
+					Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+				}
+				else {
+					Result->Text += "\r\n未找到对应的TV或BD文件！";
+					Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+				}
+			}
+			Setting->draw = drawstore;
+			//结束计时
+			long end = clock();
+			double spend = double(end - start) / (double)CLOCKS_PER_SEC;
+			Result->Text += "\r\n总时间：" + spend.ToString() + "秒";
+		}
+		else {
+			MessageBox::Show(this, "文件名格式错误！", "BDMatch", MessageBoxButtons::OK);
+			return -1;
+		}
+	}
+	return 0;
+}
+String ^ BDMatch::MyForm::returnregt(String ^ search)
+{
+	String^ searchregs = search->Replace("\\", "\\\\");
+	searchregs = searchregs->Replace("[", "\\[");
+	searchregs = searchregs->Replace("]", "\\]");
+	searchregs = searchregs->Replace("(", "\\(");
+	searchregs = searchregs->Replace(")", "\\)");
+	searchregs = searchregs->Replace("{", "\\{");
+	searchregs = searchregs->Replace("}", "\\}");
+	searchregs = searchregs->Replace("+", "\\+");
+	searchregs = searchregs->Replace(".", "\\.");
+	searchregs = searchregs->Replace("^", "\\^");
+	searchregs = searchregs->Replace("$", "\\$");
+	searchregs = searchregs->Replace("*", "(.+?)");
+	return searchregs;
+}
+
 void BDMatch::MyForm::nullsetform() {
 	setform = nullptr;
 }
@@ -677,52 +874,16 @@ void BDMatch::MyForm::progbdmax(int max)
 
 System::Void BDMatch::MyForm::MyForm_Load(System::Object ^ sender, System::EventArgs ^ e)
 {
-	using namespace System::IO;
-	using namespace System::Text::RegularExpressions;
 	tvprogressBar->CheckForIllegalCrossThreadCalls = false;
 	bdprogressBar->CheckForIllegalCrossThreadCalls = false;
 	About->Text = "v" + appversion;
-	setrows();
-	if (File::Exists("\settings.ini")) {
-		String^ settext;
-		try {
-			settext = File::ReadAllText("settings.ini");
-		}
-		finally{
-			Regex^ numkey = gcnew Regex("[\\+-]?[0-9]+");
-			for (int i = 0; i < 10; i++) {
-				SettingType type = static_cast<SettingType>(i);
-				Regex^ setkey = gcnew Regex(Setting->getname(type) + ":[\\+-]?[0-9]+\\r\\n");
-				String^ setting = setkey->Match(settext)->Value;
-				if (setting != "") {
-					int val = int::Parse(numkey->Match(setting)->Value);
-					Setting->setval(type, val);
-				}
-			}
-		}
-	}
+	loadsettings("settings.ini", Setting);
 	return System::Void();
 }
 
 System::Void BDMatch::MyForm::MyForm_FormClosing(System::Object ^ sender, System::Windows::Forms::FormClosingEventArgs ^ e)
 {
-	using namespace System::IO;
-	using namespace System::Text;
-	using namespace System::Text::RegularExpressions;
-	FileStream^ fs = File::OpenWrite("\settings.ini");
-	try {
-		for (int i = 0; i < 10; i++) {
-			SettingType type = static_cast<SettingType>(i);
-			String^ outstr = Setting->getname(type) + ":" + Setting->getval(type).ToString() + "\r\n";
-			array<Byte>^info = (gcnew UTF8Encoding(true))->
-				GetBytes(outstr);
-			fs->Write(info, 0, info->Length);
-		}
-	}
-	finally{
-		if (fs)
-			delete (IDisposable^)fs;
-	}
+	savesettings("settings.ini", Setting);
 	return System::Void();
 }
 
@@ -873,7 +1034,8 @@ System::Void BDMatch::MyForm::ASStext_DragDrop(System::Object ^ sender, System::
 
 System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	int re = match(ASStext->Text, TVtext->Text, BDtext->Text);
+	int re;
+	re = matchinput(ASStext->Text, TVtext->Text, BDtext->Text);
 	if (re >= 0) {
 		adddropdown(ASStext, ASStext->Text);
 		adddropdown(TVtext, TVtext->Text);

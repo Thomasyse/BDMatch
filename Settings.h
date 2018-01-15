@@ -651,8 +651,8 @@ namespace BDMatch {
 			this->label6->Name = L"label6";
 			this->label6->Size = System::Drawing::Size(780, 75);
 			this->label6->TabIndex = 17;
-			this->label6->Text = L"进行一次快速傅里叶变换（Fast Fourier Transform）所输入的采样点个数。请设置为接近采样率百分之一的数值。FFT个数过小会导致解码时间缓慢，FF"
-				L"T个数过大会导致匹配精度下降。";
+			this->label6->Text = L"进行一次快速傅里叶变换（Fast Fourier Transform）所输入的采样点个数。请设置为接近采样率百分之一的数值。FFT个数过小会导致解码和匹配速度缓慢"
+				L"，FFT个数过大会导致匹配精度下降。";
 			// 
 			// label9
 			// 

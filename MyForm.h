@@ -46,9 +46,10 @@ namespace BDMatch {
 		std::vector<std::vector<node*>>* data = nullptr;
 		array<int, 2>^ timelist = nullptr;
 	};
-	private: SettingVals ^ Setting = gcnew SettingVals;
-	private: drawpara tvdraw, bddraw;
-	private: Settings ^ setform = nullptr;
+	private: 
+		SettingVals ^ Setting = gcnew SettingVals;
+		drawpara tvdraw, bddraw;
+		Settings ^ setform = nullptr;
 
 	private: System::Windows::Forms::Button^ Match;
 	private: System::Windows::Forms::Button^ TVfind;
@@ -594,12 +595,19 @@ namespace BDMatch {
 		void progtvmax(int max);
 		void progbdmax(int max);
 
-	private: int match(String^ ASSText, String^ TVText, String^ BDText);
-	private: int writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSText);
-	private: int drawchart();
-	private: String ^ mstotime(int ms);
-	private: int setrows();
-	private: int adddropdown(ComboBox^ combo, String^ text);
+	private: 
+		int match(String^ ASSText, String^ TVText, String^ BDText);
+		int writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSText);
+		int drawpre();
+		int drawpre(Decode^ tvdecode, Decode^ bddecode, int &re);
+		int drawchart();
+		String ^ mstotime(int ms);
+		int setrows();
+		int adddropdown(ComboBox^ combo, String^ text);
+		int loadsettings(String^ path, SettingVals^ settingvals);
+		int savesettings(String^ path, SettingVals^ settingvals);
+		int matchinput(String^ asstext, String^ tvtext, String^ bdtext);
+		String ^ returnregt(String ^ search);
 
 	private: System::Void MyForm_Load(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void MyForm_FormClosing(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e);

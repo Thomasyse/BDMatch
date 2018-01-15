@@ -367,10 +367,10 @@ void BDMatch::Decode::decodeaudio()
 	String^ samprateinfo = "";
 	if (resamp)samprateinfo = samplerate.ToString() + "Hz -> " + resamprate.ToString() + "Hz";
 	else samprateinfo = samplerate.ToString() + "Hz";
-	feedback += "\r\n采样位数：" + bit_depth_raw.ToString() + "bit -> " + (out_bitdepth).ToString() +
-		"bit    采样率：" + samprateinfo +"    声道：" + channels.ToString() +
-		"\r\n总帧数：" + count.ToString() + "    格式：" + chfmt + "    采样格式："
-		+ marshal_as<String^>(av_get_sample_fmt_name(codecfm->sample_fmt))->Replace("AV_SAMPLE_FMT_", "")->ToUpper();
+	feedback += "    声道：" + channels.ToString() + "    总帧数：" + count.ToString() + "    格式：" + chfmt+
+		"\r\n采样位数：" + bit_depth_raw.ToString() + "bit -> " + (out_bitdepth).ToString() +"bit    采样率：" + samprateinfo 
+		+ "    采样格式：" 
+		+ marshal_as<String^>(av_get_sample_fmt_name(codecfm->sample_fmt))->Replace("AV_SAMPLE_FMT_", "")->ToUpper();;
 	//补充wav头信息
 	if (outputpcm) {
 		long pcmfilesize = ftell(pcm) - 8;
