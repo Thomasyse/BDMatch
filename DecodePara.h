@@ -44,6 +44,7 @@ namespace BDMatch{
 	public:
 		Decode(String^ filename0, int FFTnum0, bool outputpcm0, int mindb0, int resamprate0, int progtype0,
 			List<Task^>^ tasks0, System::Threading::CancellationToken canceltoken0, fftw_plan plan0, ProgressCallback^ progback0);
+		~Decode();
 		void decodeaudio();
 		String^ getfeedback();
 		String^ getfilename();

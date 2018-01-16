@@ -17,6 +17,11 @@ BDMatch::Decode::Decode(String^ filename0, int FFTnum0, bool outputpcm0, int min
 	plan = plan0;
 }
 
+BDMatch::Decode::~Decode()
+{
+	clearfftdata();
+}
+
 void BDMatch::Decode::decodeaudio()
 {
 	using namespace System::IO;
