@@ -295,10 +295,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, tvdecode->getsamprate(), tvtime[i], bdse.read(j),
 					duration, ch, minchecknumcal, diftime);
 				Task^ varTask = gcnew Task(gcnew Action(calvar, &Var::caldiff), CancelSource->Token);
-				try { 
-					varTask->Start(); 
-				}
-				catch (InvalidOperationException^ e) {
+				if (varTask->Status != System::Threading::Tasks::TaskStatus::Canceled)varTask->Start();
+				else {
 					tvdecode->clearfftdata();
 					bddecode->clearfftdata();
 					Result->Text += "\r\n\r\n用户中止操作。";

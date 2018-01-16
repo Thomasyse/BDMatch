@@ -332,10 +332,8 @@ void BDMatch::Decode::decodeaudio()
 						FFTC^ fftcl = gcnew FFTC((*fftdata)[0][fftsampnum], plan, in, mindb,
 							gcnew ProgressCallback(this, &Decode::subprogback));
 						Task^ taskl = gcnew Task(gcnew Action(fftcl, &FFTC::FFT), canceltoken);
-						try {
-							taskl->Start();
-						}
-						catch (InvalidOperationException^ e) {
+						if (taskl->Status != System::Threading::Tasks::TaskStatus::Canceled)taskl->Start();
+						else{
 							delete[] temp;
 							temp = nullptr;
 							delete sample_seq_l;
@@ -361,10 +359,8 @@ void BDMatch::Decode::decodeaudio()
 						FFTC^ fftcr = gcnew FFTC((*fftdata)[1][fftsampnum - 1], plan, in, mindb,
 							gcnew ProgressCallback(this, &Decode::subprogback));
 						Task^ taskr = gcnew Task(gcnew Action(fftcr, &FFTC::FFT), canceltoken);
-						try {
-							taskr->Start();
-						}
-						catch (InvalidOperationException^ e) {
+						if (taskr->Status != System::Threading::Tasks::TaskStatus::Canceled)taskr->Start();
+						else{
 							delete[] temp;
 							temp = nullptr;
 							delete sample_seq_l;
