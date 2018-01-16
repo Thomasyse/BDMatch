@@ -50,6 +50,8 @@ namespace BDMatch {
 		SettingVals ^ Setting = gcnew SettingVals;
 		drawpara tvdraw, bddraw;
 		Settings ^ setform = nullptr;
+		unsigned int matchcount = 0, finishedmatch = 0;
+		System::Threading::CancellationTokenSource^ CancelSource;
 
 	private: System::Windows::Forms::Button^ Match;
 	private: System::Windows::Forms::Button^ TVfind;
@@ -59,8 +61,10 @@ namespace BDMatch {
 	private: System::Windows::Forms::ComboBox^ BDtext;
 	private: System::Windows::Forms::ComboBox^ ASStext;
 	private: System::Windows::Forms::TextBox^ Result;
-	private: System::Windows::Forms::ProgressBar^ bdprogressBar;
-	private: System::Windows::Forms::ProgressBar^ tvprogressBar;
+	private: System::Windows::Forms::ProgressBar^  TotalProgress;
+
+	private: System::Windows::Forms::ProgressBar^  SingleProgress;
+
 
 
 
@@ -110,7 +114,7 @@ namespace BDMatch {
 		{
 			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(MyForm::typeid));
 			this->AllTablePanel = (gcnew System::Windows::Forms::TableLayoutPanel());
-			this->bdprogressBar = (gcnew System::Windows::Forms::ProgressBar());
+			this->TotalProgress = (gcnew System::Windows::Forms::ProgressBar());
 			this->settings = (gcnew System::Windows::Forms::Label());
 			this->ASStext = (gcnew System::Windows::Forms::ComboBox());
 			this->BDfind = (gcnew System::Windows::Forms::Button());
@@ -124,7 +128,7 @@ namespace BDMatch {
 			this->TVtext = (gcnew System::Windows::Forms::ComboBox());
 			this->BDtext = (gcnew System::Windows::Forms::ComboBox());
 			this->Result = (gcnew System::Windows::Forms::TextBox());
-			this->tvprogressBar = (gcnew System::Windows::Forms::ProgressBar());
+			this->SingleProgress = (gcnew System::Windows::Forms::ProgressBar());
 			this->splitContainer1 = (gcnew System::Windows::Forms::SplitContainer());
 			this->TimeRoll = (gcnew System::Windows::Forms::TrackBar());
 			this->Spectrum = (gcnew System::Windows::Forms::PictureBox());
@@ -159,7 +163,7 @@ namespace BDMatch {
 				100)));
 			this->AllTablePanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
 				75)));
-			this->AllTablePanel->Controls->Add(this->bdprogressBar, 0, 6);
+			this->AllTablePanel->Controls->Add(this->TotalProgress, 0, 6);
 			this->AllTablePanel->Controls->Add(this->settings, 0, 4);
 			this->AllTablePanel->Controls->Add(this->ASStext, 1, 1);
 			this->AllTablePanel->Controls->Add(this->BDfind, 3, 3);
@@ -173,7 +177,7 @@ namespace BDMatch {
 			this->AllTablePanel->Controls->Add(this->TVtext, 1, 2);
 			this->AllTablePanel->Controls->Add(this->BDtext, 1, 3);
 			this->AllTablePanel->Controls->Add(this->Result, 0, 7);
-			this->AllTablePanel->Controls->Add(this->tvprogressBar, 0, 5);
+			this->AllTablePanel->Controls->Add(this->SingleProgress, 0, 5);
 			this->AllTablePanel->Controls->Add(this->splitContainer1, 2, 8);
 			this->AllTablePanel->Controls->Add(this->tableLayoutPanel2, 0, 8);
 			this->AllTablePanel->Dock = System::Windows::Forms::DockStyle::Fill;
@@ -192,17 +196,18 @@ namespace BDMatch {
 			this->AllTablePanel->Size = System::Drawing::Size(1081, 803);
 			this->AllTablePanel->TabIndex = 4;
 			// 
-			// bdprogressBar
+			// TotalProgress
 			// 
-			this->AllTablePanel->SetColumnSpan(this->bdprogressBar, 4);
-			this->bdprogressBar->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->bdprogressBar->Location = System::Drawing::Point(5, 279);
-			this->bdprogressBar->Margin = System::Windows::Forms::Padding(5, 3, 5, 3);
-			this->bdprogressBar->Name = L"bdprogressBar";
-			this->bdprogressBar->Size = System::Drawing::Size(1071, 34);
-			this->bdprogressBar->Step = 1;
-			this->bdprogressBar->Style = System::Windows::Forms::ProgressBarStyle::Continuous;
-			this->bdprogressBar->TabIndex = 18;
+			this->AllTablePanel->SetColumnSpan(this->TotalProgress, 4);
+			this->TotalProgress->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->TotalProgress->Location = System::Drawing::Point(5, 279);
+			this->TotalProgress->Margin = System::Windows::Forms::Padding(5, 3, 5, 3);
+			this->TotalProgress->Maximum = 200;
+			this->TotalProgress->Name = L"TotalProgress";
+			this->TotalProgress->Size = System::Drawing::Size(1071, 34);
+			this->TotalProgress->Step = 1;
+			this->TotalProgress->Style = System::Windows::Forms::ProgressBarStyle::Continuous;
+			this->TotalProgress->TabIndex = 18;
 			// 
 			// settings
 			// 
@@ -401,17 +406,18 @@ namespace BDMatch {
 			this->Result->Size = System::Drawing::Size(1071, 184);
 			this->Result->TabIndex = 14;
 			// 
-			// tvprogressBar
+			// SingleProgress
 			// 
-			this->AllTablePanel->SetColumnSpan(this->tvprogressBar, 4);
-			this->tvprogressBar->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->tvprogressBar->Location = System::Drawing::Point(5, 239);
-			this->tvprogressBar->Margin = System::Windows::Forms::Padding(5, 3, 5, 3);
-			this->tvprogressBar->Name = L"tvprogressBar";
-			this->tvprogressBar->Size = System::Drawing::Size(1071, 34);
-			this->tvprogressBar->Step = 1;
-			this->tvprogressBar->Style = System::Windows::Forms::ProgressBarStyle::Continuous;
-			this->tvprogressBar->TabIndex = 15;
+			this->AllTablePanel->SetColumnSpan(this->SingleProgress, 4);
+			this->SingleProgress->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->SingleProgress->Location = System::Drawing::Point(5, 239);
+			this->SingleProgress->Margin = System::Windows::Forms::Padding(5, 3, 5, 3);
+			this->SingleProgress->Maximum = 200;
+			this->SingleProgress->Name = L"SingleProgress";
+			this->SingleProgress->Size = System::Drawing::Size(1071, 34);
+			this->SingleProgress->Step = 1;
+			this->SingleProgress->Style = System::Windows::Forms::ProgressBarStyle::Continuous;
+			this->SingleProgress->TabIndex = 15;
 			// 
 			// splitContainer1
 			// 
@@ -590,10 +596,8 @@ namespace BDMatch {
 	public:
 		void SetVals(SettingType type, int val);
 		void nullsetform();
-		void progtv();
-		void progbd();
-		void progtvmax(int max);
-		void progbdmax(int max);
+		void progsingle(int type, double val);
+		void progtotal();
 
 	private: 
 		int match(String^ ASSText, String^ TVText, String^ BDText);
@@ -606,8 +610,9 @@ namespace BDMatch {
 		int adddropdown(ComboBox^ combo, String^ text);
 		int loadsettings(String^ path, SettingVals^ settingvals);
 		int savesettings(String^ path, SettingVals^ settingvals);
-		int matchinput(String^ asstext, String^ tvtext, String^ bdtext);
+		int matchinput();
 		String ^ returnregt(String ^ search);
+		int matchcontrol(bool val);
 
 	private: System::Void MyForm_Load(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void MyForm_FormClosing(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e);

@@ -27,7 +27,6 @@ extern "C" {
 #include <fftw3.h>
 }
 
-
 namespace BDMatch{
 	using namespace System;
 	using namespace System;
@@ -38,14 +37,13 @@ namespace BDMatch{
 	using namespace msclr::interop;
 	using namespace DataStruct;
 
-	public delegate void ProgressCallback();
-	public delegate void ProgMaxCallback(int max);
+	public delegate void ProgressCallback(int type, double val = 0);
 
 	ref class Decode
 	{
 	public:
-		Decode(String^ filename0, int FFTnum0, bool outputpcm0, int mindb0, int resamprate0, List<Task^>^ tasks0, fftw_plan plan0,
-			ProgressCallback^ progback0, ProgMaxCallback^ progmax0);
+		Decode(String^ filename0, int FFTnum0, bool outputpcm0, int mindb0, int resamprate0, int progtype0,
+			List<Task^>^ tasks0, System::Threading::CancellationToken canceltoken0, fftw_plan plan0, ProgressCallback^ progback0);
 		void decodeaudio();
 		String^ getfeedback();
 		String^ getfilename();
@@ -54,16 +52,17 @@ namespace BDMatch{
 		int getmilisecnum();
 		int getchannels();
 		int getsamprate();
+		int clearfftdata();
 		std::vector<std::vector<node*>>* getfftdata();
 		ProgressCallback^ progback = nullptr;
-		ProgMaxCallback^ progmax = nullptr;
 	private:
 		String^ filename;
 		String^ feedback;
-		std::vector<std::vector<node*>>* fftdata;
-		List<Task^>^ tasks;
+		std::vector<std::vector<node*>>* fftdata = nullptr;
+		List<Task^>^ tasks = nullptr;
+		System::Threading::CancellationToken canceltoken;
 		fftw_plan plan;
-		int FFTnum;
+		int FFTnum = 512;
 		int out_bitdepth = 0;
 		int audiostream = 0;
 		int milisecnum = 0;
@@ -74,9 +73,12 @@ namespace BDMatch{
 		int mindb = 0;
 		int channels = 0;
 		int returnval = 0;
+		int progtype = 0;
+		int decodednum = 0;
+		double progval = 0;
 		bool outputpcm = false;
 		double getshiftf(uint8_t * temp, int sampletype, int start);
-		void subprogback();
+		void subprogback(int type, double val);
 	};
 
 	ref class FFTC

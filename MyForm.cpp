@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.0.b2"
+#define appversion "1.0.0"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -39,9 +39,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		return -3;
 	}
 	
-	tvprogressBar->Value = 0;
-	bdprogressBar->Value = 0;
-
+	progsingle(0, 0);
 	List<Task^>^ decodetasks = gcnew List<Task^>();
 	long start = clock();//开始计时
 	double* in = (double*)fftw_malloc(sizeof(double)*Setting->FFTnum);
@@ -49,47 +47,75 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	fftw_plan plan = fftw_plan_dft_r2c_1d(Setting->FFTnum, in, out, FFTW_MEASURE);
 	fftw_free(in);
 	fftw_free(out);
-	Decode^ tvdecode = gcnew Decode(tvtext, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, 0, decodetasks, plan,
-		gcnew ProgressCallback(this, &MyForm::progtv), gcnew ProgMaxCallback(this, &MyForm::progtvmax));//解码TV文件
-	Task^ tvTask = gcnew Task(gcnew Action(tvdecode, &Decode::decodeaudio));
-	tvTask->Start();
+	Decode^ tvdecode = gcnew Decode(tvtext, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, 0, 1,
+		decodetasks, CancelSource->Token, plan, gcnew ProgressCallback(this, &MyForm::progsingle));//解码TV文件
+	Task^ tvTask = gcnew Task(gcnew Action(tvdecode, &Decode::decodeaudio), CancelSource->Token);
+	try {
+		tvTask->Start();
+	}
+	catch (InvalidOperationException^ e) {
+		tvdecode->clearfftdata();
+		return -6;
+	}
 	if (Setting->paralleldecode)decodetasks->Add(tvTask);
-	else tvTask->Wait();
+	else {
+		try {
+			tvTask->Wait(CancelSource->Token);
+		}
+		catch (OperationCanceledException^ e) {
+			tvdecode->clearfftdata();
+			fftw_destroy_plan(plan);
+			return -6;
+		}
+	}
 
 	do {
-		Thread::Sleep(1);
+		Application::DoEvents();
 	} while (tvdecode->getsamprate() == 0);
-
-	Decode^ bddecode = gcnew Decode(bdtext, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, tvdecode->getsamprate(), decodetasks, plan,
-		gcnew ProgressCallback(this, &MyForm::progbd), gcnew ProgMaxCallback(this, &MyForm::progbdmax));//解码BD文件
-	Task^ bdTask = gcnew Task(gcnew Action(bddecode, &Decode::decodeaudio));
-	bdTask->Start();
+	Decode^ bddecode = gcnew Decode(bdtext, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, tvdecode->getsamprate(), 2,
+		decodetasks, CancelSource->Token, plan, gcnew ProgressCallback(this, &MyForm::progsingle));//解码BD文件
+	Task^ bdTask = gcnew Task(gcnew Action(bddecode, &Decode::decodeaudio), CancelSource->Token);
+	try {
+		bdTask->Start();
+	}
+	catch (InvalidOperationException^ e) {
+		tvdecode->clearfftdata();
+		bddecode->clearfftdata();
+		return -6;
+	}
 	decodetasks->Add(bdTask);
 	
-	Task::WaitAll(decodetasks->ToArray());
+	try {
+		Task::WaitAll(decodetasks->ToArray(), CancelSource->Token);
+	}
+	catch (OperationCanceledException^ e) {
+		tvdecode->clearfftdata();
+		bddecode->clearfftdata();
+		fftw_destroy_plan(plan);
+		return -6;
+	}
 	fftw_destroy_plan(plan);
 	//输出解码时间
 	long end = clock();
 	double spend = double(end - start) / (double)CLOCKS_PER_SEC;
 
 	Result->Text += "TV文件：  " + tvtext->Substring(tvtext->LastIndexOf("\\") + 1) + "\r\n" + tvdecode->getfeedback();
-	Result->Text += "\r\nBD文件：  "+ bdtext->Substring(bdtext->LastIndexOf("\\") + 1) +"\r\n" + bddecode->getfeedback()+ 
+	Result->Text += "\r\nBD文件：  " + bdtext->Substring(bdtext->LastIndexOf("\\") + 1) + "\r\n" + bddecode->getfeedback() +
 		"\r\n解码时间：" + spend.ToString() + "秒";
 	if (tvdecode->getreturn() < 0 || bddecode->getreturn() < 0) return -4;
 
-	tvprogressBar->Value = tvprogressBar->Maximum;
-	bdprogressBar->Value = bdprogressBar->Maximum;
-	
 	int re = 0;
 	if (Setting->matchass) {
 		re = writeass(tvdecode, bddecode, asstext);
 	}
 	drawpre(tvdecode, bddecode, re);
-	if (re < 0)return -5;
-
-	tvprogressBar->Value = tvprogressBar->Maximum;
-	bdprogressBar->Value = bdprogressBar->Maximum;
-
+	if (re < 0) {
+		tvdecode->clearfftdata();
+		bddecode->clearfftdata();
+		if (re == -2)return -6;
+		else return -5;
+	}
+	progsingle(0, 0);
 	return 0;
 }
 
@@ -111,8 +137,6 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	std::vector<std::vector<node*>>* bdfftdata = bddecode->getfftdata();
 	int tvch = tvdecode->getchannels();
 	int bdch = bddecode->getchannels();
-	tvprogressBar->Value = 0;
-	bdprogressBar->Value = 0;
 	String^ tvass;
 	String^ head = "";
 	String^ content = "";
@@ -135,8 +159,6 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	Regex^ headregex = gcnew Regex("\\r\\n[a-zA-Z]+: [0-9],");
 	Regex^ timeregex = gcnew Regex("[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2}");
 	MatchCollection^ alltimematch = alltimeregex->Matches(content);
-	tvprogressBar->Maximum = alltimematch->Count;
-	bdprogressBar->Maximum = alltimematch->Count;
 	array<timec^>^ timelist = gcnew array<timec^>(alltimematch->Count);//储存时间
 	std::vector<int>tvtime(alltimematch->Count), bdtime(alltimematch->Count);
 	int rightshift = static_cast<int>(log2(Setting->FFTnum));
@@ -272,11 +294,27 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			for (int j = 0; j < bdse.size(); j++) {
 				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, tvdecode->getsamprate(), tvtime[i], bdse.read(j),
 					duration, ch, minchecknumcal, diftime);
-				Task^ varTask = gcnew Task(gcnew Action(calvar, &Var::caldiff));
-				varTask->Start();
+				Task^ varTask = gcnew Task(gcnew Action(calvar, &Var::caldiff), CancelSource->Token);
+				try { 
+					varTask->Start(); 
+				}
+				catch (InvalidOperationException^ e) {
+					tvdecode->clearfftdata();
+					bddecode->clearfftdata();
+					Result->Text += "\r\n\r\n用户中止操作。";
+					return -2;
+				}
 				tasks->Add(varTask);
 			}
-			Task::WaitAll(tasks->ToArray());
+			try {
+				Task::WaitAll(tasks->ToArray(), CancelSource->Token);
+			}
+			catch (OperationCanceledException^ e) {
+				tvdecode->clearfftdata();
+				bddecode->clearfftdata();
+				Result->Text += "\r\n\r\n用户中止操作。";
+				return -2;
+			}
 			//调试用->
 			int delta1 = bdse.find(static_cast<int>(diftime[0]), 1);
 			if (delta1 > maxdelta)maxdelta = delta1;
@@ -294,8 +332,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				lastlinetime = tvtime[i];
 			}
 		}
-		tvprogressBar->PerformStep();
-		bdprogressBar->PerformStep();
+		progsingle(3, (i + 1) / static_cast<double>(alltimematch->Count));
 	}
 	delete diftime;
 	//调试用->
@@ -375,6 +412,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	return 0;
 }
 
+
 int BDMatch::MyForm::drawpre()
 {
 	if (tvdraw.num > 0) {
@@ -416,11 +454,11 @@ int BDMatch::MyForm::drawpre()
 }
 int BDMatch::MyForm::drawpre(Decode ^ tvdecode, Decode ^ bddecode,int &re)
 {
-	tvdraw.data = tvdecode->getfftdata();
-	bddraw.data = bddecode->getfftdata();
-	tvdraw.num = tvdecode->getfftsampnum();
-	bddraw.num = bddecode->getfftsampnum();
 	if (Setting->draw) {
+		tvdraw.data = tvdecode->getfftdata();
+		bddraw.data = bddecode->getfftdata();
+		tvdraw.num = tvdecode->getfftsampnum();
+		bddraw.num = bddecode->getfftsampnum();
 		tvdraw.ch = tvdecode->getchannels();
 		bddraw.ch = bddecode->getchannels();
 		tvdraw.milisec = tvdecode->getmilisecnum();
@@ -437,16 +475,6 @@ int BDMatch::MyForm::drawpre(Decode ^ tvdecode, Decode ^ bddecode,int &re)
 	}
 	else
 	{
-		for (int i = 0; i < tvdraw.num; i++) {
-			if ((*tvdraw.data)[0][i] != nullptr)delete (*tvdraw.data)[0][i];
-			if ((*tvdraw.data)[1][i] != nullptr)delete (*tvdraw.data)[1][i];
-		}
-		for (int i = 0; i < bddraw.num; i++) {
-			if ((*bddraw.data)[0][i] != nullptr)delete (*bddraw.data)[0][i];
-			if ((*bddraw.data)[1][i] != nullptr)delete (*bddraw.data)[1][i];
-		}
-		delete tvdraw.data;
-		delete bddraw.data;
 		tvdraw.data = nullptr;
 		bddraw.data = nullptr;
 		tvdraw.num = 0;
@@ -699,7 +727,7 @@ int BDMatch::MyForm::savesettings(String^ path, SettingVals^ settingvals)
 	return 0;
 }
 
-int BDMatch::MyForm::matchinput(String ^ asstext, String ^ tvtext, String ^ bdtext)
+int BDMatch::MyForm::matchinput()
 {
 	using namespace System::IO;
 	using namespace System::Text::RegularExpressions;
@@ -710,6 +738,13 @@ int BDMatch::MyForm::matchinput(String ^ asstext, String ^ tvtext, String ^ bdte
 	//asstext = "E:\\Movie\\[VCB-Studio] Haikyuu!! 3rd Season [Ma10p_1080p]\\[VCB-Studio] Haikyuu!! 3rd Season [*][Ma10p_1080p][x265_flac_aac].ass";
 	//tvtext = "E:\\Movie\\[VCB-Studio] Haikyuu!! 3rd Season [Ma10p_1080p]\\[JYFanSub][Haikyuu!! S3][*][720P][GB].mp4";
 	//bdtext = "E:\\Movie\\[VCB-Studio] Haikyuu!! 3rd Season [Ma10p_1080p]\\[VCB-Studio] Haikyuu!! 3rd Season [*][Ma10p_1080p][x265_flac_aac].mkv";
+	String ^ asstext = ASStext->Text;
+	String ^ tvtext = TVtext->Text;
+	String ^ bdtext = BDtext->Text;
+	matchcount = finishedmatch = 0;
+	if (asstext == "" || tvtext == "" || bdtext == "") {
+		return -1;
+	}
 	if (tvtext == bdtext) {
 		MessageBox::Show(this, "BD和TV文件相同！", "BDMatch", MessageBoxButtons::OK);
 		return -1;
@@ -717,13 +752,18 @@ int BDMatch::MyForm::matchinput(String ^ asstext, String ^ tvtext, String ^ bdte
 	int re = 0;
 	if (!asstext->Contains("*")) {
 		if (!tvtext->Contains("*") && !bdtext->Contains("*")) {
+			matchcount = 1;
 			long start = clock();//开始计时
 			Result->Text += "ASS文件：  " + asstext->Substring(asstext->LastIndexOf("\\") + 1) + "\r\n";
 			re = match(ASStext->Text, TVtext->Text, BDtext->Text);
+			if (re < 0) {
+				if (re == -6)	Result->Text += "\r\n用户中止操作。";
+				matchcontrol(true);
+				return re;
+			}
 			long end = clock();
 			double spend = double(end - start) / (double)CLOCKS_PER_SEC;
 			Result->Text += "\r\n总时间：" + spend.ToString() + "秒";
-			return re;
 		}
 		else {
 			MessageBox::Show(this, "文件名格式错误！", "BDMatch", MessageBoxButtons::OK);
@@ -775,6 +815,7 @@ int BDMatch::MyForm::matchinput(String ^ asstext, String ^ tvtext, String ^ bdte
 				Result->Text += "批量处理将不作声谱图。\r\n";
 				Setting->draw = false;
 			}
+			matchcount = assfiles->Count;
 			long start = clock();//开始计时
 			for (int i = 0; i < assfiles->Count; i++) {
 				String^ asskey = assfiles[i];
@@ -804,14 +845,23 @@ int BDMatch::MyForm::matchinput(String ^ asstext, String ^ tvtext, String ^ bdte
 				}
 				if (i)Result->Text += "\r\n";
 				Result->Text += "ASS文件：  " + assfiles[i]->Substring(assfiles[i]->LastIndexOf("\\") + 1) + "\r\n";
+				re = -10;
+				int re1 = 0;
 				if (tvfileindex >= 0 && bdfileindex >= 0) {
-					match(assfiles[i], tvfiles[tvfileindex], bdfiles[bdfileindex]);
+					re1 = match(assfiles[i], tvfiles[tvfileindex], bdfiles[bdfileindex]);
+					if (re < 0)re = re1;
+					if (re1 == -6) {
+						Result->Text += "\r\n用户中止操作。";
+						matchcontrol(true);
+						return -6;
+					}
 					Result->Text += "\r\n----------------------------------------------------------------------------------------------";
 				}
 				else {
 					Result->Text += "\r\n未找到对应的TV或BD文件！";
 					Result->Text += "\r\n----------------------------------------------------------------------------------------------";
 				}
+				finishedmatch = i + 1;
 			}
 			Setting->draw = drawstore;
 			//结束计时
@@ -824,6 +874,13 @@ int BDMatch::MyForm::matchinput(String ^ asstext, String ^ tvtext, String ^ bdte
 			return -1;
 		}
 	}
+	if (re >= 0) {
+		adddropdown(ASStext, ASStext->Text);
+		adddropdown(TVtext, TVtext->Text);
+		adddropdown(BDtext, BDtext->Text);
+	}
+	matchcontrol(true);
+	Match->Text = "匹配";
 	return 0;
 }
 String ^ BDMatch::MyForm::returnregt(String ^ search)
@@ -842,6 +899,13 @@ String ^ BDMatch::MyForm::returnregt(String ^ search)
 	searchregs = searchregs->Replace("*", "(.+?)");
 	return searchregs;
 }
+int BDMatch::MyForm::matchcontrol(bool val)
+{
+	ASStext->Enabled = val; TVtext->Enabled = val; BDtext->Enabled = val;
+	ASSfind->Enabled = val; TVfind->Enabled = val; BDfind->Enabled = val;
+	settings->Enabled = val;
+	return 0;
+}
 
 void BDMatch::MyForm::nullsetform() {
 	setform = nullptr;
@@ -851,31 +915,45 @@ void BDMatch::MyForm::SetVals(SettingType type,int val)
 	Setting->setval(type, val);
 	return System::Void();
 }
-void BDMatch::MyForm::progtv()
+void BDMatch::MyForm::progsingle(int type, double val)
 {
-	tvprogressBar->PerformStep();
+	static double progval[3] = { 0,0,0 };
+	static double findfieldpartion = Setting->matchass ? Setting->findfield * 2 : 0;
+	switch (type) {
+	case 1:
+		progval[0] = val;
+		break;
+	case 2:
+		progval[1] = val;
+		progval[0] = 1;
+		break;
+	case 3:
+		progval[2] = val;
+		progval[1] = 1;
+		break;
+	default:
+		progval[0] = val;
+		progval[1] = val;
+		progval[2] = val;
+		return System::Void();
+		break;
+	}
+	SingleProgress->Value = static_cast<int>(round(SingleProgress->Maximum * ((progval[0] + progval[1]) * 10 + progval[2] * findfieldpartion)
+		/ (20 + findfieldpartion)));
+	progtotal();
 	return System::Void();
 }
-void BDMatch::MyForm::progbd()
+void BDMatch::MyForm::progtotal()
 {
-	bdprogressBar->PerformStep();
-	return System::Void();
-}
-void BDMatch::MyForm::progtvmax(int max)
-{
-	tvprogressBar->Maximum = max;
-	return System::Void();
-}
-void BDMatch::MyForm::progbdmax(int max)
-{
-	bdprogressBar->Maximum = max;
+	TotalProgress->Value = static_cast<int>(TotalProgress->Maximum *(finishedmatch
+		+ SingleProgress->Value / static_cast<double>(SingleProgress->Maximum)) / static_cast<double>(matchcount));
 	return System::Void();
 }
 
 System::Void BDMatch::MyForm::MyForm_Load(System::Object ^ sender, System::EventArgs ^ e)
 {
-	tvprogressBar->CheckForIllegalCrossThreadCalls = false;
-	bdprogressBar->CheckForIllegalCrossThreadCalls = false;
+	SingleProgress->CheckForIllegalCrossThreadCalls = false;
+	TotalProgress->CheckForIllegalCrossThreadCalls = false;
 	About->Text = "v" + appversion;
 	loadsettings("settings.ini", Setting);
 	return System::Void();
@@ -1034,12 +1112,18 @@ System::Void BDMatch::MyForm::ASStext_DragDrop(System::Object ^ sender, System::
 
 System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	int re;
-	re = matchinput(ASStext->Text, TVtext->Text, BDtext->Text);
-	if (re >= 0) {
-		adddropdown(ASStext, ASStext->Text);
-		adddropdown(TVtext, TVtext->Text);
-		adddropdown(BDtext, BDtext->Text);
+	if (Match->Text == "匹配") {
+		matchcontrol(false);
+		CancelSource = gcnew System::Threading::CancellationTokenSource();
+		Task<int>^matchtask = gcnew Task<int>(gcnew Func<int>(this, &MyForm::matchinput), 
+			CancelSource->Token, TaskCreationOptions::LongRunning);
+		Match->Text = "停止";
+		matchtask->Start();
+	}
+	else {
+		CancelSource->Cancel();
+		matchcontrol(true);
+		Match->Text = "匹配";
 	}
 	return System::Void();
 }

@@ -1,19 +1,19 @@
 #include "DecodePara.h"
 
-#define progmaxnum 150
 using namespace BDMatch;
 
-BDMatch::Decode::Decode(String^ filename0, int FFTnum0, bool outputpcm0, int mindb0, int resamprate0, List<Task^>^ tasks0, fftw_plan plan0,
-	ProgressCallback^ progback0, ProgMaxCallback^ progmax0)
+BDMatch::Decode::Decode(String^ filename0, int FFTnum0, bool outputpcm0, int mindb0, int resamprate0, int progtype0,
+	List<Task^>^ tasks0, System::Threading::CancellationToken canceltoken0, fftw_plan plan0, ProgressCallback^ progback0)
 {
 	filename = filename0;
 	FFTnum = FFTnum0;
 	outputpcm = outputpcm0;
 	progback = progback0;
-	progmax = progmax0;
 	mindb = mindb0;
 	resamprate = resamprate0;
+	progtype = progtype0;
 	tasks = tasks0;
+	canceltoken = canceltoken0;
 	plan = plan0;
 }
 
@@ -195,7 +195,6 @@ void BDMatch::Decode::decodeaudio()
 
 	AVPacket *packet = av_packet_alloc();
 	double shiftf = 0;
-	progmax(progmaxnum);
 	fftdata = new std::vector<std::vector<node*>>(2, std::vector<node*>(efftnum));
 	fftsampnum = 0;
 	noded* sample_seq_l = new noded(FFTnum);
@@ -332,8 +331,23 @@ void BDMatch::Decode::decodeaudio()
 						}
 						FFTC^ fftcl = gcnew FFTC((*fftdata)[0][fftsampnum], plan, in, mindb,
 							gcnew ProgressCallback(this, &Decode::subprogback));
-						Task^ taskl = gcnew Task(gcnew Action(fftcl, &FFTC::FFT));
-						taskl->Start();
+						Task^ taskl = gcnew Task(gcnew Action(fftcl, &FFTC::FFT), canceltoken);
+						try {
+							taskl->Start();
+						}
+						catch (InvalidOperationException^ e) {
+							delete[] temp;
+							temp = nullptr;
+							delete sample_seq_l;
+							sample_seq_l = nullptr;
+							delete sample_seq_r;
+							sample_seq_r = nullptr;
+							av_frame_free(&decoded_frame);
+							av_free_packet(packet);
+							avcodec_close(codecfm);
+							avformat_close_input(&filefm);
+							return;
+						}
 						tasks->Add(taskl);
 						//int a = fftdata[0, fftsampnum]->sum()/FFTnum;//µ÷ÊÔÓÃ
 						fftsampnum++;
@@ -346,8 +360,23 @@ void BDMatch::Decode::decodeaudio()
 						}
 						FFTC^ fftcr = gcnew FFTC((*fftdata)[1][fftsampnum - 1], plan, in, mindb,
 							gcnew ProgressCallback(this, &Decode::subprogback));
-						Task^ taskr = gcnew Task(gcnew Action(fftcr, &FFTC::FFT));
-						taskr->Start();
+						Task^ taskr = gcnew Task(gcnew Action(fftcr, &FFTC::FFT), canceltoken);
+						try {
+							taskr->Start();
+						}
+						catch (InvalidOperationException^ e) {
+							delete[] temp;
+							temp = nullptr;
+							delete sample_seq_l;
+							sample_seq_l = nullptr;
+							delete sample_seq_r;
+							sample_seq_r = nullptr;
+							av_frame_free(&decoded_frame);
+							av_free_packet(packet);
+							avcodec_close(codecfm);
+							avformat_close_input(&filefm);
+							return;
+						}
 						tasks->Add(taskr);
 					}
 					samplecount++;
@@ -432,6 +461,23 @@ int BDMatch::Decode::getsamprate()
 	return samplerate;
 }
 
+int BDMatch::Decode::clearfftdata()
+{
+	for (int i = 0; i < fftsampnum; i++) {
+		if ((*fftdata)[0][i] != nullptr) {
+			delete (*fftdata)[0][i];
+			(*fftdata)[0][i] = nullptr;
+		}
+		if ((*fftdata)[1][i] != nullptr) {
+			delete (*fftdata)[1][i];
+			(*fftdata)[1][i] = nullptr;
+		}
+	}
+	delete fftdata;
+	fftdata = nullptr;
+	return 0;
+}
+
 std::vector<std::vector<node*>>* BDMatch::Decode::getfftdata()
 {
 	return fftdata;
@@ -464,13 +510,13 @@ double BDMatch::Decode::getshiftf(uint8_t * temp, int sampletype, int start)
 	return shiftd;
 }
 
-void BDMatch::Decode::subprogback()
+void BDMatch::Decode::subprogback(int type, double val)
 {
-	static int count = 0;
-	static int maxnum = efftnum / progmaxnum * channels;
-	if (++count > maxnum) {
-		count = 0;
-		progback();
+	decodednum++;
+	double temp = decodednum / static_cast<double>(efftnum) / channels;
+	if (temp >= progval + 0.02 || temp == 0) {
+		progval = temp;
+		progback(progtype, progval);
 	}
 }
 
@@ -501,7 +547,7 @@ void BDMatch::FFTC::FFT()
 	p = nullptr;
 	in = nullptr;
 	out = nullptr;
-	progback();
+	progback(1, 0);
 	return;
 }
 

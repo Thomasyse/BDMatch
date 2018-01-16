@@ -88,7 +88,8 @@ DataStruct::node::node(node& a)
 
 char DataStruct::node::read0(int m)
 {
-	return *(data + m);
+	if (data)return *(data + m);
+	else return -128;
 }
 
 int DataStruct::node::add(char val)
