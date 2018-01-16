@@ -477,6 +477,10 @@ int BDMatch::MyForm::drawpre(Decode ^ tvdecode, Decode ^ bddecode,int &re)
 	}
 	else
 	{
+		if (!re) {
+			tvdecode->clearfftdata();
+			bddecode->clearfftdata();
+		}
 		tvdraw.data = nullptr;
 		bddraw.data = nullptr;
 		tvdraw.num = 0;
