@@ -52,6 +52,7 @@ namespace BDMatch {
 		Settings ^ setform = nullptr;
 		unsigned int matchcount = 0, finishedmatch = 0;
 		System::Threading::CancellationTokenSource^ CancelSource;
+		bool debugmode = false;
 
 	private: System::Windows::Forms::Button^ Match;
 	private: System::Windows::Forms::Button^ TVfind;

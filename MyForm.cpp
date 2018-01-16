@@ -314,14 +314,16 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				return -2;
 			}
 			//调试用->
-			int delta1 = bdse.find(static_cast<int>(diftime[0]), 1);
-			if (delta1 > maxdelta)maxdelta = delta1;
-		    //Result->Text += "\r\n" + delta1.ToString();
-			double foundindex = bdse.find(static_cast<int>(diftime[0]), 0) / (double)findnum;
-			aveindex = aveindex + foundindex;
-			if (foundindex > maxindex&&duration > 75 * interval) {
-				maxindex = foundindex;
-				maxline = i + 1;
+			if (debugmode) {
+				int delta1 = bdse.find(static_cast<int>(diftime[0]), 1);
+				if (delta1 > maxdelta)maxdelta = delta1;
+				//Result->Text += "\r\n" + delta1.ToString();
+				double foundindex = bdse.find(static_cast<int>(diftime[0]), 0) / (double)findnum;
+				aveindex = aveindex + foundindex;
+				if (foundindex > maxindex&&duration > 75 * interval) {
+					maxindex = foundindex;
+					maxline = i + 1;
+				}
 			}
 			//
 			bdtime[i] = static_cast<int>(diftime[0]);
@@ -334,10 +336,12 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	}
 	delete diftime;
 	//调试用->
-	aveindex /= alltimematch->Count / 100.0;
-	maxindex *= 100;
-	Result->Text += "\r\nAverage Found Index = " + aveindex.ToString() + "%    " + "Max Found Index= " + maxindex.ToString() +
-		"%\r\nMax Found Line= " + maxline.ToString() + "    Max Delta= " + maxdelta.ToString();
+	if (debugmode) {
+		aveindex /= alltimematch->Count / 100.0;
+		maxindex *= 100;
+		Result->Text += "\r\nAverage Found Index = " + aveindex.ToString() + "%    " + "Max Found Index= " + maxindex.ToString() +
+			"%\r\nMax Found Line= " + maxline.ToString() + "    Max Delta= " + maxdelta.ToString();
+	}
 	//
 	//绘图相关
 	if (Setting->draw) {
@@ -1111,6 +1115,11 @@ System::Void BDMatch::MyForm::ASStext_DragDrop(System::Object ^ sender, System::
 System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
 	if (Match->Text == "匹配") {
+		if (ASStext->Text == "debug mode") {
+			debugmode = !debugmode;
+			Result->Text = debugmode ? "调试模式打开。" : "调试模式关闭";
+			return;
+		}
 		matchcontrol(false);
 		CancelSource = gcnew System::Threading::CancellationTokenSource();
 		Task<int>^matchtask = gcnew Task<int>(gcnew Func<int>(this, &MyForm::matchinput), 
