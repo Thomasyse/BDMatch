@@ -12,10 +12,11 @@ namespace BDMatch {
 	using namespace System::Data;
 	using namespace System::Drawing;
 	using namespace DataStruct;
-
+	
 	/// <summary>
 	/// MyForm 摘要
 	/// </summary>
+	
 	public ref class MyForm : public System::Windows::Forms::Form
 	{
 	public:
@@ -51,9 +52,9 @@ namespace BDMatch {
 		drawpara tvdraw, bddraw;
 		Settings ^ setform = nullptr;
 		unsigned int matchcount = 0, finishedmatch = 0;
-		System::Threading::CancellationTokenSource^ CancelSource;
 		bool debugmode = false;
-
+		System::Threading::CancellationTokenSource^ CancelSource;
+		
 	private: System::Windows::Forms::Button^ Match;
 	private: System::Windows::Forms::Button^ TVfind;
 	private: System::Windows::Forms::Button^ BDfind;
@@ -62,29 +63,20 @@ namespace BDMatch {
 	private: System::Windows::Forms::ComboBox^ BDtext;
 	private: System::Windows::Forms::ComboBox^ ASStext;
 	private: System::Windows::Forms::TextBox^ Result;
+
 	private: System::Windows::Forms::ProgressBar^  TotalProgress;
-
 	private: System::Windows::Forms::ProgressBar^  SingleProgress;
-
-
-
-
-
+			 			 
 	private: System::Windows::Forms::Label^ label1;
 	private: System::Windows::Forms::Label^ label2;
 	private: System::Windows::Forms::Label^ label3;
-
-
+			 
 	private: System::Windows::Forms::Label^ About;
 	private: System::Windows::Forms::Label^ settings;
-
-
-	private: System::Windows::Forms::FolderBrowserDialog^ Folderbrowse;
+			 			
 	private: System::Windows::Forms::OpenFileDialog^ Filebrowse;
 	private: System::Windows::Forms::TableLayoutPanel^  AllTablePanel;
-
-
-
+			 
 	private: System::Windows::Forms::SplitContainer^  splitContainer1;
 	private: System::Windows::Forms::TrackBar^  TimeRoll;
 	private: System::Windows::Forms::PictureBox^  Spectrum;
@@ -97,9 +89,7 @@ namespace BDMatch {
 	private: System::Windows::Forms::NumericUpDown^  LineSel;
 
 
-
-
-
+			 
 	private:
 		/// <summary>
 		/// 必需的设计器变量。
@@ -140,7 +130,6 @@ namespace BDMatch {
 			this->ChSelect = (gcnew System::Windows::Forms::ComboBox());
 			this->label5 = (gcnew System::Windows::Forms::Label());
 			this->LineSel = (gcnew System::Windows::Forms::NumericUpDown());
-			this->Folderbrowse = (gcnew System::Windows::Forms::FolderBrowserDialog());
 			this->Filebrowse = (gcnew System::Windows::Forms::OpenFileDialog());
 			this->AllTablePanel->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->splitContainer1))->BeginInit();

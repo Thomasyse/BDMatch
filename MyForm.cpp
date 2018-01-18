@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.0.0"
+#define appversion "1.0.1"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -107,6 +107,9 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	int re = 0;
 	if (Setting->matchass) {
 		re = writeass(tvdecode, bddecode, asstext);
+	}
+	else {
+		progsingle(3, 0);
 	}
 	drawpre(tvdecode, bddecode, re);
 	if (re < 0) {
@@ -749,9 +752,12 @@ int BDMatch::MyForm::matchinput()
 	String ^ bdtext = BDtext->Text;
 	matchcount = finishedmatch = 0;
 	if (asstext == "" || tvtext == "" || bdtext == "") {
+		matchcontrol(true);
+		MessageBox::Show(this, "文件名为空！", "BDMatch", MessageBoxButtons::OK);
 		return -1;
 	}
 	if (tvtext == bdtext) {
+		matchcontrol(true);
 		MessageBox::Show(this, "BD和TV文件相同！", "BDMatch", MessageBoxButtons::OK);
 		return -1;
 	}
@@ -772,6 +778,7 @@ int BDMatch::MyForm::matchinput()
 			Result->Text += "\r\n总时间：" + spend.ToString() + "秒";
 		}
 		else {
+			matchcontrol(true);
 			MessageBox::Show(this, "文件名格式错误！", "BDMatch", MessageBoxButtons::OK);
 			return -1;
 		}
@@ -792,6 +799,7 @@ int BDMatch::MyForm::matchinput()
 			path = asstext->Substring(0, asstext->LastIndexOf("\\"));
 			if (Directory::Exists(path))files = Directory::GetFiles(path);
 			else {
+				matchcontrol(true);
 				MessageBox::Show(this, "ASS路径不存在！", "BDMatch", MessageBoxButtons::OK);
 				return -2;
 			}
@@ -801,6 +809,7 @@ int BDMatch::MyForm::matchinput()
 			path = tvtext->Substring(0, tvtext->LastIndexOf("\\"));
 			if (Directory::Exists(path))files = Directory::GetFiles(path);
 			else {
+				matchcontrol(true);
 				MessageBox::Show(this, "TV路径不存在！", "BDMatch", MessageBoxButtons::OK);
 				return -2;
 			}
@@ -810,6 +819,7 @@ int BDMatch::MyForm::matchinput()
 			path = bdtext->Substring(0, bdtext->LastIndexOf("\\"));
 			if (Directory::Exists(path))files = Directory::GetFiles(path);
 			else {
+				matchcontrol(true);
 				MessageBox::Show(this, "BD路径不存在！", "BDMatch", MessageBoxButtons::OK);
 				return -2;
 			}
@@ -876,6 +886,7 @@ int BDMatch::MyForm::matchinput()
 			Result->Text += "\r\n总时间：" + spend.ToString() + "秒";
 		}
 		else {
+			matchcontrol(true);
 			MessageBox::Show(this, "文件名格式错误！", "BDMatch", MessageBoxButtons::OK);
 			return -1;
 		}
@@ -886,7 +897,6 @@ int BDMatch::MyForm::matchinput()
 		adddropdown(BDtext, BDtext->Text);
 	}
 	matchcontrol(true);
-	Match->Text = "匹配";
 	return 0;
 }
 String ^ BDMatch::MyForm::returnregt(String ^ search)
@@ -910,6 +920,8 @@ int BDMatch::MyForm::matchcontrol(bool val)
 	ASStext->Enabled = val; TVtext->Enabled = val; BDtext->Enabled = val;
 	ASSfind->Enabled = val; TVfind->Enabled = val; BDfind->Enabled = val;
 	settings->Enabled = val;
+	if(val)Match->Text = "匹配";
+	else Match->Text = "停止";
 	return 0;
 }
 
@@ -951,8 +963,9 @@ void BDMatch::MyForm::progsingle(int type, double val)
 }
 void BDMatch::MyForm::progtotal()
 {
-	TotalProgress->Value = static_cast<int>(TotalProgress->Maximum *(finishedmatch
-		+ SingleProgress->Value / static_cast<double>(SingleProgress->Maximum)) / static_cast<double>(matchcount));
+	double val = TotalProgress->Maximum *(finishedmatch
+		+ SingleProgress->Value / static_cast<double>(SingleProgress->Maximum)) / static_cast<double>(matchcount);
+	TotalProgress->Value = static_cast<int>(val);
 	return System::Void();
 }
 
@@ -1126,15 +1139,13 @@ System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::Event
 		}
 		matchcontrol(false);
 		CancelSource = gcnew System::Threading::CancellationTokenSource();
-		Task<int>^matchtask = gcnew Task<int>(gcnew Func<int>(this, &MyForm::matchinput), 
+		Task<int>^matchtask = gcnew Task<int>(gcnew Func<int>(this, &MyForm::matchinput),
 			CancelSource->Token, TaskCreationOptions::LongRunning);
-		Match->Text = "停止";
 		matchtask->Start();
 	}
 	else {
 		CancelSource->Cancel();
 		matchcontrol(true);
-		Match->Text = "匹配";
 	}
 	return System::Void();
 }
