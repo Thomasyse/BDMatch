@@ -29,6 +29,7 @@ namespace DataStruct {
 		node(int num);
 		node(node& a);
 		char read0(int m);
+		int readarray(array<int>^ out);
 		int add(char val);
 		int set(int pos, char val);
 		int sum();
@@ -78,7 +79,7 @@ namespace DataStruct {
 	public ref class Var {
 	public:
 		Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0, int samprate0,
-			int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, array<Int64>^ diffa0);
+			int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, int interval0, array<Int64>^ diffa0);
 		void caldiff();
 	private:
 		std::vector<std::vector<node*>>* tv;
@@ -89,6 +90,7 @@ namespace DataStruct {
 		int duration;
 		int ch;
 		int minroundnum;
+		int interval;
 		array<Int64>^ diffa;
 	};
 

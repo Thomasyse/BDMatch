@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.0.1"
+#define appversion "1.1.0"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -26,19 +26,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	using namespace System::Text;
 
 	drawpre();
-	if (!File::Exists(asstext)) {
-		MessageBox::Show(this, "ASS文件不存在！", "BDMatch", MessageBoxButtons::OK);
-		return -3;
-	}
-	if (!File::Exists(tvtext)) {
-		MessageBox::Show(this, "TV文件不存在！", "BDMatch", MessageBoxButtons::OK);
-		return -3;
-	}
-	if (!File::Exists(bdtext)) {
-		MessageBox::Show(this, "BD文件不存在！", "BDMatch", MessageBoxButtons::OK);
-		return -3;
-	}
-	
+		
 	progsingle(0, 0);
 	List<Task^>^ decodetasks = gcnew List<Task^>();
 	long start = clock();//开始计时
@@ -296,7 +284,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			List<Task^>^ tasks = gcnew List<Task^>();
 			for (int j = 0; j < bdse.size(); j++) {
 				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, tvdecode->getsamprate(), tvtime[i], bdse.read(j),
-					duration, ch, minchecknumcal, diftime);
+					duration, ch, minchecknumcal, interval, diftime);
 				Task^ varTask = gcnew Task(gcnew Action(calvar, &Var::caldiff), CancelSource->Token);
 				if (varTask->Status != System::Threading::Tasks::TaskStatus::Canceled)varTask->Start();
 				else {
@@ -573,8 +561,6 @@ int BDMatch::MyForm::drawchart()
 			else if (0 <= x + tvstart && x + tvstart < tvdraw.num)
 				color = (*tvdraw.data)[ChSelect->SelectedIndex][x + tvstart]->read0(Setting->FFTnum / 2 - y);
 			color += 128;
-			color = max(0, color);
-			color = min(255, color);
 			Color newColor = Color::FromArgb(color / 4, color, color);
 			if (y >= Setting->FFTnum / 2) {
 				if (bdinline)
@@ -764,6 +750,21 @@ int BDMatch::MyForm::matchinput()
 	int re = 0;
 	if (!asstext->Contains("*")) {
 		if (!tvtext->Contains("*") && !bdtext->Contains("*")) {
+			if (!File::Exists(asstext)) {
+				matchcontrol(true);
+				MessageBox::Show(this, "ASS文件不存在！", "BDMatch", MessageBoxButtons::OK);
+				return -1;
+			}
+			if (!File::Exists(tvtext)) {
+				matchcontrol(true);
+				MessageBox::Show(this, "TV文件不存在！", "BDMatch", MessageBoxButtons::OK);
+				return -1;
+			}
+			if (!File::Exists(bdtext)) {
+				matchcontrol(true);
+				MessageBox::Show(this, "BD文件不存在！", "BDMatch", MessageBoxButtons::OK);
+				return -1;
+			}
 			matchcount = 1;
 			long start = clock();//开始计时
 			Result->Text += "ASS文件：  " + asstext->Substring(asstext->LastIndexOf("\\") + 1) + "\r\n";

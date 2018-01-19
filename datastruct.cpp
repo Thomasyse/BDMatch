@@ -88,8 +88,15 @@ DataStruct::node::node(node& a)
 
 char DataStruct::node::read0(int m)
 {
-	if (data)return *(data + m);
-	else return -128;
+	return *(data + m);
+}
+
+int DataStruct::node::readarray(array<int>^ out)
+{
+	for (int i = 0; i < count; i++) {
+		out[i] = *(data + i);
+	}
+	return 0;
 }
 
 int DataStruct::node::add(char val)
@@ -242,7 +249,7 @@ String ^ DataStruct::timec::head(String ^ head0)
 }
 
 DataStruct::Var::Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0, int samprate0,
-	int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, array<Int64>^ diffa0)
+	int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, int interval0, array<Int64>^ diffa0)
 {
 	tv = tv0;
 	bd = bd0;
@@ -253,16 +260,24 @@ DataStruct::Var::Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vect
 	bdstart = bdstart0;
 	duration = duration0;
 	minroundnum = minroundnum0;
+	interval = interval0;
 }
 
 void DataStruct::Var::caldiff()
 {
 	using namespace System::Threading;
+	using namespace System::Numerics;
 	if (diffa[2] <= 0)return;
 	Int64 sum = 0;
 	int size = (*tv)[0][0]->size();
+	int vectornum = size / 4;
+	Vector<int> w1vector(129);
+	array<int>^ tvarray = gcnew array<int>(size + 4);
+	array<int>^ bdarray = gcnew array<int>(size + 4);
+	/*
 	int minfreq = static_cast<int>(100.0 / samprate * 2 * size);
 	int maxfreq = static_cast<int>(25000.0 / samprate * 2 * size);
+	
 	for(int i = 0; i <= duration; i++) {
 		int tvpos = i + tvstart;
 		int bdpos = i + bdstart;
@@ -275,12 +290,31 @@ void DataStruct::Var::caldiff()
 		}	
 		if (sum > diffa[1])break;
 	}
+	*/
+	for (int i = 0; i <= duration; i++) {
+		int tvpos = i + tvstart;
+		int bdpos = i + bdstart;
+		for (int j = 0; j < ch; j++) {
+			(*tv)[j][tvpos]->readarray(tvarray);
+			(*bd)[j][bdpos]->readarray(bdarray);
+			for (int k = 0; k < vectornum; k++) {
+				Vector<int> tvvector(tvarray, k * 4);
+				Vector<int> bdvector(bdarray, k * 4);
+				Vector<int> difvector = Vector::Abs(Vector::Subtract(tvvector, bdvector))*(tvvector + w1vector);
+				for (int l = 0; l < 4; l++) {
+					sum += difvector[l];
+				}
+			}
+		}
+		if (sum > diffa[1])break;
+	}
+	
 	if (sum < diffa[1]) {
 		Interlocked::Exchange(diffa[1], sum);
 		Interlocked::Exchange(diffa[0], bdstart);
 		Interlocked::Exchange(diffa[2], minroundnum);
 	}
-	else if (labs(bdstart - diffa[0]) <= minroundnum) {
+	else if (labs(bdstart - diffa[0]) <= minroundnum * interval) {
 		Interlocked::Decrement(diffa[2]);
 	}
 }

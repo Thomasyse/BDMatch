@@ -558,7 +558,7 @@ int BDMatch::FFTC::FD8(double *inseq, node* outseq)
 		double addx = *(inseq + i);
 		addx = 10 * log10(addx);
 		addx -= 15;
-		addx *= 2 * 128 / (15 - mindb);
+		addx *= 256 / (15 - mindb);
 		addx += 128;
 		addx = min(addx, 127);
 		addx = max(addx, -128);
