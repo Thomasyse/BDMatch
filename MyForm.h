@@ -54,6 +54,7 @@ namespace BDMatch {
 		unsigned int matchcount = 0, finishedmatch = 0;
 		bool debugmode = false;
 		System::Threading::CancellationTokenSource^ CancelSource;
+		int ISAMode = 0;
 		
 	private: System::Windows::Forms::Button^ Match;
 	private: System::Windows::Forms::Button^ TVfind;
@@ -601,6 +602,7 @@ namespace BDMatch {
 		int loadsettings(String^ path, SettingVals^ settingvals);
 		int savesettings(String^ path, SettingVals^ settingvals);
 		int matchinput();
+		int searchISA();
 		String ^ returnregt(String ^ search);
 		int matchcontrol(bool val);
 

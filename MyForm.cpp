@@ -15,6 +15,7 @@ int main(array<System::String^>^args)
 	return 0;
 }
 
+const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
 
 int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 {
@@ -229,7 +230,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	if (interval < 1) {
 		interval = 1;
 	}
-	array<Int64> ^diftime = gcnew array<Int64>(3);
+	Int64 *diftime = new Int64[3];
 	double aveindex = 0, maxindex = 0; int maxdelta = 0, maxline = 0;//调试用
 	int offset = 0; int fivesec = 0; int lastlinetime = 0;
 	if (Setting->fastmatch) {
@@ -283,8 +284,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			diftime[2] = minchecknumcal;
 			List<Task^>^ tasks = gcnew List<Task^>();
 			for (int j = 0; j < bdse.size(); j++) {
-				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, tvdecode->getsamprate(), tvtime[i], bdse.read(j),
-					duration, ch, minchecknumcal, interval, diftime);
+				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, tvtime[i], bdse.read(j),
+					duration, ch, minchecknumcal, interval, ISAMode, diftime);
 				Task^ varTask = gcnew Task(gcnew Action(calvar, &Var::caldiff), CancelSource->Token);
 				if (varTask->Status != System::Threading::Tasks::TaskStatus::Canceled)varTask->Start();
 				else {
@@ -325,7 +326,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		}
 		progsingle(3, (i + 1) / static_cast<double>(alltimematch->Count));
 	}
-	delete diftime;
+	delete[] diftime;
 	//调试用->
 	if (debugmode) {
 		aveindex /= alltimematch->Count / 100.0;
@@ -730,6 +731,7 @@ int BDMatch::MyForm::matchinput()
 	using namespace System::Collections::Generic;
 
 	Result->Text = "";
+	searchISA();
 	//asstext = "E:\\Movie\\[VCB-Studio] Haikyuu!! 3rd Season [Ma10p_1080p]\\[VCB-Studio] Haikyuu!! 3rd Season [*][Ma10p_1080p][x265_flac_aac].ass";
 	//tvtext = "E:\\Movie\\[VCB-Studio] Haikyuu!! 3rd Season [Ma10p_1080p]\\[JYFanSub][Haikyuu!! S3][*][720P][GB].mp4";
 	//bdtext = "E:\\Movie\\[VCB-Studio] Haikyuu!! 3rd Season [Ma10p_1080p]\\[VCB-Studio] Haikyuu!! 3rd Season [*][Ma10p_1080p][x265_flac_aac].mkv";
@@ -767,7 +769,7 @@ int BDMatch::MyForm::matchinput()
 			}
 			matchcount = 1;
 			long start = clock();//开始计时
-			Result->Text += "ASS文件：  " + asstext->Substring(asstext->LastIndexOf("\\") + 1) + "\r\n";
+			Result->Text += "\r\nASS文件：  " + asstext->Substring(asstext->LastIndexOf("\\") + 1) + "\r\n";
 			re = match(ASStext->Text, TVtext->Text, BDtext->Text);
 			if (re < 0) {
 				if (re == -6)	Result->Text += "\r\n用户中止操作。";
@@ -860,8 +862,7 @@ int BDMatch::MyForm::matchinput()
 						break;
 					}
 				}
-				if (i)Result->Text += "\r\n";
-				Result->Text += "ASS文件：  " + assfiles[i]->Substring(assfiles[i]->LastIndexOf("\\") + 1) + "\r\n";
+				Result->Text += "\r\nASS文件：  " + assfiles[i]->Substring(assfiles[i]->LastIndexOf("\\") + 1) + "\r\n";
 				re = -10;
 				int re1 = 0;
 				if (tvfileindex >= 0 && bdfileindex >= 0) {
@@ -898,6 +899,21 @@ int BDMatch::MyForm::matchinput()
 		adddropdown(BDtext, BDtext->Text);
 	}
 	matchcontrol(true);
+	return 0;
+}
+int BDMatch::MyForm::searchISA()
+{
+	Result->Text += "CPU：" + marshal_as<String^>(InstructionSet::Brand());
+	ISAMode = 0;
+	if (InstructionSet::AVX2() && InstructionSet::AVX()) {
+		ISAMode = 2;
+		Result->Text += "\r\n使用AVX、AVX2指令集加速匹配。";
+	}
+	else if (InstructionSet::SSE41() && InstructionSet::SSE2() && InstructionSet::SSSE3()) {
+		ISAMode = 1;
+		Result->Text += "\r\n使用SSE2、SSSE3、SSE4.1指令集加速匹配。";
+	}
+	Result->Text += "\r\n----------------------------------------------------------------------------------------------";
 	return 0;
 }
 String ^ BDMatch::MyForm::returnregt(String ^ search)
@@ -954,6 +970,7 @@ void BDMatch::MyForm::progsingle(int type, double val)
 		progval[0] = val;
 		progval[1] = val;
 		progval[2] = val;
+		findfieldpartion = Setting->matchass ? Setting->findfield * 2 : 0;
 		return System::Void();
 		break;
 	}
@@ -1217,4 +1234,5 @@ System::Void BDMatch::MyForm::LineSel_ValueChanged(System::Object ^ sender, Syst
 	if (LineSel->Enabled)drawchart();
 	return System::Void();
 }
+
 

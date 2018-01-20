@@ -1,5 +1,6 @@
 #include "datastruct.h"
-#include<algorithm>  
+
+#include <algorithm>  
 using namespace DataStruct;
 
 DataStruct::noded::noded(int num)
@@ -19,13 +20,13 @@ DataStruct::noded::noded(noded& a)
 		*(data + i) = *(a.data + i);
 }
 
-double DataStruct::noded::read0(int m)
+double DataStruct::noded::read0(const int &pos)
 {
-	return *(data + m);
+	return *(data + pos);
 	return 0;
 }
 
-int DataStruct::noded::add(double val)
+int DataStruct::noded::add(const double &val)
 {
 	*(data + head) = val;
 	if (1 + head >= count) head = 0;
@@ -33,7 +34,7 @@ int DataStruct::noded::add(double val)
 	return 0;
 }
 
-int DataStruct::noded::set(int pos, double val)
+int DataStruct::noded::set(int pos,const double &val)
 {
 	if (pos + head >= count)pos = pos + head - count + 1;
 	else pos = pos + head;
@@ -69,7 +70,7 @@ DataStruct::noded::~noded()
 }
 
 
-DataStruct::node::node(int num)
+DataStruct::node::node(const int &num)
 {
 	count = num;
 	head = 0;
@@ -86,20 +87,18 @@ DataStruct::node::node(node& a)
 		*(data + i) = *(a.data + i);
 }
 
-char DataStruct::node::read0(int m)
+char DataStruct::node::read0(const int &pos)
 {
-	return *(data + m);
+	return *(data + pos);
 }
 
-int DataStruct::node::readarray(array<int>^ out)
+#pragma unmanaged
+char * DataStruct::node::getdata()
 {
-	for (int i = 0; i < count; i++) {
-		out[i] = *(data + i);
-	}
-	return 0;
+	return data;
 }
-
-int DataStruct::node::add(char val)
+#pragma managed
+int DataStruct::node::add(const char &val)
 {
 	*(data + head) = val;
 	if (1 + head >= count) head = 0;
@@ -107,7 +106,7 @@ int DataStruct::node::add(char val)
 	return 0;
 }
 
-int DataStruct::node::set(int pos, char val)
+int DataStruct::node::set(int pos, const char &val)
 {
 	if (pos + head >= count)pos = pos + head - count + 1;
 	else pos = pos + head;
@@ -150,12 +149,12 @@ DataStruct::node::~node()
 }
 
 
-DataStruct::bdsearch::bdsearch(int num)
+DataStruct::bdsearch::bdsearch(const int &num)
 {
 	bditem.reserve(num);
 }
 
-int DataStruct::bdsearch::push(int time, int diff)
+int DataStruct::bdsearch::push(const int &time, const int &diff)
 {
 	std::array<int, 2> a;
 	a[0] = time;
@@ -164,12 +163,12 @@ int DataStruct::bdsearch::push(int time, int diff)
 	return 0;
 }
 
-int DataStruct::bdsearch::read(int index)
+int DataStruct::bdsearch::read(const int &pos)
 {
-	return bditem[index][0];
+	return bditem[pos][0];
 }
 
-int DataStruct::bdsearch::find(int searchnum, int retype)
+int DataStruct::bdsearch::find(const int &searchnum, const int &retype)
 {
 	int index = 0;
 	for (auto &i : bditem) {
@@ -224,19 +223,19 @@ String ^ DataStruct::timec::head()
 	return head1;
 }
 
-int DataStruct::timec::start(int start0)
+int DataStruct::timec::start(const int &start0)
 {
 	start1 = start0;
 	return 0;
 }
 
-int DataStruct::timec::end(int end0)
+int DataStruct::timec::end(const int &end0)
 {
 	end1 = end0;
 	return 0;
 }
 
-bool DataStruct::timec::iscom(bool iscom0)
+bool DataStruct::timec::iscom(const bool &iscom0)
 {
 	iscom1 = iscom0;
 	return false;
@@ -248,67 +247,44 @@ String ^ DataStruct::timec::head(String ^ head0)
 	return "";
 }
 
-DataStruct::Var::Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0, int samprate0,
-	int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, int interval0, array<Int64>^ diffa0)
+DataStruct::Var::Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
+	int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, int interval0, int ISAMode0, Int64 *diffa0)
 {
 	tv = tv0;
 	bd = bd0;
 	ch = ch0;
 	diffa = diffa0;
-	samprate = samprate0;
 	tvstart = tvstart0;
 	bdstart = bdstart0;
 	duration = duration0;
 	minroundnum = minroundnum0;
 	interval = interval0;
+	ISAMode = ISAMode0;
 }
 
 void DataStruct::Var::caldiff()
 {
 	using namespace System::Threading;
-	using namespace System::Numerics;
 	if (diffa[2] <= 0)return;
 	Int64 sum = 0;
-	int size = (*tv)[0][0]->size();
-	int vectornum = size / 4;
-	Vector<int> w1vector(129);
-	array<int>^ tvarray = gcnew array<int>(size + 4);
-	array<int>^ bdarray = gcnew array<int>(size + 4);
-	/*
-	int minfreq = static_cast<int>(100.0 / samprate * 2 * size);
-	int maxfreq = static_cast<int>(25000.0 / samprate * 2 * size);
-	
-	for(int i = 0; i <= duration; i++) {
-		int tvpos = i + tvstart;
-		int bdpos = i + bdstart;
-		for (int j = 0; j < ch; j++) {
-			for (int k = 0; k < size; k++) {
-				if (k > minfreq && k < maxfreq) {
-					sum += labs((*tv)[j][tvpos]->read0(k) - (*bd)[j][bdpos]->read0(k))*((*tv)[j][tvpos]->read0(k) + 129);
-				}
-			}
-		}	
-		if (sum > diffa[1])break;
+	Varum *varum; ;
+	switch (ISAMode) {
+	case 0:
+		varum = new Varum(tv, bd, tvstart, bdstart, duration, ch, diffa + 1);
+		sum = varum->caldiff();
+		break;
+	case 1:
+		varum = new Varumsse(tv, bd, tvstart, bdstart, duration, ch, diffa + 1);
+		sum = varum->caldiff();
+		break;
+	case 2:
+		varum = new Varumavx2(tv, bd, tvstart, bdstart, duration, ch, diffa + 1);
+		sum = varum->caldiff();
+		break;
+	default:
+		break;
 	}
-	*/
-	for (int i = 0; i <= duration; i++) {
-		int tvpos = i + tvstart;
-		int bdpos = i + bdstart;
-		for (int j = 0; j < ch; j++) {
-			(*tv)[j][tvpos]->readarray(tvarray);
-			(*bd)[j][bdpos]->readarray(bdarray);
-			for (int k = 0; k < vectornum; k++) {
-				Vector<int> tvvector(tvarray, k * 4);
-				Vector<int> bdvector(bdarray, k * 4);
-				Vector<int> difvector = Vector::Abs(Vector::Subtract(tvvector, bdvector))*(tvvector + w1vector);
-				for (int l = 0; l < 4; l++) {
-					sum += difvector[l];
-				}
-			}
-		}
-		if (sum > diffa[1])break;
-	}
-	
+	delete varum;
 	if (sum < diffa[1]) {
 		Interlocked::Exchange(diffa[1], sum);
 		Interlocked::Exchange(diffa[0], bdstart);
@@ -318,6 +294,120 @@ void DataStruct::Var::caldiff()
 		Interlocked::Decrement(diffa[2]);
 	}
 }
+
+DataStruct::Varum::Varum(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0, int tvstart0, int bdstart0,
+	int duration0, int ch0, long long *diffa10)
+{
+	tv = tv0;
+	bd = bd0;
+	ch = ch0;
+	diffa1 = diffa10;
+	tvstart = tvstart0;
+	bdstart = bdstart0;
+	duration = duration0;
+	size = (*tv)[0][0]->size();
+}
+
+long long DataStruct::Varum::caldiff()
+{
+	long long sum = 0;
+	char *tvdata, *bddata;
+	for (int i = 0; i <= duration; i++) {
+		int tvpos = i + tvstart;
+		int bdpos = i + bdstart;
+		for (int j = 0; j < ch; j++) {
+			tvdata = (*tv)[j][tvpos]->getdata();
+			bddata = (*bd)[j][bdpos]->getdata();
+			for (int k = 0; k < size; k++) {
+				sum += labs(tvdata[k] - bddata[k])*(tvdata[k] + 129);
+			}
+		}
+		if (sum > *diffa1)break;
+	}
+	tvdata = bddata = nullptr;
+	return sum;
+}
+
+long long DataStruct::Varumsse::caldiff()
+{
+	long long sum = 0;
+	int vectornum = size / 4;
+	int *tvarray = new int[size];
+	int *bdarray = new int[size];
+	char *tvdata, *bddata;
+	int *ls;
+	__m128i tvvector, bdvector, w1vector, difvector;
+	w1vector = _mm_set1_epi32(129);
+	for (int i = 0; i <= duration; i++) {
+		int tvpos = i + tvstart;
+		int bdpos = i + bdstart;
+		for (int j = 0; j < ch; j++) {
+			tvdata = (*tv)[j][tvpos]->getdata();
+			bddata = (*bd)[j][bdpos]->getdata();
+			for (int k = 0; k < size; k++) {
+				tvarray[k] = static_cast<int>(tvdata[k]);
+				bdarray[k] = static_cast<int>(bddata[k]);
+			}
+			for (int k = 0; k < vectornum; k++) {
+				ls = tvarray + k * 4;
+				tvvector = _mm_set_epi32(*(ls), *(ls + 1), *(ls + 2), *(ls + 3));
+				ls = bdarray + k * 4;
+				bdvector = _mm_set_epi32(*(ls), *(ls + 1), *(ls + 2), *(ls + 3));
+				difvector = _mm_mullo_epi32(_mm_abs_epi32(_mm_sub_epi32(tvvector, bdvector)),
+					_mm_add_epi32(tvvector, w1vector));
+				for (int l = 0; l < 4; l++) {
+					sum += difvector.m128i_i32[l];
+				}
+			}
+		}
+		if (sum > *diffa1)break;
+	}
+	delete[] tvarray;
+	delete[] bdarray;
+	ls = nullptr;
+	tvdata = bddata = nullptr;
+	return sum;
+}
+
+long long DataStruct::Varumavx2::caldiff()
+{
+	long long sum = 0;
+	int vectornum = size / 8;
+	int *tvarray = new int[size];
+	int *bdarray = new int[size];
+	char *tvdata, *bddata;
+	__m256i tvvector, bdvector;
+	__m256i difvector, w1vector, mask;
+	mask = _mm256_set1_epi32(-1);
+	w1vector = _mm256_set1_epi32(129);
+	for (int i = 0; i <= duration; i++) {
+		int tvpos = i + tvstart;
+		int bdpos = i + bdstart;
+		for (int j = 0; j < ch; j++) {
+			tvdata = (*tv)[j][tvpos]->getdata();
+			bddata = (*bd)[j][bdpos]->getdata();
+			for (int k = 0; k < size; k++) {
+				tvarray[k] = static_cast<int>(tvdata[k]);
+				bdarray[k] = static_cast<int>(bddata[k]);
+			}
+			for (int k = 0; k < vectornum; k++) {
+				tvvector = _mm256_maskload_epi32(tvarray + k * 8, mask);
+				bdvector = _mm256_maskload_epi32(bdarray + k * 8, mask);
+				difvector = _mm256_mullo_epi32(_mm256_abs_epi32(_mm256_sub_epi32(tvvector, bdvector)),
+					_mm256_add_epi32(tvvector, w1vector));
+				for (int l = 0; l < 8; l++) {
+					sum += difvector.m256i_i32[l];
+				}
+			}
+		}
+		if (sum > *diffa1)break;
+	}
+	delete[] tvarray;
+	delete[] bdarray;
+	tvdata = bddata = nullptr;
+	return sum;
+}
+#pragma managed
 
 DataStruct::SettingVals::SettingVals()
 {
@@ -337,7 +427,7 @@ DataStruct::SettingVals::SettingVals(SettingVals ^ in)
 	fastmatch = in->fastmatch;
 }
 
-String^ DataStruct::SettingVals::getname(SettingType &type)
+String^ DataStruct::SettingVals::getname(const SettingType &type)
 {
 	String^ name;
 	switch (type) {
@@ -377,7 +467,7 @@ String^ DataStruct::SettingVals::getname(SettingType &type)
 	return name;
 }
 
-int DataStruct::SettingVals::getval(SettingType & type)
+int DataStruct::SettingVals::getval(const SettingType & type)
 {
 	int val;
 	switch (type) {
@@ -418,7 +508,7 @@ int DataStruct::SettingVals::getval(SettingType & type)
 	return val;
 }
 
-int DataStruct::SettingVals::setval(SettingType & type, int val)
+int DataStruct::SettingVals::setval(const SettingType & type,int val)
 {
 	using namespace std;
 	switch (type) {

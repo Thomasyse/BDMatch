@@ -420,11 +420,8 @@ void BDMatch::Decode::decodeaudio()
 	}
 	//ÊÍ·ÅÄÚ´æ
 	delete[] temp;
-	temp = nullptr;
 	delete sample_seq_l;
-	sample_seq_l = nullptr;
 	delete sample_seq_r;
-	sample_seq_r = nullptr;
 	av_frame_free(&decoded_frame);
 	av_free_packet(packet);
 	avcodec_close(codecfm);
@@ -566,5 +563,4 @@ int BDMatch::FFTC::FD8(double *inseq, node* outseq)
 	}
 	return 0;
 }
-
 
