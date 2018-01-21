@@ -308,6 +308,7 @@ DataStruct::Varum::Varum(std::vector<std::vector<node*>>* tv0, std::vector<std::
 	size = (*tv)[0][0]->size();
 }
 
+#pragma unmanaged
 long long DataStruct::Varum::caldiff()
 {
 	long long sum = 0;

@@ -953,7 +953,7 @@ void BDMatch::MyForm::SetVals(SettingType type,int val)
 void BDMatch::MyForm::progsingle(int type, double val)
 {
 	static double progval[3] = { 0,0,0 };
-	static double findfieldpartion = Setting->matchass ? Setting->findfield * 2 : 0;
+	static double findfieldpartion = Setting->matchass ? Setting->findfield*1.3 : 0;
 	switch (type) {
 	case 1:
 		progval[0] = val;
