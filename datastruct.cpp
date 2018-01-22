@@ -272,19 +272,21 @@ void DataStruct::Var::caldiff()
 	case 0:
 		varum = new Varum(tv, bd, tvstart, bdstart, duration, ch, diffa + 1);
 		sum = varum->caldiff();
+		delete varum;
 		break;
 	case 1:
 		varum = new Varumsse(tv, bd, tvstart, bdstart, duration, ch, diffa + 1);
 		sum = varum->caldiff();
+		delete varum;
 		break;
 	case 2:
 		varum = new Varumavx2(tv, bd, tvstart, bdstart, duration, ch, diffa + 1);
 		sum = varum->caldiff();
+		delete varum;
 		break;
 	default:
 		break;
 	}
-	delete varum;
 	if (sum < diffa[1]) {
 		Interlocked::Exchange(diffa[1], sum);
 		Interlocked::Exchange(diffa[0], bdstart);
@@ -332,40 +334,37 @@ long long DataStruct::Varum::caldiff()
 long long DataStruct::Varumsse::caldiff()
 {
 	long long sum = 0;
-	int vectornum = size / 4;
-	int *tvarray = new int[size];
-	int *bdarray = new int[size];
+	int vectornum = size / 8;
 	char *tvdata, *bddata;
-	int *ls;
-	__m128i tvvector, bdvector, w1vector, difvector;
-	w1vector = _mm_set1_epi32(129);
+	__m128i tvvector, bdvector, difvector[2];
+	__m128i sumvector[2] = { _mm_setzero_si128(),_mm_setzero_si128() };
+	const __m128i w1vector = _mm_set1_epi16(129);
 	for (int i = 0; i <= duration; i++) {
 		int tvpos = i + tvstart;
 		int bdpos = i + bdstart;
+		sumvector[0] = _mm_setzero_si128();
+		sumvector[1] = _mm_setzero_si128();
 		for (int j = 0; j < ch; j++) {
 			tvdata = (*tv)[j][tvpos]->getdata();
 			bddata = (*bd)[j][bdpos]->getdata();
-			for (int k = 0; k < size; k++) {
-				tvarray[k] = static_cast<int>(tvdata[k]);
-				bdarray[k] = static_cast<int>(bddata[k]);
-			}
 			for (int k = 0; k < vectornum; k++) {
-				ls = tvarray + k * 4;
-				tvvector = _mm_set_epi32(*(ls), *(ls + 1), *(ls + 2), *(ls + 3));
-				ls = bdarray + k * 4;
-				bdvector = _mm_set_epi32(*(ls), *(ls + 1), *(ls + 2), *(ls + 3));
-				difvector = _mm_mullo_epi32(_mm_abs_epi32(_mm_sub_epi32(tvvector, bdvector)),
-					_mm_add_epi32(tvvector, w1vector));
-				for (int l = 0; l < 4; l++) {
-					sum += difvector.m128i_i32[l];
-				}
+				tvvector = _mm_cvtepi8_epi16(_mm_load_si128((__m128i*)tvdata));
+				bdvector = _mm_cvtepi8_epi16(_mm_load_si128((__m128i*)bddata));
+				difvector[0] = _mm_mullo_epi16(_mm_abs_epi16(_mm_sub_epi16(tvvector, bdvector)),
+					_mm_add_epi16(tvvector, w1vector));
+				difvector[1] = _mm_mulhi_epi16(_mm_abs_epi16(_mm_sub_epi16(tvvector, bdvector)),
+					_mm_add_epi16(tvvector, w1vector));
+				sumvector[0] = _mm_add_epi32(_mm_unpacklo_epi16(difvector[0], difvector[1]), sumvector[0]);
+				sumvector[1] = _mm_add_epi32(_mm_unpackhi_epi16(difvector[0], difvector[1]), sumvector[1]);
+				tvdata += 8;
+				bddata += 8;
 			}
 		}
+		sumvector[0] = _mm_add_epi32(sumvector[0], sumvector[1]);
+		sumvector[0] = _mm_add_epi32(_mm_srli_epi64(sumvector[0], 32), sumvector[0]);
+		sum += _mm_extract_epi32(sumvector[0], 0) + _mm_extract_epi32(sumvector[0], 2);
 		if (sum > *diffa1)break;
 	}
-	delete[] tvarray;
-	delete[] bdarray;
-	ls = nullptr;
 	tvdata = bddata = nullptr;
 	return sum;
 }
@@ -373,38 +372,43 @@ long long DataStruct::Varumsse::caldiff()
 long long DataStruct::Varumavx2::caldiff()
 {
 	long long sum = 0;
-	int vectornum = size / 8;
-	int *tvarray = new int[size];
-	int *bdarray = new int[size];
-	char *tvdata, *bddata;
-	__m256i tvvector, bdvector;
-	__m256i difvector, w1vector, mask;
-	mask = _mm256_set1_epi32(-1);
-	w1vector = _mm256_set1_epi32(129);
+	int vectornum = size / 16;
+	__m128i *tvdata, *bddata;
+	__m256i tvvector, bdvector, difvector[2];
+	__m256i sumvector[2] = { _mm256_setzero_si256(),_mm256_setzero_si256() };
+	__m128i sumvector8[2];
+	const __m128i mask = _mm_set1_epi32(-1);
+	const __m256i w1vector = _mm256_set1_epi16(129);
 	for (int i = 0; i <= duration; i++) {
 		int tvpos = i + tvstart;
 		int bdpos = i + bdstart;
+		sumvector[0] = _mm256_setzero_si256();
+		sumvector[1] = _mm256_setzero_si256();
 		for (int j = 0; j < ch; j++) {
-			tvdata = (*tv)[j][tvpos]->getdata();
-			bddata = (*bd)[j][bdpos]->getdata();
-			for (int k = 0; k < size; k++) {
-				tvarray[k] = static_cast<int>(tvdata[k]);
-				bdarray[k] = static_cast<int>(bddata[k]);
-			}
+			tvdata = (__m128i*)(*tv)[j][tvpos]->getdata();
+			bddata = (__m128i*)(*bd)[j][bdpos]->getdata();
 			for (int k = 0; k < vectornum; k++) {
-				tvvector = _mm256_maskload_epi32(tvarray + k * 8, mask);
-				bdvector = _mm256_maskload_epi32(bdarray + k * 8, mask);
-				difvector = _mm256_mullo_epi32(_mm256_abs_epi32(_mm256_sub_epi32(tvvector, bdvector)),
-					_mm256_add_epi32(tvvector, w1vector));
-				for (int l = 0; l < 8; l++) {
-					sum += difvector.m256i_i32[l];
-				}
+				tvvector = _mm256_cvtepi8_epi16(_mm_load_si128(tvdata));
+				bdvector = _mm256_cvtepi8_epi16(_mm_load_si128(bddata));
+				difvector[0] = _mm256_mullo_epi16(_mm256_abs_epi16(_mm256_sub_epi16(tvvector, bdvector)),
+					_mm256_add_epi16(tvvector, w1vector));
+				difvector[1] = _mm256_mulhi_epi16(_mm256_abs_epi16(_mm256_sub_epi16(tvvector, bdvector)),
+					_mm256_add_epi16(tvvector, w1vector));
+				sumvector[0] = _mm256_add_epi32(_mm256_unpacklo_epi16(difvector[0], difvector[1]), sumvector[0]);
+				sumvector[1] = _mm256_add_epi32(_mm256_unpackhi_epi16(difvector[0], difvector[1]), sumvector[1]);
+				tvdata += 1;
+				bddata += 1;
 			}
 		}
+		sumvector[0] = _mm256_add_epi32(sumvector[0], sumvector[1]);
+		sumvector[0] = _mm256_add_epi32(_mm256_srli_epi64(sumvector[0], 32), sumvector[0]);
+		sumvector8[0] = _mm256_extracti128_si256(sumvector[0], 0);
+		sumvector8[1] = _mm256_extracti128_si256(sumvector[0], 1);
+		sumvector8[0] = _mm_add_epi32(sumvector8[1], sumvector8[0]);
+		sumvector[0] = _mm256_cvtepi32_epi64(sumvector8[0]);
+		sum += _mm256_extract_epi64(sumvector[0], 0) + _mm256_extract_epi64(sumvector[0], 2);
 		if (sum > *diffa1)break;
 	}
-	delete[] tvarray;
-	delete[] bdarray;
 	tvdata = bddata = nullptr;
 	return sum;
 }

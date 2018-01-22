@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.1.0"
+#define appversion "1.2.0"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
