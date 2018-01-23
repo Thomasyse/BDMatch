@@ -603,6 +603,7 @@ namespace BDMatch {
 		int savesettings(String^ path, SettingVals^ settingvals);
 		int matchinput();
 		int searchISA();
+		
 		String ^ returnregt(String ^ search);
 		int matchcontrol(bool val);
 

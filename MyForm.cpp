@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.2.0"
+#define appversion "1.2.1"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -230,13 +230,13 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	if (interval < 1) {
 		interval = 1;
 	}
-	Int64 *diftime = new Int64[3];
 	double aveindex = 0, maxindex = 0; int maxdelta = 0, maxline = 0;//调试用
 	int offset = 0; int fivesec = 0; int lastlinetime = 0;
 	if (Setting->fastmatch) {
 		fivesec = static_cast<int>(500 * mstofft);
 		Result->Text += "\r\n信息：使用快速匹配。";
 	}
+	long long *diffa = new long long[3];
 	for (int i = 0; i < alltimematch->Count; i++) {
 		if (tvtime[i] >= 0) {
 			if (Setting->fastmatch && offset && lastlinetime > fivesec && tvtime[i - 1] > 0 && labs(tvtime[i] - lastlinetime) < fivesec) {
@@ -276,17 +276,18 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			}
 			bdse.sort();
 			//精确匹配
-			diftime[0] = 0;
-			diftime[1] = 9223372036854775807;
+			diffa[0] = 922372036854775808;
+			diffa[1] = 0;
 			int minchecknumcal = Setting->minchecknum;
 			if (duration <= 75 * interval)minchecknumcal = findnum;
 			else if (Setting->fastmatch)minchecknumcal = Setting->minchecknum / 2 * 3;
-			diftime[2] = minchecknumcal;
-			List<Task^>^ tasks = gcnew List<Task^>();
+			int checkfield = minchecknumcal * interval;
+			diffa[2] = minchecknumcal;
+			List<Task<long long>^>^ tasks = gcnew List<Task<long long>^>();
 			for (int j = 0; j < bdse.size(); j++) {
 				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, tvtime[i], bdse.read(j),
-					duration, ch, minchecknumcal, interval, ISAMode, diftime);
-				Task^ varTask = gcnew Task(gcnew Action(calvar, &Var::caldiff), CancelSource->Token);
+					duration, ch, ISAMode, minchecknumcal, checkfield, diffa);
+				Task<long long>^ varTask = gcnew Task<long long>(gcnew Func<long long>(calvar, &Var::caldiff), CancelSource->Token);
 				if (varTask->Status != System::Threading::Tasks::TaskStatus::Canceled)varTask->Start();
 				else {
 					tvdecode->clearfftdata();
@@ -305,12 +306,21 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				Result->Text += "\r\n\r\n用户中止操作。";
 				return -2;
 			}
+			long long minsum = 922372036854775808;
+			int besttime = 0;
+			for (int j = 0; j < tasks->Count; j++) {
+				if (tasks[j]->Result > 0 && tasks[j]->Result < minsum) {
+					besttime = bdse.read(j);
+					minsum = tasks[j]->Result;
+				}
+			}
+			bdtime[i] = besttime;
 			//调试用->
 			if (debugmode) {
-				int delta1 = bdse.find(static_cast<int>(diftime[0]), 1);
+				int delta1 = bdse.find(besttime, 1);
 				if (delta1 > maxdelta)maxdelta = delta1;
 				//Result->Text += "\r\n" + delta1.ToString();
-				double foundindex = bdse.find(static_cast<int>(diftime[0]), 0) / (double)findnum;
+				double foundindex = bdse.find(besttime, 0) / (double)findnum;
 				aveindex = aveindex + foundindex;
 				if (foundindex > maxindex&&duration > 75 * interval) {
 					maxindex = foundindex;
@@ -318,7 +328,6 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				}
 			}
 			//
-			bdtime[i] = static_cast<int>(diftime[0]);
 			if (Setting->fastmatch) {
 				offset = bdtime[i] - tvtime[i];
 				lastlinetime = tvtime[i];
@@ -326,7 +335,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		}
 		progsingle(3, (i + 1) / static_cast<double>(alltimematch->Count));
 	}
-	delete[] diftime;
+	delete diffa;
 	//调试用->
 	if (debugmode) {
 		aveindex /= alltimematch->Count / 100.0;
@@ -986,6 +995,7 @@ void BDMatch::MyForm::progtotal()
 	TotalProgress->Value = static_cast<int>(val);
 	return System::Void();
 }
+
 
 System::Void BDMatch::MyForm::MyForm_Load(System::Object ^ sender, System::EventArgs ^ e)
 {

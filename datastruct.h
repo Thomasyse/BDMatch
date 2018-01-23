@@ -54,7 +54,7 @@ namespace DataStruct {
 		bdsearch(const int &num);
 		int push(const int &time, const int &diff);
 		int read(const int &pos);
-		int find(const int &searchnum, const int &retype);
+		int find(int searchnum, const int &retype);
 		int sort();
 		int size();
 	private:
@@ -81,11 +81,13 @@ namespace DataStruct {
 		String^ head1;
 	};
 
-	public ref class Var {
+	
+	ref class Var {
 	public:
 		Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
-			int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, int interval0, int ISAMode0, Int64 *diffa0);
-		void caldiff();
+			int tvstart0, int bdstart0, int duration0, int ch0, int ISAMode0,
+			int minchecknum0, int checkfield0, long long *diffa0);
+		long long caldiff();
 	private:
 		std::vector<std::vector<node*>>* tv;
 		std::vector<std::vector<node*>>* bd;
@@ -93,16 +95,16 @@ namespace DataStruct {
 		int bdstart;
 		int duration;
 		int ch;
-		int minroundnum;
-		int interval;
 		int ISAMode;
-		Int64 *diffa;
+		int minchecknum;
+		int checkfield;
+		long long *diffa;
 	};
 
-	class Varum {
+	class Varcal {
 	public:
-		Varum(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
-			int tvstart0, int bdstart0, int duration0, int ch0, long long *diffa10);
+		Varcal(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
+			int tvstart0, int bdstart0, int duration0, int ch0, long long *diffa0);
 		virtual long long caldiff();
 	protected:
 		std::vector<std::vector<node*>>* tv;
@@ -112,22 +114,22 @@ namespace DataStruct {
 		int duration;
 		int ch;
 		int size;
-		long long *diffa1;
+		long long *diffa;
 	};
 
-	class Varumsse:public Varum {
+	class Varcalsse:public Varcal {
 	public:
-		Varumsse(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
-			int tvstart0, int bdstart0, int duration0, int ch0, long long* diffa10)
-			:Varum(tv0, bd0, tvstart0, bdstart0, duration0, ch0, diffa10) {}
+		Varcalsse(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
+			int tvstart0, int bdstart0, int duration0, int ch0, long long* diffa0)
+			:Varcal(tv0, bd0, tvstart0, bdstart0, duration0, ch0, diffa0) {}
 		long long caldiff();
 	};
 
-	class Varumavx2:public Varum {
+	class Varcalavx2:public Varcal {
 	public:
-		Varumavx2(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
-			int tvstart0, int bdstart0, int duration0, int ch0, long long* diffa10)
-			:Varum(tv0, bd0, tvstart0, bdstart0, duration0, ch0, diffa10) {}
+		Varcalavx2(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
+			int tvstart0, int bdstart0, int duration0, int ch0, long long* diffa0)
+			:Varcal(tv0, bd0, tvstart0, bdstart0, duration0, ch0, diffa0) {}
 		long long caldiff();
 	};
 

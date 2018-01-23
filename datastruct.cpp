@@ -10,7 +10,6 @@ DataStruct::noded::noded(int num)
 	data = new double[count];
 	for (int i = 0; i < count; i++) *(data + i) = 0;
 }
-
 DataStruct::noded::noded(noded& a)
 {
 	count = a.size();
@@ -19,13 +18,11 @@ DataStruct::noded::noded(noded& a)
 	for (int i = 0; i < count; i++)
 		*(data + i) = *(a.data + i);
 }
-
 double DataStruct::noded::read0(const int &pos)
 {
 	return *(data + pos);
 	return 0;
 }
-
 int DataStruct::noded::add(const double &val)
 {
 	*(data + head) = val;
@@ -33,7 +30,6 @@ int DataStruct::noded::add(const double &val)
 	else head++;
 	return 0;
 }
-
 int DataStruct::noded::set(int pos,const double &val)
 {
 	if (pos + head >= count)pos = pos + head - count + 1;
@@ -41,7 +37,6 @@ int DataStruct::noded::set(int pos,const double &val)
 	*(data + pos) = val;
 	return 0;
 }
-
 double DataStruct::noded::maxabs()
 {
 	double maxx = fabs(*data);
@@ -50,17 +45,14 @@ double DataStruct::noded::maxabs()
 	}
 	return maxx;
 }
-
 int DataStruct::noded::size()
 {
 	return count;
 }
-
 int DataStruct::noded::gethead()
 {
 	return head;
 }
-
 DataStruct::noded::~noded()
 {
 	if (data != nullptr) {
@@ -77,7 +69,6 @@ DataStruct::node::node(const int &num)
 	data = new char[count];
 	for (int i = 0; i < count; i++) *(data + i) = 0;
 }
-
 DataStruct::node::node(node& a)
 {
 	count = a.size();
@@ -86,12 +77,10 @@ DataStruct::node::node(node& a)
 	for (int i = 0; i < count; i++)
 		*(data + i) = *(a.data + i);
 }
-
 char DataStruct::node::read0(const int &pos)
 {
 	return *(data + pos);
 }
-
 #pragma unmanaged
 char * DataStruct::node::getdata()
 {
@@ -105,7 +94,6 @@ int DataStruct::node::add(const char &val)
 	else head++;
 	return 0;
 }
-
 int DataStruct::node::set(int pos, const char &val)
 {
 	if (pos + head >= count)pos = pos + head - count + 1;
@@ -113,7 +101,6 @@ int DataStruct::node::set(int pos, const char &val)
 	*(data + pos) = val;
 	return 0;
 }
-
 int DataStruct::node::sum()
 {
 	int sum = 0;
@@ -121,7 +108,6 @@ int DataStruct::node::sum()
 		sum += *(data + i);
 	return sum;
 }
-
 char DataStruct::node::maxv()
 {
 	char max = -128;
@@ -129,17 +115,14 @@ char DataStruct::node::maxv()
 		if (*(data + i) > max)max = *(data + i);
 	return max;
 }
-
 int DataStruct::node::size()
 {
 	return count;
 }
-
 int DataStruct::node::gethead()
 {
 	return head;
 }
-
 DataStruct::node::~node()
 {
 	if (data != nullptr) {
@@ -153,7 +136,6 @@ DataStruct::bdsearch::bdsearch(const int &num)
 {
 	bditem.reserve(num);
 }
-
 int DataStruct::bdsearch::push(const int &time, const int &diff)
 {
 	std::array<int, 2> a;
@@ -162,13 +144,11 @@ int DataStruct::bdsearch::push(const int &time, const int &diff)
 	bditem.push_back(a);
 	return 0;
 }
-
 int DataStruct::bdsearch::read(const int &pos)
 {
 	return bditem[pos][0];
 }
-
-int DataStruct::bdsearch::find(const int &searchnum, const int &retype)
+int DataStruct::bdsearch::find(int searchnum, const int &retype)
 {
 	int index = 0;
 	for (auto &i : bditem) {
@@ -180,7 +160,6 @@ int DataStruct::bdsearch::find(const int &searchnum, const int &retype)
 	}
 	return index;
 }
-
 int DataStruct::bdsearch::sort()
 {
 	std::sort(bditem.begin(), bditem.end(), [](std::array<int, 2> &a, std::array<int, 2>&b) {
@@ -188,7 +167,6 @@ int DataStruct::bdsearch::sort()
 	});
 	return 0;
 }
-
 int DataStruct::bdsearch::size()
 {
 	return bditem.size();
@@ -202,45 +180,37 @@ DataStruct::timec::timec(int start0, int end0, bool iscom0, String^ head0)
 	iscom1 = iscom0;
 	head1 = head0;
 }
-
 int DataStruct::timec::start()
 {
 	return start1;
 }
-
 int DataStruct::timec::end()
 {
 	return end1;
 }
-
 bool DataStruct::timec::iscom()
 {
 	return iscom1;
 }
-
 String ^ DataStruct::timec::head()
 {
 	return head1;
 }
-
 int DataStruct::timec::start(const int &start0)
 {
 	start1 = start0;
 	return 0;
 }
-
 int DataStruct::timec::end(const int &end0)
 {
 	end1 = end0;
 	return 0;
 }
-
 bool DataStruct::timec::iscom(const bool &iscom0)
 {
 	iscom1 = iscom0;
 	return false;
 }
-
 String ^ DataStruct::timec::head(String ^ head0)
 {
 	head1 = head0;
@@ -248,7 +218,54 @@ String ^ DataStruct::timec::head(String ^ head0)
 }
 
 DataStruct::Var::Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
-	int tvstart0, int bdstart0, int duration0, int ch0, int minroundnum0, int interval0, int ISAMode0, Int64 *diffa0)
+	int tvstart0, int bdstart0, int duration0, int ch0, int ISAMode0,
+	int minchecknum0, int checkfield0, long long *diffa0)
+{
+	tv = tv0;
+	bd = bd0;
+	tvstart = tvstart0;
+	bdstart = bdstart0;
+	duration = duration0;
+	ch = ch0;
+	ISAMode = ISAMode0;
+	diffa = diffa0;
+	minchecknum = minchecknum0;
+	checkfield = checkfield0;
+}
+long long DataStruct::Var::caldiff()
+{
+	using namespace System::Threading;
+	if (diffa[2] <= 0)return -1;
+	long long sum = -1;
+	Varcal *varcal; ;
+	switch (ISAMode) {
+	case 1:
+		varcal = new Varcalsse(tv, bd, tvstart, bdstart, duration, ch, diffa);
+		sum = varcal->caldiff();
+		delete varcal;
+		break;
+	case 2:
+		varcal = new Varcalavx2(tv, bd, tvstart, bdstart, duration, ch, diffa);
+		sum = varcal->caldiff();
+		delete varcal;
+		break;
+	default:
+		varcal = new Varcal(tv, bd, tvstart, bdstart, duration, ch, diffa);
+		sum = varcal->caldiff();
+		delete varcal;
+		break;
+	}
+	if (sum < Interlocked::Read(diffa[0])) {
+		Interlocked::Exchange(diffa[0], sum);
+		Interlocked::Exchange(diffa[1], bdstart);
+		Interlocked::Exchange(diffa[2], minchecknum);
+	}
+	else if (labs(bdstart - diffa[1]) <= checkfield) Interlocked::Decrement(diffa[2]);
+	return sum;
+}
+
+DataStruct::Varcal::Varcal(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0, int tvstart0, int bdstart0,
+	int duration0, int ch0, long long *diffa0)
 {
 	tv = tv0;
 	bd = bd0;
@@ -257,61 +274,11 @@ DataStruct::Var::Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vect
 	tvstart = tvstart0;
 	bdstart = bdstart0;
 	duration = duration0;
-	minroundnum = minroundnum0;
-	interval = interval0;
-	ISAMode = ISAMode0;
-}
-
-void DataStruct::Var::caldiff()
-{
-	using namespace System::Threading;
-	if (diffa[2] <= 0)return;
-	Int64 sum = 0;
-	Varum *varum; ;
-	switch (ISAMode) {
-	case 0:
-		varum = new Varum(tv, bd, tvstart, bdstart, duration, ch, diffa + 1);
-		sum = varum->caldiff();
-		delete varum;
-		break;
-	case 1:
-		varum = new Varumsse(tv, bd, tvstart, bdstart, duration, ch, diffa + 1);
-		sum = varum->caldiff();
-		delete varum;
-		break;
-	case 2:
-		varum = new Varumavx2(tv, bd, tvstart, bdstart, duration, ch, diffa + 1);
-		sum = varum->caldiff();
-		delete varum;
-		break;
-	default:
-		break;
-	}
-	if (sum < diffa[1]) {
-		Interlocked::Exchange(diffa[1], sum);
-		Interlocked::Exchange(diffa[0], bdstart);
-		Interlocked::Exchange(diffa[2], minroundnum);
-	}
-	else if (labs(bdstart - diffa[0]) <= minroundnum * interval) {
-		Interlocked::Decrement(diffa[2]);
-	}
-}
-
-DataStruct::Varum::Varum(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0, int tvstart0, int bdstart0,
-	int duration0, int ch0, long long *diffa10)
-{
-	tv = tv0;
-	bd = bd0;
-	ch = ch0;
-	diffa1 = diffa10;
-	tvstart = tvstart0;
-	bdstart = bdstart0;
-	duration = duration0;
 	size = (*tv)[0][0]->size();
 }
 
-#pragma unmanaged
-long long DataStruct::Varum::caldiff()
+#pragma unmanaged  
+long long DataStruct::Varcal::caldiff()
 {
 	long long sum = 0;
 	char *tvdata, *bddata;
@@ -325,13 +292,12 @@ long long DataStruct::Varum::caldiff()
 				sum += labs(tvdata[k] - bddata[k])*(tvdata[k] + 129);
 			}
 		}
-		if (sum > *diffa1)break;
+		if (sum > *diffa)break;
 	}
 	tvdata = bddata = nullptr;
 	return sum;
 }
-
-long long DataStruct::Varumsse::caldiff()
+long long DataStruct::Varcalsse::caldiff()
 {
 	long long sum = 0;
 	int vectornum = size / 8;
@@ -363,13 +329,12 @@ long long DataStruct::Varumsse::caldiff()
 		sumvector[0] = _mm_add_epi32(sumvector[0], sumvector[1]);
 		sumvector[0] = _mm_add_epi32(_mm_srli_epi64(sumvector[0], 32), sumvector[0]);
 		sum += _mm_extract_epi32(sumvector[0], 0) + _mm_extract_epi32(sumvector[0], 2);
-		if (sum > *diffa1)break;
+		if (sum > *diffa)break;
 	}
 	tvdata = bddata = nullptr;
 	return sum;
 }
-
-long long DataStruct::Varumavx2::caldiff()
+long long DataStruct::Varcalavx2::caldiff()
 {
 	long long sum = 0;
 	int vectornum = size / 16;
@@ -407,7 +372,7 @@ long long DataStruct::Varumavx2::caldiff()
 		sumvector8[0] = _mm_add_epi32(sumvector8[1], sumvector8[0]);
 		sumvector[0] = _mm256_cvtepi32_epi64(sumvector8[0]);
 		sum += _mm256_extract_epi64(sumvector[0], 0) + _mm256_extract_epi64(sumvector[0], 2);
-		if (sum > *diffa1)break;
+		if (sum > *diffa)break;
 	}
 	tvdata = bddata = nullptr;
 	return sum;
@@ -417,7 +382,6 @@ long long DataStruct::Varumavx2::caldiff()
 DataStruct::SettingVals::SettingVals()
 {
 }
-
 DataStruct::SettingVals::SettingVals(SettingVals ^ in)
 {
 	FFTnum = in->FFTnum;
@@ -431,7 +395,6 @@ DataStruct::SettingVals::SettingVals(SettingVals ^ in)
 	paralleldecode = in->paralleldecode;
 	fastmatch = in->fastmatch;
 }
-
 String^ DataStruct::SettingVals::getname(const SettingType &type)
 {
 	String^ name;
@@ -471,7 +434,6 @@ String^ DataStruct::SettingVals::getname(const SettingType &type)
 	}
 	return name;
 }
-
 int DataStruct::SettingVals::getval(const SettingType & type)
 {
 	int val;
@@ -512,7 +474,6 @@ int DataStruct::SettingVals::getval(const SettingType & type)
 	}
 	return val;
 }
-
 int DataStruct::SettingVals::setval(const SettingType & type,int val)
 {
 	using namespace std;
