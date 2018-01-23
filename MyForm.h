@@ -50,6 +50,7 @@ namespace BDMatch {
 	private: 
 		SettingVals ^ Setting = gcnew SettingVals;
 		drawpara tvdraw, bddraw;
+		bool drawstore;
 		Settings ^ setform = nullptr;
 		unsigned int matchcount = 0, finishedmatch = 0;
 		bool debugmode = false;

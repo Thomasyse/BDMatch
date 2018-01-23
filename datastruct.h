@@ -144,7 +144,7 @@ namespace DataStruct {
 		int setval(const SettingType &type, int val);
 		int FFTnum = 512;
 		int minfinddb = -12;
-		int findfield = 8;
+		int findfield = 10;
 		int maxlength = 20;
 		int minchecknum = 60;
 		bool outputpcm = false;

@@ -457,7 +457,7 @@ int BDMatch::MyForm::drawpre()
 }
 int BDMatch::MyForm::drawpre(Decode ^ tvdecode, Decode ^ bddecode,int &re)
 {
-	if (Setting->draw) {
+	if (Setting->draw && !re) {
 		tvdraw.data = tvdecode->getfftdata();
 		bddraw.data = bddecode->getfftdata();
 		tvdraw.num = tvdecode->getfftsampnum();
@@ -472,7 +472,7 @@ int BDMatch::MyForm::drawpre(Decode ^ tvdecode, Decode ^ bddecode,int &re)
 		TimeRoll->Maximum = max(tvdraw.milisec, bddraw.milisec);
 		TimeRoll->Value = 0;
 		TimeRoll->Enabled = true;
-		if (!re && Setting->matchass)ViewSel->Enabled = true;
+		if (Setting->matchass)ViewSel->Enabled = true;
 		setrows();
 		drawchart();
 	}
@@ -838,9 +838,8 @@ int BDMatch::MyForm::matchinput()
 			Regex^ bdfilekey = gcnew Regex(returnregt(bdtext));
 			for (int i = 0; i < files->Length; i++)
 				if (bdfilekey->IsMatch(files[i])) bdfiles->Add(files[i]);
-			bool drawstore = Setting->draw;
 			if (Setting->draw == true) {
-				Result->Text += "批量处理将不作声谱图。\r\n";
+				Result->Text += "\r\n批量处理将不作声谱图。";
 				Setting->draw = false;
 			}
 			matchcount = assfiles->Count;
@@ -912,15 +911,18 @@ int BDMatch::MyForm::matchinput()
 }
 int BDMatch::MyForm::searchISA()
 {
-	Result->Text += "CPU：" + marshal_as<String^>(InstructionSet::Brand());
+	Result->Text += marshal_as<String^>(InstructionSet::Brand());
 	ISAMode = 0;
 	if (InstructionSet::AVX2() && InstructionSet::AVX()) {
 		ISAMode = 2;
-		Result->Text += "\r\n使用AVX、AVX2指令集加速匹配。";
+		Result->Text += "：使用AVX、AVX2指令集加速匹配。";
 	}
 	else if (InstructionSet::SSE41() && InstructionSet::SSE2() && InstructionSet::SSSE3()) {
 		ISAMode = 1;
-		Result->Text += "\r\n使用SSE2、SSSE3、SSE4.1指令集加速匹配。";
+		Result->Text += "：使用SSE2、SSSE3、SSE4.1指令集加速匹配。";
+	}
+	else {
+		Result->Text += "：不使用增强指令集加速匹配。";
 	}
 	Result->Text += "\r\n----------------------------------------------------------------------------------------------";
 	return 0;
@@ -1166,13 +1168,14 @@ System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::Event
 			return;
 		}
 		matchcontrol(false);
+		drawstore = Setting->draw;
 		CancelSource = gcnew System::Threading::CancellationTokenSource();
-		Task<int>^matchtask = gcnew Task<int>(gcnew Func<int>(this, &MyForm::matchinput),
-			CancelSource->Token, TaskCreationOptions::LongRunning);
+		Task<int>^matchtask = gcnew Task<int>(gcnew Func<int>(this, &MyForm::matchinput), TaskCreationOptions::LongRunning);
 		matchtask->Start();
 	}
 	else {
 		CancelSource->Cancel();
+		Setting->draw = drawstore;
 		matchcontrol(true);
 	}
 	return System::Void();
