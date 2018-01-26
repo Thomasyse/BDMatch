@@ -412,6 +412,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	long endclock = clock();
 	double spend = double(endclock - startclock) / (double)CLOCKS_PER_SEC;
 	Result->Text += "\r\n∆•≈‰ ±º‰£∫" + spend.ToString() + "√Î";
+	progsingle(3, 1);
 	return 0;
 }
 
