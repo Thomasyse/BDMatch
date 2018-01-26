@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.2.1"
+#define appversion "1.2.2"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -995,6 +995,7 @@ void BDMatch::MyForm::progtotal()
 	double val = TotalProgress->Maximum *(finishedmatch
 		+ SingleProgress->Value / static_cast<double>(SingleProgress->Maximum)) / static_cast<double>(matchcount);
 	TotalProgress->Value = static_cast<int>(val);
+
 	return System::Void();
 }
 

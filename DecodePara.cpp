@@ -208,14 +208,11 @@ void BDMatch::Decode::decodeaudio()
 	int realch = 1;
 	String ^chfmt = "Packed";
 	bool isplanar = av_sample_fmt_is_planar(codecfm->sample_fmt);
-	int tempsize = 0;
 	if (isplanar) {
 		realch = codecfm->channels;
 		chfmt = "Planar";
-		tempsize = av_get_bytes_per_sample(codecfm->sample_fmt);
 	}
-	else tempsize = av_get_bytes_per_sample(codecfm->sample_fmt)*codecfm->channels;
-	uint8_t *temp = new uint8_t[tempsize];
+	uint8_t *temp;
 	while (av_read_frame(filefm, packet) >= 0)//file中调用对应格式的packet获取函数
 	{
 		if (packet->stream_index == audiostream)//如果是音频
@@ -290,19 +287,15 @@ void BDMatch::Decode::decodeaudio()
 					}
 					audiodata = dst_data;
 				}
-				else
-				{
+				else {
 					nb_samples = decoded_frame->nb_samples;
 					audiodata = decoded_frame->extended_data;
 				}
 				if (!isplanar)data_size *= codecfm->channels;
 				for (i = 0; i < nb_samples; i++) {
 					for (ch = 0; ch < realch; ch++) {
-						for (int j = 0; j < data_size; j++) {
-							*(temp + j) = *(audiodata[ch] + data_size * i + j);
-						}
-						if (outputpcm)fwrite(audiodata[ch] + data_size * i, 1, data_size, pcm);//输出pcm数据
-
+						temp = audiodata[ch] + data_size * i;
+						if (outputpcm)fwrite(temp, 1, data_size, pcm);//输出pcm数据
 						if (!isplanar) {//线性音频
 							shiftf = getshiftf(temp, sampletype, 0);
 							sample_seq_l->add(shiftf);
@@ -419,7 +412,7 @@ void BDMatch::Decode::decodeaudio()
 		feedback += "\r\n输出解码音频：" + marshal_as<String^>(filename);
 	}
 	//释放内存
-	delete[] temp;
+	temp = nullptr;
 	delete sample_seq_l;
 	delete sample_seq_r;
 	av_frame_free(&decoded_frame);
@@ -481,9 +474,8 @@ std::vector<std::vector<node*>>* BDMatch::Decode::getfftdata()
 	return fftdata;
 }
 
-double BDMatch::Decode::getshiftf(uint8_t * temp, int sampletype, int start)
+double BDMatch::Decode::getshiftf(uint8_t * temp, int &sampletype,const int &start)
 {
-	long long shift64 = 0;
 	double shiftd = 0;
 	switch (sampletype) {
 	case 1:
@@ -495,14 +487,18 @@ double BDMatch::Decode::getshiftf(uint8_t * temp, int sampletype, int start)
 	case 8:
 		shiftd = *(temp + start) / static_cast<double>(255);
 		break;
+	case 16:
+		shiftd = *(short *)(temp + start) / 32767.0;
+	case 24:
+		shiftd = *(int *)(temp + start) / 2147483392.0;
+		break;
+	case 32:
+		shiftd = *(int *)(temp + start) / 2147483647.0;
+		break;
+	case 64:
+		shiftd = *(long long *)(temp + start) / static_cast<double>(9223372036854775807);
+		break;
 	default:
-		if (sampletype == 16)shift64 = static_cast<long long>(*(INT16 *)(temp + start));
-		else if (sampletype == 24 || sampletype == 32)shift64 = static_cast<long long>(*(int *)(temp + start));
-		else shift64 = *(long long *)(temp + start);
-		long long ss;
-		if (sampletype == 24) ss = (1 << 31) - 1;
-		else ss = (1 << (sampletype - 1)) - 1;
-		shiftd = shift64 / static_cast<double>(ss);
 		break;
 	}
 	return shiftd;
@@ -551,15 +547,16 @@ void BDMatch::FFTC::FFT()
 
 int BDMatch::FFTC::FD8(double *inseq, node* outseq)
 {
+	char *out = outseq->getdata();
 	for (int i = 0; i < outseq->size(); i++) {
-		double addx = *(inseq + i);
+		double addx = inseq[i];
 		addx = 10 * log10(addx);
 		addx -= 15;
 		addx *= 256 / (15 - mindb);
 		addx += 128;
 		addx = min(addx, 127);
 		addx = max(addx, -128);
-		outseq->add(static_cast<char>(addx));
+		out[i] = static_cast<char>(addx);
 	}
 	return 0;
 }

@@ -17,14 +17,14 @@ namespace DataStruct {
 		noded(noded& a);
 		double read0(const int &pos);
 		int add(const double &val);
-		int set(int pos, const double &val);
 		double maxabs();
 		int size();
 		int gethead();
 		~noded();
 	private:
 		int count = 0;
-		int head = 0;
+		double *head = nullptr;
+		double *end = nullptr;
 		double *data = nullptr;
 	};
 	
@@ -35,16 +35,12 @@ namespace DataStruct {
 		node(node& a);
 		char read0(const int &pos);
 		char *getdata();
-		int add(const char &val);
-		int set(int pos, const char &val);
 		int sum();
 		char maxv();
 		int size();
-		int gethead();
 		~node();
 	private:
 		int count = 0;
-		int head = 0;
 		char *data = nullptr;
 	};
 

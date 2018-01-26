@@ -6,15 +6,17 @@ using namespace DataStruct;
 DataStruct::noded::noded(int num)
 {
 	count = num;
-	head = 0;
 	data = new double[count];
+	head = data;
+	end = data + count;
 	for (int i = 0; i < count; i++) *(data + i) = 0;
 }
 DataStruct::noded::noded(noded& a)
 {
 	count = a.size();
-	head = a.gethead();
 	data = new double[count];
+	end = data + count;
+	head = data + a.gethead();
 	for (int i = 0; i < count; i++)
 		*(data + i) = *(a.data + i);
 }
@@ -25,22 +27,14 @@ double DataStruct::noded::read0(const int &pos)
 }
 int DataStruct::noded::add(const double &val)
 {
-	*(data + head) = val;
-	if (1 + head >= count) head = 0;
-	else head++;
-	return 0;
-}
-int DataStruct::noded::set(int pos,const double &val)
-{
-	if (pos + head >= count)pos = pos + head - count + 1;
-	else pos = pos + head;
-	*(data + pos) = val;
+	*head = val;
+	if (++head >= end) head = data;
 	return 0;
 }
 double DataStruct::noded::maxabs()
 {
 	double maxx = fabs(*data);
-	for (int i = 0; i < count; i++) {
+	for (int i = 1; i < count; i++) {
 		if (fabs(*(data + i)) > maxx) maxx = fabs(*(data + i));
 	}
 	return maxx;
@@ -51,7 +45,7 @@ int DataStruct::noded::size()
 }
 int DataStruct::noded::gethead()
 {
-	return head;
+	return (head - data);
 }
 DataStruct::noded::~noded()
 {
@@ -65,14 +59,12 @@ DataStruct::noded::~noded()
 DataStruct::node::node(const int &num)
 {
 	count = num;
-	head = 0;
 	data = new char[count];
 	for (int i = 0; i < count; i++) *(data + i) = 0;
 }
 DataStruct::node::node(node& a)
 {
 	count = a.size();
-	head = a.gethead();
 	data = new char[count];
 	for (int i = 0; i < count; i++)
 		*(data + i) = *(a.data + i);
@@ -87,20 +79,6 @@ char * DataStruct::node::getdata()
 	return data;
 }
 #pragma managed
-int DataStruct::node::add(const char &val)
-{
-	*(data + head) = val;
-	if (1 + head >= count) head = 0;
-	else head++;
-	return 0;
-}
-int DataStruct::node::set(int pos, const char &val)
-{
-	if (pos + head >= count)pos = pos + head - count + 1;
-	else pos = pos + head;
-	*(data + pos) = val;
-	return 0;
-}
 int DataStruct::node::sum()
 {
 	int sum = 0;
@@ -110,18 +88,14 @@ int DataStruct::node::sum()
 }
 char DataStruct::node::maxv()
 {
-	char max = -128;
-	for (int i = 0; i < count; i++)
+	char max = *data;
+	for (int i = 1; i < count; i++)
 		if (*(data + i) > max)max = *(data + i);
 	return max;
 }
 int DataStruct::node::size()
 {
 	return count;
-}
-int DataStruct::node::gethead()
-{
-	return head;
 }
 DataStruct::node::~node()
 {

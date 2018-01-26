@@ -78,7 +78,7 @@ namespace BDMatch{
 		int decodednum = 0;
 		double progval = 0;
 		bool outputpcm = false;
-		double getshiftf(uint8_t * temp, int sampletype, int start);
+		double getshiftf(uint8_t * temp, int &sampletype,const int &start);
 		void subprogback(int type, double val);
 	};
 

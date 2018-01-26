@@ -3,6 +3,7 @@
 #include "Settings.h"
 #include "DecodePara.h"
 
+
 namespace BDMatch {
 
 	using namespace System;
@@ -16,7 +17,6 @@ namespace BDMatch {
 	/// <summary>
 	/// MyForm 摘要
 	/// </summary>
-	
 	public ref class MyForm : public System::Windows::Forms::Form
 	{
 	public:
@@ -27,7 +27,7 @@ namespace BDMatch {
 			//TODO:  在此处添加构造函数代码
 			//
 		}
-
+		
 	protected:
 		/// <summary>
 		/// 清理所有正在使用的资源。
@@ -56,7 +56,7 @@ namespace BDMatch {
 		bool debugmode = false;
 		System::Threading::CancellationTokenSource^ CancelSource;
 		int ISAMode = 0;
-		
+
 	private: System::Windows::Forms::Button^ Match;
 	private: System::Windows::Forms::Button^ TVfind;
 	private: System::Windows::Forms::Button^ BDfind;
@@ -400,6 +400,7 @@ namespace BDMatch {
 			// 
 			// SingleProgress
 			// 
+			this->SingleProgress->BackColor = System::Drawing::SystemColors::Control;
 			this->AllTablePanel->SetColumnSpan(this->SingleProgress, 4);
 			this->SingleProgress->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->SingleProgress->Location = System::Drawing::Point(5, 239);
