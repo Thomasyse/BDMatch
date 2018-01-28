@@ -488,8 +488,10 @@ int DataStruct::SettingVals::setval(const SettingType & type,int val)
 		break;
 	case ParallelDecode:
 		paralleldecode = static_cast<bool>(val);
+		break;
 	case FastMatch:
 		fastmatch = static_cast<bool>(val);
+		break;
 	default:
 		break;
 	}

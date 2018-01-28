@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.2.2"
+#define appversion "1.2.3"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -972,10 +972,10 @@ void BDMatch::MyForm::progsingle(int type, double val)
 		break;
 	case 2:
 		progval[1] = val;
-		progval[0] = 1;
 		break;
 	case 3:
 		progval[2] = val;
+		progval[0] = 1;
 		progval[1] = 1;
 		break;
 	default:
