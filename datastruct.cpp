@@ -49,7 +49,7 @@ int DataStruct::noded::gethead()
 }
 DataStruct::noded::~noded()
 {
-	if (data != nullptr) {
+	if (data) {
 		delete[] data;
 		data = nullptr;
 	}

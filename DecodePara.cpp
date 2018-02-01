@@ -20,14 +20,29 @@ BDMatch::Decode::Decode(String^ filename0, int FFTnum0, bool outputpcm0, int min
 BDMatch::Decode::~Decode()
 {
 	clearfftdata();
+	if (ffmpeg) { 
+		delete ffmpeg; 
+		ffmpeg = nullptr;
+	}
 }
 
 void BDMatch::Decode::decodeaudio()
 {
 	using namespace System::IO;
 	using namespace System::Threading;
+	ffmpeg = new FFmpeg;
+	AVFormatContext *&filefm = ffmpeg->filefm;
+	AVCodecContext *&codecfm = ffmpeg->codecfm;
+	AVCodec *&codec = ffmpeg->codec;
+	AVPacket *&packet = ffmpeg->packet;
+	uint8_t *&temp = ffmpeg->temp;
+	uint8_t **&dst_data = ffmpeg->dst_data;
+	noded *&sample_seq_l = ffmpeg->sample_seq_l;
+	noded *&sample_seq_r = ffmpeg->sample_seq_r;
+	AVFrame *&decoded_frame = ffmpeg->decoded_frame;
+	struct SwrContext *&swr_ctx = ffmpeg->swr_ctx;
 
-	AVFormatContext *filefm = NULL;//文件格式
+	filefm = NULL;//文件格式
 	std::string filestr = marshal_as<std::string>(filename->ToString());
 	if (avformat_open_input(&filefm, filestr.c_str(), NULL, NULL) != 0) {//获取文件格式
 		feedback = "无法打开文件！";
@@ -39,8 +54,8 @@ void BDMatch::Decode::decodeaudio()
 		returnval = -1;
 		return;
 	}
-	AVCodecContext *codecfm = NULL;//编码格式
-	AVCodec *codec = NULL;//解码器
+	codecfm = NULL;//编码格式
+	codec = NULL;//解码器
 	unsigned int j;
 	// Find the first audio stream
 	audiostream = -1;
@@ -165,9 +180,8 @@ void BDMatch::Decode::decodeaudio()
 	int samplecount = 0, samplenum = 0;
 	channels = codecfm->channels;
 	//重采样变量2
-	uint8_t **dst_data = NULL;
+	dst_data = NULL;
 	int dst_linesize;
-	struct SwrContext *swr_ctx;
 	bool setsampnum = false;
 	//对音频解码(加重采样)
 	if (resamp) {
@@ -198,13 +212,13 @@ void BDMatch::Decode::decodeaudio()
 	}
 	efftnum = static_cast<int>(ceil(samplenum / float(FFTnum)));
 
-	AVPacket *packet = av_packet_alloc();
+	packet = av_packet_alloc();
 	double shiftf = 0;
 	fftdata = new std::vector<std::vector<node*>>(2, std::vector<node*>(efftnum));
 	fftsampnum = 0;
-	noded* sample_seq_l = new noded(FFTnum);
-	noded* sample_seq_r = new noded(FFTnum);
-	AVFrame *decoded_frame = NULL;
+	sample_seq_l = new noded(FFTnum);
+	sample_seq_r = new noded(FFTnum);
+	decoded_frame = NULL;
 	int realch = 1;
 	String ^chfmt = "Packed";
 	bool isplanar = av_sample_fmt_is_planar(codecfm->sample_fmt);
@@ -212,7 +226,7 @@ void BDMatch::Decode::decodeaudio()
 		realch = codecfm->channels;
 		chfmt = "Planar";
 	}
-	uint8_t *temp;
+	temp = NULL;
 	while (av_read_frame(filefm, packet) >= 0)//file中调用对应格式的packet获取函数
 	{
 		if (packet->stream_index == audiostream)//如果是音频
@@ -268,7 +282,7 @@ void BDMatch::Decode::decodeaudio()
 						samplenum = static_cast<int>(ceil(samplenum / double(decoded_frame->nb_samples)*nb_samples));
 						efftnum = static_cast<int>(ceil(samplenum / float(FFTnum)));
 						delete fftdata;
-						fftdata = new std::vector<std::vector<node*>>(2, std::vector<node*>(efftnum));;
+						fftdata = new std::vector<std::vector<node*>>(2, std::vector<node*>(efftnum));
 						setsampnum = true;
 					}
 					if (ret < 0) {
@@ -316,7 +330,7 @@ void BDMatch::Decode::decodeaudio()
 						}
 					}
 					if (samplecount == samplenum - 1) {
-						for (int i = sample_seq_l->gethead(); i < FFTnum; i++) {
+						for (int j = sample_seq_l->gethead(); j < FFTnum; j++) {
 							sample_seq_l->add(0);
 							if (codecfm->channels > 1)sample_seq_r->add(0);
 						}
@@ -324,24 +338,15 @@ void BDMatch::Decode::decodeaudio()
 					if (sample_seq_l->gethead() == 0 && samplecount > 0) {
 						(*fftdata)[0][fftsampnum] = new node(FFTnum / 2);
 						double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
-						for (int i = 0; i < FFTnum; i++) {
-							*(in + i) = sample_seq_l->read0(i);
+						for (int j = 0; j < FFTnum; j++) {
+							*(in + j) = sample_seq_l->read0(j);
 						}
 						FFTC^ fftcl = gcnew FFTC((*fftdata)[0][fftsampnum], plan, in, mindb,
 							gcnew ProgressCallback(this, &Decode::subprogback));
 						Task^ taskl = gcnew Task(gcnew Action(fftcl, &FFTC::FFT), canceltoken);
 						if (taskl->Status != System::Threading::Tasks::TaskStatus::Canceled)taskl->Start();
 						else{
-							delete[] temp;
-							temp = nullptr;
-							delete sample_seq_l;
-							sample_seq_l = nullptr;
-							delete sample_seq_r;
-							sample_seq_r = nullptr;
-							av_frame_free(&decoded_frame);
-							av_free_packet(packet);
-							avcodec_close(codecfm);
-							avformat_close_input(&filefm);
+							fftcl->~FFTC();
 							return;
 						}
 						tasks->Add(taskl);
@@ -351,24 +356,15 @@ void BDMatch::Decode::decodeaudio()
 					if (sample_seq_r->gethead() == 0 && samplecount > 0 && codecfm->channels > 1) {
 						(*fftdata)[1][fftsampnum - 1] = new node(FFTnum / 2);
 						double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
-						for (int i = 0; i < FFTnum; i++) {
-							*(in + i) = sample_seq_r->read0(i);
+						for (int j = 0; j < FFTnum; j++) {
+							*(in + j) = sample_seq_r->read0(j);
 						}
 						FFTC^ fftcr = gcnew FFTC((*fftdata)[1][fftsampnum - 1], plan, in, mindb,
 							gcnew ProgressCallback(this, &Decode::subprogback));
 						Task^ taskr = gcnew Task(gcnew Action(fftcr, &FFTC::FFT), canceltoken);
 						if (taskr->Status != System::Threading::Tasks::TaskStatus::Canceled)taskr->Start();
 						else{
-							delete[] temp;
-							temp = nullptr;
-							delete sample_seq_l;
-							sample_seq_l = nullptr;
-							delete sample_seq_r;
-							sample_seq_r = nullptr;
-							av_frame_free(&decoded_frame);
-							av_free_packet(packet);
-							avcodec_close(codecfm);
-							avformat_close_input(&filefm);
+							fftcr->~FFTC();
 							return;
 						}
 						tasks->Add(taskr);
@@ -412,13 +408,8 @@ void BDMatch::Decode::decodeaudio()
 		feedback += "\r\n输出解码音频：" + marshal_as<String^>(filename);
 	}
 	//释放内存
-	temp = nullptr;
-	delete sample_seq_l;
-	delete sample_seq_r;
-	av_frame_free(&decoded_frame);
-	av_free_packet(packet);
-	avcodec_close(codecfm);
-	avformat_close_input(&filefm);
+	delete ffmpeg;
+	ffmpeg = nullptr;
 	return;
 }
 
@@ -485,12 +476,13 @@ double BDMatch::Decode::getshiftf(uint8_t * temp, int &sampletype,const int &sta
 		shiftd = *(double *)(temp + start);
 		break;
 	case 8:
-		shiftd = *(temp + start) / static_cast<double>(255);
+		shiftd = *(temp + start) / 255.0;
 		break;
 	case 16:
 		shiftd = *(short *)(temp + start) / 32767.0;
+		break;
 	case 24:
-		shiftd = *(int *)(temp + start) / 2147483392.0;
+		shiftd = (*(int *)(temp + start) >> 8) / 8388607.0;
 		break;
 	case 32:
 		shiftd = *(int *)(temp + start) / 2147483647.0;
@@ -514,6 +506,30 @@ void BDMatch::Decode::subprogback(int type, double val)
 	}
 }
 
+BDMatch::FFmpeg::~FFmpeg()
+{
+	temp = nullptr;
+	if (sample_seq_l) {
+		delete sample_seq_l;
+		sample_seq_l = nullptr;
+	}
+	if (sample_seq_r) {
+		delete sample_seq_r;
+		sample_seq_r = nullptr;
+	}
+	if (dst_data)
+		av_freep(&dst_data[0]);
+	av_freep(&dst_data);
+	if (decoded_frame)av_frame_free(&decoded_frame);
+	if (packet) {
+		av_free_packet(packet);
+		packet = NULL;
+	}
+	if (codecfm)avcodec_close(codecfm);
+	if (filefm)avformat_close_input(&filefm);
+	if (swr_ctx)swr_close(swr_ctx);
+}
+
 BDMatch::FFTC::FFTC(node* fftseq0, fftw_plan p0, double* in0, int mindb0, ProgressCallback^ progback0)
 {
 	fftseq = fftseq0;
@@ -524,21 +540,28 @@ BDMatch::FFTC::FFTC(node* fftseq0, fftw_plan p0, double* in0, int mindb0, Progre
 	in = in0;
 }
 
+BDMatch::FFTC::~FFTC()
+{
+	if(out)fftw_free(out);
+	if(in)fftw_free(in);
+	p = nullptr;
+	in = nullptr;
+	out = nullptr;
+}
+
 void BDMatch::FFTC::FFT()
 {
 	using namespace std;
-
-	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*FFTnum);
+	out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*FFTnum);
 	fftw_execute_dft_r2c(p, in, out);
 	for (int i = 0; i < FFTnum / 2; i++) {
 		double real = *(out + i)[0];
 		double imag = *(out + i)[1];
-		*(in + i) = real * real + imag * imag;
+		in[i] = real * real + imag * imag;
 	}
 	FD8(in, fftseq);
-	fftw_free(in);
 	fftw_free(out);
-	p = nullptr;
+	fftw_free(in);
 	in = nullptr;
 	out = nullptr;
 	progback(1, 0);
@@ -553,11 +576,11 @@ int BDMatch::FFTC::FD8(double *inseq, node* outseq)
 		addx = 10 * log10(addx);
 		addx -= 15;
 		addx *= 256 / (15 - mindb);
-		addx += 128;
+		addx += 127;
 		addx = min(addx, 127);
 		addx = max(addx, -128);
 		out[i] = static_cast<char>(addx);
 	}
+	out = nullptr;
 	return 0;
 }
-

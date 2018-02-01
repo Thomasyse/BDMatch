@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.2.3"
+#define appversion "1.2.4"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -43,7 +43,8 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		tvTask->Start();
 	}
 	catch (InvalidOperationException^ e) {
-		tvdecode->clearfftdata();
+		tvdecode->~Decode();
+		fftw_destroy_plan(plan);
 		return -6;
 	}
 	if (Setting->paralleldecode)decodetasks->Add(tvTask);
@@ -52,7 +53,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 			tvTask->Wait(CancelSource->Token);
 		}
 		catch (OperationCanceledException^ e) {
-			tvdecode->clearfftdata();
+			tvdecode->~Decode();
 			fftw_destroy_plan(plan);
 			return -6;
 		}
@@ -68,8 +69,9 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		bdTask->Start();
 	}
 	catch (InvalidOperationException^ e) {
-		tvdecode->clearfftdata();
-		bddecode->clearfftdata();
+		tvdecode->~Decode();
+		bddecode->~Decode();
+		fftw_destroy_plan(plan);
 		return -6;
 	}
 	decodetasks->Add(bdTask);
@@ -78,8 +80,8 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		Task::WaitAll(decodetasks->ToArray(), CancelSource->Token);
 	}
 	catch (OperationCanceledException^ e) {
-		tvdecode->clearfftdata();
-		bddecode->clearfftdata();
+		tvdecode->~Decode();
+		bddecode->~Decode();
 		fftw_destroy_plan(plan);
 		return -6;
 	}
@@ -102,8 +104,8 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	}
 	drawpre(tvdecode, bddecode, re);
 	if (re < 0) {
-		tvdecode->clearfftdata();
-		bddecode->clearfftdata();
+		tvdecode->~Decode();
+		bddecode->~Decode();
 		if (re == -2)return -6;
 		else return -5;
 	}
@@ -290,8 +292,9 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				Task<long long>^ varTask = gcnew Task<long long>(gcnew Func<long long>(calvar, &Var::caldiff), CancelSource->Token);
 				if (varTask->Status != System::Threading::Tasks::TaskStatus::Canceled)varTask->Start();
 				else {
-					tvdecode->clearfftdata();
-					bddecode->clearfftdata();
+					tvdecode->~Decode();
+					bddecode->~Decode();
+					delete[] diffa;
 					Result->Text += "\r\n\r\n用户中止操作。";
 					return -2;
 				}
@@ -301,8 +304,9 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				Task::WaitAll(tasks->ToArray(), CancelSource->Token);
 			}
 			catch (OperationCanceledException^ e) {
-				tvdecode->clearfftdata();
-				bddecode->clearfftdata();
+				tvdecode->~Decode();
+				bddecode->~Decode();
+				delete[] diffa;
 				Result->Text += "\r\n\r\n用户中止操作。";
 				return -2;
 			}
@@ -316,6 +320,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			}
 			bdtime[i] = besttime;
 			//调试用->
+			//String^ besttimestr = mstotime(besttime / double(bdfftnum) * bdmilisec);
+			//int bestfind= bdse.find(125887, 0);
 			if (debugmode) {
 				int delta1 = bdse.find(besttime, 1);
 				if (delta1 > maxdelta)maxdelta = delta1;
@@ -416,7 +422,6 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	return 0;
 }
 
-
 int BDMatch::MyForm::drawpre()
 {
 	if (tvdraw.num > 0) {
@@ -480,8 +485,8 @@ int BDMatch::MyForm::drawpre(Decode ^ tvdecode, Decode ^ bddecode,int &re)
 	else
 	{
 		if (!re) {
-			tvdecode->clearfftdata();
-			bddecode->clearfftdata();
+			tvdecode->~Decode();
+			bddecode->~Decode();
 		}
 		tvdraw.data = nullptr;
 		bddraw.data = nullptr;
@@ -492,6 +497,7 @@ int BDMatch::MyForm::drawpre(Decode ^ tvdecode, Decode ^ bddecode,int &re)
 }
 int BDMatch::MyForm::drawchart()
 {
+	Match->Enabled = false;
 	int maxsampnum = max(tvdraw.num, bddraw.num);
 	int milisec = max(tvdraw.milisec, bddraw.milisec);
 	double mstofft = maxsampnum / static_cast<double>(milisec);
@@ -632,6 +638,7 @@ int BDMatch::MyForm::drawchart()
 	}
 	// Set the PictureBox to display the image.
 	Spectrum->Image = spectrum1;
+	Match->Enabled = true;
 	return 0;
 }
 String ^ BDMatch::MyForm::mstotime(int ms)

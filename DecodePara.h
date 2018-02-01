@@ -39,6 +39,21 @@ namespace BDMatch{
 
 	public delegate void ProgressCallback(int type, double val = 0);
 
+	struct FFmpeg {
+	public:
+		~FFmpeg();
+		AVFormatContext * filefm = NULL;
+		AVCodecContext *codecfm = NULL;
+		AVCodec *codec = NULL;
+		AVPacket *packet = NULL;
+		uint8_t *temp = NULL;
+		uint8_t **dst_data = NULL;
+		noded* sample_seq_l = nullptr;
+		noded* sample_seq_r = nullptr;
+		AVFrame *decoded_frame = NULL;
+		struct SwrContext *swr_ctx = NULL;
+	};
+
 	ref class Decode
 	{
 	public:
@@ -53,10 +68,12 @@ namespace BDMatch{
 		int getmilisecnum();
 		int getchannels();
 		int getsamprate();
-		int clearfftdata();
 		std::vector<std::vector<node*>>* getfftdata();
 		ProgressCallback^ progback = nullptr;
 	private:
+		double getshiftf(uint8_t * temp, int &sampletype, const int &start);
+		void subprogback(int type, double val);
+		int clearfftdata();
 		String^ filename;
 		String^ feedback;
 		std::vector<std::vector<node*>>* fftdata = nullptr;
@@ -78,21 +95,23 @@ namespace BDMatch{
 		int decodednum = 0;
 		double progval = 0;
 		bool outputpcm = false;
-		double getshiftf(uint8_t * temp, int &sampletype,const int &start);
-		void subprogback(int type, double val);
+		
+		FFmpeg *ffmpeg = nullptr;
 	};
 
 	ref class FFTC
 	{
 	public:
 		FFTC(node* fftseq0, fftw_plan p0, double* in0, int mindb0, ProgressCallback^ progback0);
+		~FFTC();
 		void FFT();
 	private:
 		int FFTnum;
 		int mindb;
-		ProgressCallback^ progback;
-		node* fftseq;
-		fftw_plan p;
+		ProgressCallback^ progback = nullptr;
+		node* fftseq = nullptr;
+		fftw_plan p = nullptr;
+		fftw_complex* out = nullptr;
 		double *in = nullptr;
 		int FD8(double* inseq, node* outseq);
 	};
