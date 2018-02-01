@@ -144,7 +144,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	head = tvass->Substring(0, eventpos);
 	content = tvass->Substring(eventpos, tvass->Length - eventpos);
 	tvass = "";
-	Regex^ fileregex1 = gcnew Regex("Audio File: .*?\\r\\n");
+	Regex^ fileregex1 = gcnew Regex("Audio ((File)|(URI)): .*?\\r\\n");
 	Regex^ fileregex2 = gcnew Regex("Video File: .*?\\r\\n");
 	head = fileregex1->Replace(head, "Audio File: " + bddecode->getfilename() + "\r\n");
 	head = fileregex2->Replace(head, "Video File: " + bddecode->getfilename() + "\r\n");
