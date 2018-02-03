@@ -281,6 +281,7 @@ void BDMatch::Decode::decodeaudio()
 					if (!setsampnum) {
 						samplenum = static_cast<int>(ceil(samplenum / double(decoded_frame->nb_samples)*nb_samples));
 						efftnum = static_cast<int>(ceil(samplenum / float(FFTnum)));
+						sampleratio = decoded_frame->nb_samples / double(nb_samples);
 						delete fftdata;
 						fftdata = new std::vector<std::vector<node*>>(2, std::vector<node*>(efftnum));
 						setsampnum = true;
@@ -441,6 +442,16 @@ int BDMatch::Decode::getchannels()
 int BDMatch::Decode::getsamprate()
 {
 	return samplerate;
+}
+
+int BDMatch::Decode::getFFTnum()
+{
+	return FFTnum;
+}
+
+double BDMatch::Decode::getsampleratio()
+{
+	return sampleratio;
 }
 
 int BDMatch::Decode::clearfftdata()

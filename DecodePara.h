@@ -68,6 +68,8 @@ namespace BDMatch{
 		int getmilisecnum();
 		int getchannels();
 		int getsamprate();
+		int getFFTnum();
+		double getsampleratio();
 		std::vector<std::vector<node*>>* getfftdata();
 		ProgressCallback^ progback = nullptr;
 	private:
@@ -93,7 +95,8 @@ namespace BDMatch{
 		int returnval = 0;
 		int progtype = 0;
 		int decodednum = 0;
-		double progval = 0;
+		double sampleratio = 1.0;
+		double progval = 0.0;
 		bool outputpcm = false;
 		
 		FFmpeg *ffmpeg = nullptr;

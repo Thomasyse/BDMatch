@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.2.4"
+#define appversion "1.2.5"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -156,6 +156,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	array<timec^>^ timelist = gcnew array<timec^>(alltimematch->Count);//储存时间
 	std::vector<int>tvtime(alltimematch->Count), bdtime(alltimematch->Count);
 	int rightshift = static_cast<int>(log2(Setting->FFTnum));
+	double ttf = tvdecode->getsamprate() / double(tvdecode->getFFTnum() * 100);//Time to Frequency
+	double ftt = bddecode->getFFTnum() * 100 / double(bddecode->getsamprate()) * bddecode->getsampleratio();//Frequency to Time
 	//计算每行时间，屏蔽不必要的行
 	for (int i = 0; i < alltimematch->Count; i++) {
 		String^ match = alltimematch[i]->ToString();
@@ -168,8 +170,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		time = timematch[1]->Value;
 		int end = int::Parse(time[0].ToString()) * 360000 + int::Parse(time->Substring(2, 2)) * 6000 +
 			int::Parse(time->Substring(5, 2)) * 100 + int::Parse(time->Substring(8, 2));
-		start = static_cast<int>(start / double(tvmilisec)* tvfftnum);
-		end = static_cast<int>(end / double(tvmilisec)* tvfftnum);
+		start = static_cast<int>(start * ttf);
+		end = static_cast<int>(end * ttf);
 		timelist[i] = gcnew timec(start, end, iscom, timehead);
 		if (iscom) {
 			tvtime[i] = -1;
@@ -183,7 +185,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			Result->Text += "\r\n信息：第" + (i + 1).ToString() + "行时长为零，将不作处理。";
 			continue;
 		}
-		if (end - start > Setting->maxlength * 100 / double(tvmilisec)* tvfftnum) {
+		if (end - start > Setting->maxlength * 100 * ttf) {
 			tvtime[i] = -1;
 			bdtime[i] = -1;
 			Result->Text += "\r\n警告：第" + (i + 1).ToString() + "行时长过长，将不作处理。";
@@ -224,18 +226,17 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		bdtime[i] = 0;
 	}
 	//搜索匹配
-	double mstofft = tvfftnum / static_cast<double>(tvmilisec);
 	int ch = min(tvch, bdch);
 	ch = min(ch, 2);
-	int find0 = static_cast<int>(Setting->findfield * 100 * mstofft);
-	int interval = static_cast<int>(mstofft);
+	int find0 = static_cast<int>(Setting->findfield * 100 * ttf);
+	int interval = static_cast<int>(ttf);
 	if (interval < 1) {
 		interval = 1;
 	}
 	double aveindex = 0, maxindex = 0; int maxdelta = 0, maxline = 0;//调试用
 	int offset = 0; int fivesec = 0; int lastlinetime = 0;
 	if (Setting->fastmatch) {
-		fivesec = static_cast<int>(500 * mstofft);
+		fivesec = static_cast<int>(500 * ttf);
 		Result->Text += "\r\n信息：使用快速匹配。";
 	}
 	long long *diffa = new long long[3];
@@ -321,7 +322,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			bdtime[i] = besttime;
 			//调试用->
 			//String^ besttimestr = mstotime(besttime / double(bdfftnum) * bdmilisec);
-			//int bestfind= bdse.find(125887, 0);
+			//int bestfind = bdse.find(besttime - 4, 0);
 			if (debugmode) {
 				int delta1 = bdse.find(besttime, 1);
 				if (delta1 > maxdelta)maxdelta = delta1;
@@ -389,8 +390,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				bddraw.timelist[i, 1] = timelist[-tvtime[i] - 2]->end();
 			}
 		}
-		int start = static_cast<int>(timelist[i]->start() / double(bdfftnum) * bdmilisec);
-		int end = static_cast<int>(timelist[i]->end() / double(bdfftnum) * bdmilisec);
+		int start = static_cast<int>(timelist[i]->start() *ftt);
+		int end = static_cast<int>(timelist[i]->end() *ftt);
 		String^ starttime = mstotime(start);
 		String^ endtime = mstotime(end);
 		String^ replacetext = timelist[i]->head() + starttime + "," + endtime + ",";
@@ -455,6 +456,8 @@ int BDMatch::MyForm::drawpre()
 	bddraw.milisec = 0;
 	tvdraw.linenum = 0;
 	bddraw.linenum = 0;
+	tvdraw.ttf = 1.0;
+	bddraw.ttf = 1.0;
 	tvdraw.timelist = nullptr;
 	bddraw.timelist = nullptr;
 	ChartTime->Text = "";
@@ -472,6 +475,8 @@ int BDMatch::MyForm::drawpre(Decode ^ tvdecode, Decode ^ bddecode,int &re)
 		bddraw.ch = bddecode->getchannels();
 		tvdraw.milisec = tvdecode->getmilisecnum();
 		bddraw.milisec = bddecode->getmilisecnum();
+		tvdraw.ttf= tvdecode->getsamprate() / double(tvdecode->getFFTnum() * 100);
+		bddraw.ttf = bddecode->getsamprate() / bddecode->getsampleratio() / double(bddecode->getFFTnum() * 100);
 		ViewSel->SelectedIndex = 0;
 		ChSelect->SelectedIndex = 0;
 		ChSelect->Enabled = true;
@@ -500,7 +505,6 @@ int BDMatch::MyForm::drawchart()
 	Match->Enabled = false;
 	int maxsampnum = max(tvdraw.num, bddraw.num);
 	int milisec = max(tvdraw.milisec, bddraw.milisec);
-	double mstofft = maxsampnum / static_cast<double>(milisec);
 	int offset = 0;
 	if (milisec < 10000) offset = 150;
 	else if (milisec < 100000)offset = 250;
@@ -510,9 +514,9 @@ int BDMatch::MyForm::drawchart()
 	TimeRoll->SmallChange = offset / 4;
 	int tvstart = 0, tvend = 0, bdstart = 0;
 	if (ViewSel->SelectedIndex == 0) {
-		tvstart = static_cast<int>((TimeRoll->Value - offset)* mstofft);
-		tvend = static_cast<int>((TimeRoll->Value + offset)* mstofft);
-		bdstart = tvstart;
+		tvstart = static_cast<int>((TimeRoll->Value - offset)* tvdraw.ttf);
+		tvend = static_cast<int>((TimeRoll->Value + offset)* tvdraw.ttf);
+		bdstart = static_cast<int>((TimeRoll->Value - offset)* bddraw.ttf);
 		ChartTime->Text = mstotime(TimeRoll->Value);
 	}
 	else {
@@ -530,8 +534,8 @@ int BDMatch::MyForm::drawchart()
 				+ bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 1]) / 2 - offset;
 		}
 		if (tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] == -1)ChartTime->Text = "未匹配！";
-		else ChartTime->Text = mstotime(static_cast<int>(tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / double(tvdraw.num)*tvdraw.milisec))
-			+ "\n" + mstotime(static_cast<int>(bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / double(bddraw.num)*bddraw.milisec));
+		else ChartTime->Text = mstotime(static_cast<int>(tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / tvdraw.ttf) + 1)
+			+ "\n" + mstotime(static_cast<int>(bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / bddraw.ttf));
 	}
 	int duration = tvend - tvstart + 1;
 	Bitmap^ spectrum1 = gcnew Bitmap(duration, Setting->FFTnum);
