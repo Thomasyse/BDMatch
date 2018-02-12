@@ -70,6 +70,7 @@ namespace BDMatch{
 		int getsamprate();
 		int getFFTnum();
 		double getsampleratio();
+		bool getaudioonly();
 		std::vector<std::vector<node*>>* getfftdata();
 		ProgressCallback^ progback = nullptr;
 	private:
@@ -98,7 +99,7 @@ namespace BDMatch{
 		double sampleratio = 1.0;
 		double progval = 0.0;
 		bool outputpcm = false;
-		
+		bool audioonly = false;
 		FFmpeg *ffmpeg = nullptr;
 	};
 

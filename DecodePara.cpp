@@ -71,6 +71,9 @@ void BDMatch::Decode::decodeaudio()
 		returnval = -2;
 		return; // Didn't find a audio stream
 	}
+	else if (audiostream == 0) {
+		audioonly = true;
+	}
 	milisecnum = static_cast<int>(ceil(filefm->duration / 10000));
 	codec = avcodec_find_decoder(filefm->streams[audiostream]->codecpar->codec_id);//Ñ°ÕÒ½âÂëÆ÷
 	if (!codec)
@@ -443,15 +446,17 @@ int BDMatch::Decode::getsamprate()
 {
 	return samplerate;
 }
-
 int BDMatch::Decode::getFFTnum()
 {
 	return FFTnum;
 }
-
 double BDMatch::Decode::getsampleratio()
 {
 	return sampleratio;
+}
+bool BDMatch::Decode::getaudioonly()
+{
+	return audioonly;
 }
 
 int BDMatch::Decode::clearfftdata()

@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.2.5"
+#define appversion "1.2.6"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -147,17 +147,19 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	Regex^ fileregex1 = gcnew Regex("Audio ((File)|(URI)): .*?\\r\\n");
 	Regex^ fileregex2 = gcnew Regex("Video File: .*?\\r\\n");
 	head = fileregex1->Replace(head, "Audio File: " + bddecode->getfilename() + "\r\n");
-	head = fileregex2->Replace(head, "Video File: " + bddecode->getfilename() + "\r\n");
+	if (bddecode->getaudioonly())head = fileregex2->Replace(head, "");
+	else head = fileregex2->Replace(head, "Video File: " + bddecode->getfilename() + "\r\n");
 	//: 0,0:22:38.77,0:22:43.35
 	Regex^ alltimeregex = gcnew Regex("\\r\\n[a-zA-Z]+: [0-9],[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},");
 	Regex^ headregex = gcnew Regex("\\r\\n[a-zA-Z]+: [0-9],");
 	Regex^ timeregex = gcnew Regex("[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2}");
 	MatchCollection^ alltimematch = alltimeregex->Matches(content);
-	array<timec^>^ timelist = gcnew array<timec^>(alltimematch->Count);//储存时间
+	array<timec^>^ timelist = gcnew array<timec^>(alltimematch->Count);//储存ass时间
 	std::vector<int>tvtime(alltimematch->Count), bdtime(alltimematch->Count);
 	int rightshift = static_cast<int>(log2(Setting->FFTnum));
 	double ttf = tvdecode->getsamprate() / double(tvdecode->getFFTnum() * 100);//Time to Frequency
 	double ftt = bddecode->getFFTnum() * 100 / double(bddecode->getsamprate()) * bddecode->getsampleratio();//Frequency to Time
+	int find0 = static_cast<int>(Setting->findfield * 100 * ttf);//查找范围
 	//计算每行时间，屏蔽不必要的行
 	for (int i = 0; i < alltimematch->Count; i++) {
 		String^ match = alltimematch[i]->ToString();
@@ -191,7 +193,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			Result->Text += "\r\n警告：第" + (i + 1).ToString() + "行时长过长，将不作处理。";
 			continue;
 		}
-		if (end >= tvfftnum) {
+		if (end >= tvfftnum || (end - find0) > bdfftnum) {
 			tvtime[i] = -1;
 			bdtime[i] = -1;
 			Result->Text += "\r\n警告：第" + (i + 1).ToString() + "行超过音频长度，将不作处理。";
@@ -228,7 +230,6 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	//搜索匹配
 	int ch = min(tvch, bdch);
 	ch = min(ch, 2);
-	int find0 = static_cast<int>(Setting->findfield * 100 * ttf);
 	int interval = static_cast<int>(ttf);
 	if (interval < 1) {
 		interval = 1;
