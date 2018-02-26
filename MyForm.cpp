@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.2.6"
+#define appversion "1.2.7"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -378,6 +378,12 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				bddraw.timelist[i, 0] = timelist[i]->start();
 				bddraw.timelist[i, 1] = timelist[i]->end();
 			}
+			int start = static_cast<int>(timelist[i]->start() *ftt);
+			int end = static_cast<int>(timelist[i]->end() *ftt);
+			String^ starttime = mstotime(start);
+			String^ endtime = mstotime(end);
+			String^ replacetext = timelist[i]->head() + starttime + "," + endtime + ",";
+			content = content->Replace(alltimematch[i]->Value, replacetext);
 		}
 		else if (Setting->draw) {
 			if (tvtime[i] == -1) {
@@ -391,12 +397,6 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				bddraw.timelist[i, 1] = timelist[-tvtime[i] - 2]->end();
 			}
 		}
-		int start = static_cast<int>(timelist[i]->start() *ftt);
-		int end = static_cast<int>(timelist[i]->end() *ftt);
-		String^ starttime = mstotime(start);
-		String^ endtime = mstotime(end);
-		String^ replacetext = timelist[i]->head() + starttime + "," + endtime + ",";
-		content = content->Replace(alltimematch[i]->Value, replacetext);
 	}
 	String^ outfile = asstext->Substring(0, asstext->LastIndexOf(".")) + ".matched.ass";
 	if (File::Exists(outfile))
