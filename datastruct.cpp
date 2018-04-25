@@ -288,8 +288,8 @@ long long DataStruct::Varcalsse::caldiff()
 			tvdata = (*tv)[j][tvpos]->getdata();
 			bddata = (*bd)[j][bdpos]->getdata();
 			for (int k = 0; k < vectornum; k++) {
-				tvvector = _mm_cvtepi8_epi16(_mm_load_si128((__m128i*)tvdata));
-				bdvector = _mm_cvtepi8_epi16(_mm_load_si128((__m128i*)bddata));
+				tvvector = _mm_cvtepi8_epi16(_mm_load_si128(reinterpret_cast<__m128i*>(tvdata)));
+				bdvector = _mm_cvtepi8_epi16(_mm_load_si128(reinterpret_cast<__m128i*>(bddata)));
 				difvector[0] = _mm_mullo_epi16(_mm_abs_epi16(_mm_sub_epi16(tvvector, bdvector)),
 					_mm_add_epi16(tvvector, w1vector));
 				difvector[1] = _mm_mulhi_epi16(_mm_abs_epi16(_mm_sub_epi16(tvvector, bdvector)),
@@ -324,8 +324,8 @@ long long DataStruct::Varcalavx2::caldiff()
 		sumvector[0] = _mm256_setzero_si256();
 		sumvector[1] = _mm256_setzero_si256();
 		for (int j = 0; j < ch; j++) {
-			tvdata = (__m128i*)(*tv)[j][tvpos]->getdata();
-			bddata = (__m128i*)(*bd)[j][bdpos]->getdata();
+			tvdata = reinterpret_cast<__m128i*>((*tv)[j][tvpos]->getdata());
+			bddata = reinterpret_cast<__m128i*>((*bd)[j][bdpos]->getdata());
 			for (int k = 0; k < vectornum; k++) {
 				tvvector = _mm256_cvtepi8_epi16(_mm_load_si128(tvdata));
 				bdvector = _mm256_cvtepi8_epi16(_mm_load_si128(bddata));

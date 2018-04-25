@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.2.7"
+#define appversion "1.2.8"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -1032,7 +1032,7 @@ System::Void BDMatch::MyForm::TVfind_Click(System::Object ^ sender, System::Even
 {
 	using namespace System::IO;
 	Stream^ myStream;
-	Filebrowse->Title = "获取文件名";
+	Filebrowse->Title = "获取TV文件";
 	Filebrowse->FileName = "";
 	Filebrowse->Filter = "Video Files|*.mp4;*.mov;*.mkv;*.avi;*.wmv;*.mpeg;*.mpg;*.qt;*.rmvb;*.flv|All Files|*.*";
 	Filebrowse->FilterIndex = 0;
@@ -1080,7 +1080,7 @@ System::Void BDMatch::MyForm::BDfind_Click(System::Object ^ sender, System::Even
 {
 	using namespace System::IO;
 	Stream^ myStream;
-	Filebrowse->Title = "获取文件名";
+	Filebrowse->Title = "获取BD文件";
 	Filebrowse->FileName = "";
 	Filebrowse->Filter = "Video Files|*.mp4;*.mov;*.mkv;*.avi;*.wmv;*.mpeg;*.mpg;*.qt;*.rmvb;*.flv|All Files|*.*";
 	Filebrowse->FilterIndex = 0;
@@ -1128,7 +1128,7 @@ System::Void BDMatch::MyForm::ASSfind_Click(System::Object ^ sender, System::Eve
 {
 	using namespace System::IO;
 	Stream^ myStream;
-	Filebrowse->Title = "获取文件名";
+	Filebrowse->Title = "获取ASS文件";
 	Filebrowse->FileName = "";
 	Filebrowse->Filter = "ASS Files|*.ass|All Files|*.*";
 	Filebrowse->FilterIndex = 0;
