@@ -322,8 +322,10 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			}
 			bdtime[i] = besttime;
 			//µ÷ÊÔÓÃ->
-			//String^ besttimestr = mstotime(besttime / double(bdfftnum) * bdmilisec);
-			//int bestfind = bdse.find(besttime - 4, 0);
+			//String^ besttimestr = mstotime(besttime * ftt);
+			//int bestfind = bdse.find(besttime, 0);
+			//int ls = bdse.find(116168, 0);
+			//String^ besttimestr2 = mstotime(116168 * ftt);
 			if (debugmode) {
 				int delta1 = bdse.find(besttime, 1);
 				if (delta1 > maxdelta)maxdelta = delta1;
