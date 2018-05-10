@@ -713,7 +713,7 @@ int BDMatch::MyForm::loadsettings(String^ path, SettingVals^ settingvals)
 		}
 		finally{
 			Regex^ numkey = gcnew Regex("[\\+-]?[0-9]+");
-			for (int i = 0; i < 10; i++) {
+			for (int i = 0; i < 11; i++) {
 				SettingType type = static_cast<SettingType>(i);
 				Regex^ setkey = gcnew Regex(settingvals->getname(type) + ":[\\+-]?[0-9]+\\r\\n");
 				String^ setting = setkey->Match(settext)->Value;
@@ -733,7 +733,7 @@ int BDMatch::MyForm::savesettings(String^ path, SettingVals^ settingvals)
 	using namespace System::Text::RegularExpressions;
 	FileStream^ fs = File::OpenWrite(path);
 	try {
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 11; i++) {
 			SettingType type = static_cast<SettingType>(i);
 			String^ outstr = settingvals->getname(type) + ":" + settingvals->getval(type).ToString() + "\r\n";
 			array<Byte>^info = (gcnew UTF8Encoding(true))->
