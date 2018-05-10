@@ -129,7 +129,7 @@ namespace DataStruct {
 		long long caldiff();
 	};
 
-	enum SettingType { FFTNum, MinCheckNum, FindField, MinFinddB, MaxLength, OutputPCM, Draw, MatchAss, ParallelDecode, FastMatch };
+	enum SettingType { FFTNum, MinCheckNum, FindField, MinFinddB, MaxLength, AssOffset, OutputPCM, Draw, MatchAss, ParallelDecode, FastMatch };
 
 	public ref struct SettingVals {
 	public:
@@ -143,6 +143,7 @@ namespace DataStruct {
 		int findfield = 10;
 		int maxlength = 20;
 		int minchecknum = 60;
+		int assoffset = 0;
 		bool outputpcm = false;
 		bool draw = false;
 		bool matchass = true;

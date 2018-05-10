@@ -19,6 +19,7 @@ BDMatch::Settings::Settings(SettingCallback^ setbackin, NullCallback^ nullbackin
 	FindSec->Value = setting->findfield;
 	MindB->Value = setting->minfinddb;
 	MaxLengthSet->Value = setting->maxlength;
+	AssOffsetSet->Value = setting->assoffset;
 	DrawSet->Checked = setting->draw;
 	MatchAssSet->Checked = setting->matchass;
 	MinCheckNumSet->Value = setting->minchecknum;
@@ -123,6 +124,14 @@ System::Void BDMatch::Settings::FastMatchSet_CheckedChanged(System::Object ^ sen
 {
 	if (this->Visible) {
 		setback->Invoke(FastMatch, static_cast<int>(FastMatchSet->Checked));
+	}
+	return System::Void();
+}
+
+System::Void BDMatch::Settings::AssOffsetSet_ValueChanged(System::Object ^ sender, System::EventArgs ^ e)
+{
+	if (this->Visible) {
+		setback->Invoke(AssOffset, static_cast<int>(AssOffsetSet->Value));
 	}
 	return System::Void();
 }

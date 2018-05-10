@@ -96,6 +96,13 @@ namespace BDMatch {
 	private: System::Windows::Forms::TableLayoutPanel^  SpectrumLayoutPanel;
 	private: System::Windows::Forms::CheckBox^  FastMatchSet;
 	private: System::Windows::Forms::Label^  label18;
+	private: System::Windows::Forms::Label^  label19;
+	private: System::Windows::Forms::NumericUpDown^  AssOffsetSet;
+
+
+
+	private: System::Windows::Forms::Label^  label20;
+	private: System::Windows::Forms::Label^  label21;
 
 
 
@@ -138,6 +145,10 @@ namespace BDMatch {
 			this->tabControl1 = (gcnew System::Windows::Forms::TabControl());
 			this->MatchTabPage = (gcnew System::Windows::Forms::TabPage());
 			this->MatchLayoutPanel = (gcnew System::Windows::Forms::TableLayoutPanel());
+			this->label21 = (gcnew System::Windows::Forms::Label());
+			this->label20 = (gcnew System::Windows::Forms::Label());
+			this->AssOffsetSet = (gcnew System::Windows::Forms::NumericUpDown());
+			this->label19 = (gcnew System::Windows::Forms::Label());
 			this->label18 = (gcnew System::Windows::Forms::Label());
 			this->FastMatchSet = (gcnew System::Windows::Forms::CheckBox());
 			this->label17 = (gcnew System::Windows::Forms::Label());
@@ -163,6 +174,7 @@ namespace BDMatch {
 			this->tabControl1->SuspendLayout();
 			this->MatchTabPage->SuspendLayout();
 			this->MatchLayoutPanel->SuspendLayout();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->AssOffsetSet))->BeginInit();
 			this->DecodeTabPage->SuspendLayout();
 			this->DecodeLayoutPanel->SuspendLayout();
 			this->SpectrumTabPage->SuspendLayout();
@@ -376,7 +388,7 @@ namespace BDMatch {
 			this->tabControl1->Location = System::Drawing::Point(8, 5);
 			this->tabControl1->Name = L"tabControl1";
 			this->tabControl1->SelectedIndex = 0;
-			this->tabControl1->Size = System::Drawing::Size(872, 581);
+			this->tabControl1->Size = System::Drawing::Size(872, 562);
 			this->tabControl1->TabIndex = 17;
 			// 
 			// MatchTabPage
@@ -385,7 +397,7 @@ namespace BDMatch {
 			this->MatchTabPage->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
 			this->MatchTabPage->Location = System::Drawing::Point(4, 39);
 			this->MatchTabPage->Name = L"MatchTabPage";
-			this->MatchTabPage->Size = System::Drawing::Size(864, 538);
+			this->MatchTabPage->Size = System::Drawing::Size(864, 519);
 			this->MatchTabPage->TabIndex = 1;
 			this->MatchTabPage->Text = L"匹配设置";
 			this->MatchTabPage->UseVisualStyleBackColor = true;
@@ -402,8 +414,12 @@ namespace BDMatch {
 				99)));
 			this->MatchLayoutPanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
 				100)));
-			this->MatchLayoutPanel->Controls->Add(this->label18, 0, 9);
-			this->MatchLayoutPanel->Controls->Add(this->FastMatchSet, 0, 8);
+			this->MatchLayoutPanel->Controls->Add(this->label21, 0, 9);
+			this->MatchLayoutPanel->Controls->Add(this->label20, 2, 8);
+			this->MatchLayoutPanel->Controls->Add(this->AssOffsetSet, 1, 8);
+			this->MatchLayoutPanel->Controls->Add(this->label19, 0, 8);
+			this->MatchLayoutPanel->Controls->Add(this->label18, 0, 11);
+			this->MatchLayoutPanel->Controls->Add(this->FastMatchSet, 0, 10);
 			this->MatchLayoutPanel->Controls->Add(this->label17, 2, 4);
 			this->MatchLayoutPanel->Controls->Add(this->label14, 0, 7);
 			this->MatchLayoutPanel->Controls->Add(this->label16, 2, 2);
@@ -422,7 +438,7 @@ namespace BDMatch {
 			this->MatchLayoutPanel->Location = System::Drawing::Point(0, 0);
 			this->MatchLayoutPanel->Name = L"MatchLayoutPanel";
 			this->MatchLayoutPanel->Padding = System::Windows::Forms::Padding(6, 6, 30, 6);
-			this->MatchLayoutPanel->RowCount = 10;
+			this->MatchLayoutPanel->RowCount = 12;
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
@@ -433,8 +449,63 @@ namespace BDMatch {
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->MatchLayoutPanel->Size = System::Drawing::Size(864, 538);
+			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->MatchLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->MatchLayoutPanel->Size = System::Drawing::Size(864, 519);
 			this->MatchLayoutPanel->TabIndex = 25;
+			// 
+			// label21
+			// 
+			this->label21->AutoEllipsis = true;
+			this->label21->AutoSize = true;
+			this->MatchLayoutPanel->SetColumnSpan(this->label21, 3);
+			this->label21->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->label21->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11));
+			this->label21->Location = System::Drawing::Point(51, 446);
+			this->label21->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
+			this->label21->Name = L"label21";
+			this->label21->Size = System::Drawing::Size(759, 25);
+			this->label21->TabIndex = 30;
+			this->label21->Text = L"将ASS文件中的时间轴进行一定时间偏置之后再进行匹配。";
+			// 
+			// label20
+			// 
+			this->label20->BackColor = System::Drawing::Color::Transparent;
+			this->label20->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->label20->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(134)));
+			this->label20->Location = System::Drawing::Point(312, 395);
+			this->label20->Name = L"label20";
+			this->label20->Size = System::Drawing::Size(498, 44);
+			this->label20->TabIndex = 29;
+			this->label20->Text = L"厘秒";
+			this->label20->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
+			// 
+			// AssOffsetSet
+			// 
+			this->AssOffsetSet->Dock = System::Windows::Forms::DockStyle::Left;
+			this->AssOffsetSet->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11.8F));
+			this->AssOffsetSet->Location = System::Drawing::Point(213, 402);
+			this->AssOffsetSet->Margin = System::Windows::Forms::Padding(3, 7, 3, 3);
+			this->AssOffsetSet->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 10000000, 0, 0, 0 });
+			this->AssOffsetSet->Minimum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 10000000, 0, 0, System::Int32::MinValue });
+			this->AssOffsetSet->Name = L"AssOffsetSet";
+			this->AssOffsetSet->Size = System::Drawing::Size(92, 33);
+			this->AssOffsetSet->TabIndex = 28;
+			this->AssOffsetSet->ValueChanged += gcnew System::EventHandler(this, &Settings::AssOffsetSet_ValueChanged);
+			// 
+			// label19
+			// 
+			this->label19->BackColor = System::Drawing::Color::Transparent;
+			this->label19->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->label19->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(134)));
+			this->label19->Location = System::Drawing::Point(9, 395);
+			this->label19->Name = L"label19";
+			this->label19->Size = System::Drawing::Size(198, 44);
+			this->label19->TabIndex = 27;
+			this->label19->Text = L"ASS偏置：延后";
+			this->label19->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			// 
 			// label18
 			// 
@@ -443,10 +514,10 @@ namespace BDMatch {
 			this->MatchLayoutPanel->SetColumnSpan(this->label18, 3);
 			this->label18->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->label18->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11));
-			this->label18->Location = System::Drawing::Point(51, 443);
+			this->label18->Location = System::Drawing::Point(51, 529);
 			this->label18->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
 			this->label18->Name = L"label18";
-			this->label18->Size = System::Drawing::Size(780, 79);
+			this->label18->Size = System::Drawing::Size(759, 50);
 			this->label18->TabIndex = 26;
 			this->label18->Text = L"只匹配少许时间轴，其余时间轴根据匹配结果直接进行调整。由于BD文件可能会做出一些修改，匹配结果可能会不准确。";
 			// 
@@ -456,7 +527,7 @@ namespace BDMatch {
 			this->MatchLayoutPanel->SetColumnSpan(this->FastMatchSet, 3);
 			this->FastMatchSet->Dock = System::Windows::Forms::DockStyle::Left;
 			this->FastMatchSet->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F));
-			this->FastMatchSet->Location = System::Drawing::Point(13, 398);
+			this->FastMatchSet->Location = System::Drawing::Point(13, 484);
 			this->FastMatchSet->Margin = System::Windows::Forms::Padding(7, 3, 3, 3);
 			this->FastMatchSet->Name = L"FastMatchSet";
 			this->FastMatchSet->Size = System::Drawing::Size(132, 35);
@@ -473,7 +544,7 @@ namespace BDMatch {
 				static_cast<System::Byte>(134)));
 			this->label17->Location = System::Drawing::Point(312, 198);
 			this->label17->Name = L"label17";
-			this->label17->Size = System::Drawing::Size(519, 44);
+			this->label17->Size = System::Drawing::Size(498, 44);
 			this->label17->TabIndex = 23;
 			this->label17->Text = L"秒";
 			this->label17->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
@@ -488,7 +559,7 @@ namespace BDMatch {
 			this->label14->Location = System::Drawing::Point(51, 335);
 			this->label14->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
 			this->label14->Name = L"label14";
-			this->label14->Size = System::Drawing::Size(780, 50);
+			this->label14->Size = System::Drawing::Size(759, 50);
 			this->label14->TabIndex = 24;
 			this->label14->Text = L"对搜索到的暂优选点进行确认，确认足够次数后即会取作最佳选点。过小的确认次数会导致匹配不精确，过大的确认次数会加长匹配时间。";
 			// 
@@ -500,7 +571,7 @@ namespace BDMatch {
 				static_cast<System::Byte>(134)));
 			this->label16->Location = System::Drawing::Point(312, 87);
 			this->label16->Name = L"label16";
-			this->label16->Size = System::Drawing::Size(519, 44);
+			this->label16->Size = System::Drawing::Size(498, 44);
 			this->label16->TabIndex = 22;
 			this->label16->Text = L"秒";
 			this->label16->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
@@ -515,7 +586,7 @@ namespace BDMatch {
 			this->label13->Location = System::Drawing::Point(51, 249);
 			this->label13->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
 			this->label13->Name = L"label13";
-			this->label13->Size = System::Drawing::Size(780, 25);
+			this->label13->Size = System::Drawing::Size(759, 25);
 			this->label13->TabIndex = 23;
 			this->label13->Text = L"超过最大查找句长的时间轴将不会进行匹配，以防止过长的空行影响匹配速度。";
 			// 
@@ -529,7 +600,7 @@ namespace BDMatch {
 			this->label10->Location = System::Drawing::Point(51, 52);
 			this->label10->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label10->Name = L"label10";
-			this->label10->Size = System::Drawing::Size(780, 25);
+			this->label10->Size = System::Drawing::Size(759, 25);
 			this->label10->TabIndex = 21;
 			this->label10->Text = L"取消勾选则会只进行音频解码，不会进行匹配。";
 			// 
@@ -543,7 +614,7 @@ namespace BDMatch {
 			this->label11->Location = System::Drawing::Point(51, 138);
 			this->label11->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
 			this->label11->Name = L"label11";
-			this->label11->Size = System::Drawing::Size(780, 50);
+			this->label11->Size = System::Drawing::Size(759, 50);
 			this->label11->TabIndex = 22;
 			this->label11->Text = L"决定在ASS时间轴多大时间范围内查找最佳匹配时间。查找范围增加会加长匹配时间，过小的查找范围会导致无法匹配到正确的时间。";
 			// 
@@ -553,7 +624,7 @@ namespace BDMatch {
 			this->DecodeTabPage->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
 			this->DecodeTabPage->Location = System::Drawing::Point(4, 39);
 			this->DecodeTabPage->Name = L"DecodeTabPage";
-			this->DecodeTabPage->Size = System::Drawing::Size(864, 538);
+			this->DecodeTabPage->Size = System::Drawing::Size(864, 606);
 			this->DecodeTabPage->TabIndex = 0;
 			this->DecodeTabPage->Text = L"解码设置";
 			this->DecodeTabPage->UseVisualStyleBackColor = true;
@@ -595,7 +666,7 @@ namespace BDMatch {
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->DecodeLayoutPanel->Size = System::Drawing::Size(864, 538);
+			this->DecodeLayoutPanel->Size = System::Drawing::Size(864, 606);
 			this->DecodeLayoutPanel->TabIndex = 22;
 			// 
 			// label15
@@ -664,7 +735,7 @@ namespace BDMatch {
 			this->label9->Location = System::Drawing::Point(51, 380);
 			this->label9->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label9->Name = L"label9";
-			this->label9->Size = System::Drawing::Size(780, 142);
+			this->label9->Size = System::Drawing::Size(780, 210);
 			this->label9->TabIndex = 20;
 			this->label9->Text = L"同时进行TV和BD文件的解码，请在拥有高性能硬盘的设备上开启此选项，否则可能会导致在硬盘负载较大时解码速度急剧下降。";
 			// 
@@ -674,7 +745,7 @@ namespace BDMatch {
 			this->SpectrumTabPage->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
 			this->SpectrumTabPage->Location = System::Drawing::Point(4, 39);
 			this->SpectrumTabPage->Name = L"SpectrumTabPage";
-			this->SpectrumTabPage->Size = System::Drawing::Size(864, 538);
+			this->SpectrumTabPage->Size = System::Drawing::Size(864, 606);
 			this->SpectrumTabPage->TabIndex = 2;
 			this->SpectrumTabPage->Text = L"声谱设置";
 			this->SpectrumTabPage->UseVisualStyleBackColor = true;
@@ -698,7 +769,7 @@ namespace BDMatch {
 			this->SpectrumLayoutPanel->RowCount = 2;
 			this->SpectrumLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->SpectrumLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->SpectrumLayoutPanel->Size = System::Drawing::Size(864, 538);
+			this->SpectrumLayoutPanel->Size = System::Drawing::Size(864, 606);
 			this->SpectrumLayoutPanel->TabIndex = 23;
 			// 
 			// label12
@@ -711,7 +782,7 @@ namespace BDMatch {
 			this->label12->Location = System::Drawing::Point(51, 52);
 			this->label12->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label12->Name = L"label12";
-			this->label12->Size = System::Drawing::Size(780, 470);
+			this->label12->Size = System::Drawing::Size(780, 538);
 			this->label12->TabIndex = 22;
 			this->label12->Text = L"打开此选项可以查看解码得到的声谱图，并对原字幕时间轴和匹配生成的时间轴对应的声谱进行对比。";
 			// 
@@ -719,7 +790,7 @@ namespace BDMatch {
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 15);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(885, 591);
+			this->ClientSize = System::Drawing::Size(885, 572);
 			this->Controls->Add(this->tabControl1);
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->MaximizeBox = false;
@@ -737,6 +808,7 @@ namespace BDMatch {
 			this->MatchTabPage->PerformLayout();
 			this->MatchLayoutPanel->ResumeLayout(false);
 			this->MatchLayoutPanel->PerformLayout();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->AssOffsetSet))->EndInit();
 			this->DecodeTabPage->ResumeLayout(false);
 			this->DecodeTabPage->PerformLayout();
 			this->DecodeLayoutPanel->ResumeLayout(false);
@@ -763,6 +835,7 @@ namespace BDMatch {
 	private: System::Void MatchAssSet_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void ParaDecode_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void FastMatchSet_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void AssOffsetSet_ValueChanged(System::Object^  sender, System::EventArgs^  e);
 };
 
 }

@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.2.8"
+#define appversion "1.3.0"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -137,6 +137,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	tvass = File::ReadAllText(asstext);
 	int eventpos = tvass->IndexOf("\r\n[Events]\r\n");
 	if (eventpos == -1) {
+		tvass = "";
 		Result->Text += "\r\n输入字幕文件无效！";
 		return -1;
 	}
@@ -168,10 +169,10 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		MatchCollection^ timematch = timeregex->Matches(match);
 		String^ time = timematch[0]->Value;
 		int start = int::Parse(time[0].ToString()) * 360000 + int::Parse(time->Substring(2, 2)) * 6000 +
-			int::Parse(time->Substring(5, 2)) * 100 + int::Parse(time->Substring(8, 2));
+			int::Parse(time->Substring(5, 2)) * 100 + int::Parse(time->Substring(8, 2)) + Setting->assoffset;
 		time = timematch[1]->Value;
 		int end = int::Parse(time[0].ToString()) * 360000 + int::Parse(time->Substring(2, 2)) * 6000 +
-			int::Parse(time->Substring(5, 2)) * 100 + int::Parse(time->Substring(8, 2));
+			int::Parse(time->Substring(5, 2)) * 100 + int::Parse(time->Substring(8, 2)) + Setting->assoffset;
 		start = static_cast<int>(start * ttf);
 		end = static_cast<int>(end * ttf);
 		timelist[i] = gcnew timec(start, end, iscom, timehead);
@@ -315,7 +316,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			long long minsum = 922372036854775808;
 			int besttime = 0;
 			for (int j = 0; j < tasks->Count; j++) {
-				if (tasks[j]->Result > 0 && tasks[j]->Result < minsum) {
+				if (tasks[j]->Result >= 0 && tasks[j]->Result < minsum) {
 					besttime = bdse.read(j);
 					minsum = tasks[j]->Result;
 				}
@@ -756,165 +757,217 @@ int BDMatch::MyForm::matchinput()
 
 	Result->Text = "";
 	searchISA();
-	//asstext = "E:\\Movie\\[VCB-Studio] Haikyuu!! 3rd Season [Ma10p_1080p]\\[VCB-Studio] Haikyuu!! 3rd Season [*][Ma10p_1080p][x265_flac_aac].ass";
-	//tvtext = "E:\\Movie\\[VCB-Studio] Haikyuu!! 3rd Season [Ma10p_1080p]\\[JYFanSub][Haikyuu!! S3][*][720P][GB].mp4";
-	//bdtext = "E:\\Movie\\[VCB-Studio] Haikyuu!! 3rd Season [Ma10p_1080p]\\[VCB-Studio] Haikyuu!! 3rd Season [*][Ma10p_1080p][x265_flac_aac].mkv";
-	String ^ asstext = ASStext->Text;
-	String ^ tvtext = TVtext->Text;
-	String ^ bdtext = BDtext->Text;
-	matchcount = finishedmatch = 0;
-	if (asstext == "" || tvtext == "" || bdtext == "") {
+	if (Setting->assoffset != 0)Result->Text += "\r\nASS时间偏置：延后 " + Setting->assoffset.ToString() + " 厘秒"
+		"\r\n----------------------------------------------------------------------------------------------";
+	/*
+	ASStext->Text = "\"G:\\Movie\\[SFEO-Raws] Haruchika Haruta & Chika (BD 1080P x264 FLAC)\\\
+[SFEO-Raws] Haruchika Haruta & Chika - 03 (BD 1080P x264 FLAC).ass\"\
+\"G:\\Movie\\[SFEO-Raws] Haruchika Haruta & Chika (BD 1080P x264 FLAC)\\\
+[SFEO-Raws] Haruchika Haruta & Chika - 01 (BD 1080P x264 FLAC).ass\"\
+\"G:\\Movie\\[SFEO-Raws] Haruchika Haruta & Chika (BD 1080P x264 FLAC)\\\
+[SFEO-Raws] Haruchika Haruta & Chika - 02 (BD 1080P x264 FLAC).ass\"";
+	BDtext->Text = "\"G:\\Movie\\[SFEO-Raws] Haruchika Haruta & Chika (BD 1080P x264 FLAC)\\\
+[SFEO-Raws] Haruchika Haruta & Chika - 03 (BD 1080P x264 FLAC).mkv\"\
+\"G:\\Movie\\[SFEO-Raws] Haruchika Haruta & Chika (BD 1080P x264 FLAC)\\\
+[SFEO-Raws] Haruchika Haruta & Chika - 01 (BD 1080P x264 FLAC).mkv\"\
+\"G:\\Movie\\[SFEO-Raws] Haruchika Haruta & Chika (BD 1080P x264 FLAC)\\\
+[SFEO-Raws] Haruchika Haruta & Chika - 02 (BD 1080P x264 FLAC).mkv\"";
+	TVtext->Text = "\"G:\\Movie\\[FLsnow&SumiSora][Haruchika][MKV][1080p]\\[FLsnow&SumiSora][Haruchika][03][x265_aac].mkv\"\
+\"G:\\Movie\\[FLsnow&SumiSora][Haruchika][MKV][1080p]\\[FLsnow&SumiSora][Haruchika][01][x265_aac].mkv\"\
+\"G:\\Movie\\[FLsnow&SumiSora][Haruchika][MKV][1080p]\\[FLsnow&SumiSora][Haruchika][02][x265_aac].mkv\"";
+	*/
+	String ^ asstext_all = ASStext->Text;
+	String ^ tvtext_all = TVtext->Text;
+	String ^ bdtext_all = BDtext->Text;
+	match_num = fin_match_num = 0;
+	if (asstext_all == "" || tvtext_all == "" || bdtext_all == "") {
 		matchcontrol(true);
 		MessageBox::Show(this, "文件名为空！", "BDMatch", MessageBoxButtons::OK);
 		return -1;
 	}
-	if (tvtext == bdtext) {
-		matchcontrol(true);
-		MessageBox::Show(this, "BD和TV文件相同！", "BDMatch", MessageBoxButtons::OK);
-		return -1;
-	}
 	int re = 0;
-	if (!asstext->Contains("*")) {
-		if (!tvtext->Contains("*") && !bdtext->Contains("*")) {
-			if (!File::Exists(asstext)) {
-				matchcontrol(true);
-				MessageBox::Show(this, "ASS文件不存在！", "BDMatch", MessageBoxButtons::OK);
-				return -1;
-			}
-			if (!File::Exists(tvtext)) {
-				matchcontrol(true);
-				MessageBox::Show(this, "TV文件不存在！", "BDMatch", MessageBoxButtons::OK);
-				return -1;
-			}
-			if (!File::Exists(bdtext)) {
-				matchcontrol(true);
-				MessageBox::Show(this, "BD文件不存在！", "BDMatch", MessageBoxButtons::OK);
-				return -1;
-			}
-			matchcount = 1;
-			long start = clock();//开始计时
-			Result->Text += "\r\nASS文件：  " + asstext->Substring(asstext->LastIndexOf("\\") + 1) + "\r\n";
-			re = match(ASStext->Text, TVtext->Text, BDtext->Text);
-			if (re < 0) {
-				if (re == -6)	Result->Text += "\r\n用户中止操作。";
-				matchcontrol(true);
-				return re;
-			}
-			long end = clock();
-			double spend = double(end - start) / (double)CLOCKS_PER_SEC;
-			Result->Text += "\r\n总时间：" + spend.ToString() + "秒";
-		}
-		else {
-			matchcontrol(true);
-			MessageBox::Show(this, "文件名格式错误！", "BDMatch", MessageBoxButtons::OK);
-			return -1;
-		}
+	if (!asstext_all->Contains("\""))asstext_all = "\"" + asstext_all + "\"";
+	if (!tvtext_all->Contains("\""))tvtext_all = "\"" + tvtext_all + "\"";
+	if (!bdtext_all->Contains("\""))bdtext_all = "\"" + bdtext_all + "\"";
+	String ^ asstext = "";
+	String ^ tvtext = "";
+	String ^ bdtext = "";
+	long start = clock();//开始计时
+	//分解多个文件名
+	Regex^ quotationkey = gcnew Regex("\".*?\"");
+	MatchCollection^ assmatch_all = quotationkey->Matches(asstext_all);
+	MatchCollection^ tvmatch_all = quotationkey->Matches(tvtext_all);
+	MatchCollection^ bdmatch_all = quotationkey->Matches(bdtext_all);
+	matches_num = min(min(assmatch_all->Count, tvmatch_all->Count), bdmatch_all->Count);
+	if (matches_num > 1) {
+		Result->Text += "\r\n批量处理将不作声谱图。";
+		Setting->draw = false;
 	}
-	else {
-		//按*分解
-		Regex^ starkey = gcnew Regex("(\\*.*?$)|(\\*.*?\\*)|(^.*?\\*)");
-		MatchCollection^ assmatch = starkey->Matches(asstext->Replace("*", "**"));
-		MatchCollection^ tvmatch = starkey->Matches(tvtext->Replace("*", "**"));
-		MatchCollection^ bdmatch = starkey->Matches(bdtext->Replace("*", "**"));
-		if (assmatch->Count == tvmatch->Count&& assmatch->Count == bdmatch->Count) {
-			//检查合乎命名规则的文件
-			String^ path = "";
-			array<String^>^ files;
-			List<String^>^ assfiles = gcnew List<String^>();
-			List<String^>^ tvfiles = gcnew List<String^>();
-			List<String^>^ bdfiles = gcnew List<String^>();
-			path = asstext->Substring(0, asstext->LastIndexOf("\\"));
-			if (Directory::Exists(path))files = Directory::GetFiles(path);
+	for (int index = 0; index < matches_num; index++) {
+		asstext = assmatch_all[index]->Value->Replace("\"", "");
+		tvtext = tvmatch_all[index]->Value->Replace("\"", "");
+		bdtext = bdmatch_all[index]->Value->Replace("\"", "");
+		if (tvtext == bdtext) {
+			Result->Text += "\r\nASS输入：  " + asstext + "\r\n" + "TV和BD文件相同！";
+			if (matches_num > 0)Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+			re = -1;
+			continue;
+		}
+		if (!asstext->Contains("*")) {
+			if (!tvtext->Contains("*") && !bdtext->Contains("*")) {
+				if (!File::Exists(asstext)) {
+					Result->Text += "\r\nASS文件：  " + asstext + "\r\nASS文件不存在！";
+					if (matches_num > 0)Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+					re = -1;
+					continue;
+				}
+				if (!File::Exists(tvtext)) {
+					Result->Text += "\r\nASS文件：  " + asstext + "\r\nTV文件：  " + tvtext +
+						"\r\nTV文件不存在！";
+					if (matches_num > 0)Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+					re = -1;
+					continue;
+				}
+				if (!File::Exists(bdtext)) {
+					Result->Text += "\r\nASS文件：  " + asstext + "\r\nTV文件：  " + tvtext + "\r\nBD文件：  " + bdtext +
+						"\r\nBD文件不存在！";
+					if (matches_num > 0)Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+					re = -1;
+					continue;
+				}
+				match_num = 1;
+				Result->Text += "\r\nASS文件：  " + asstext->Substring(asstext->LastIndexOf("\\") + 1) + "\r\n";
+				re = match(asstext, tvtext, bdtext);
+				if (re < 0) {
+					if (re == -6)	Result->Text += "\r\n用户中止操作。";
+					matchcontrol(true);
+					return re;
+				}
+				long end = clock();
+				double spend = double(end - start) / (double)CLOCKS_PER_SEC;
+				if (matches_num > 0)Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+			}
 			else {
-				matchcontrol(true);
-				MessageBox::Show(this, "ASS路径不存在！", "BDMatch", MessageBoxButtons::OK);
-				return -2;
+				Result->Text += "\r\nASS输入：  " + asstext + "\r\nTV输入：  " + tvtext + "\r\nBD输入：  " + bdtext +
+					"\r\n输入格式错误！\r\n";
+				if (matches_num > 0)Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+				re = -1;
+				continue;
 			}
-			Regex^ assfilekey = gcnew Regex(returnregt(asstext));
-			for (int i = 0; i < files->Length; i++)
-				if (assfilekey->IsMatch(files[i])) assfiles->Add(files[i]);
-			path = tvtext->Substring(0, tvtext->LastIndexOf("\\"));
-			if (Directory::Exists(path))files = Directory::GetFiles(path);
-			else {
-				matchcontrol(true);
-				MessageBox::Show(this, "TV路径不存在！", "BDMatch", MessageBoxButtons::OK);
-				return -2;
-			}
-			Regex^ tvfilekey = gcnew Regex(returnregt(tvtext));
-			for (int i = 0; i < files->Length; i++)
-				if (tvfilekey->IsMatch(files[i])) tvfiles->Add(files[i]);
-			path = bdtext->Substring(0, bdtext->LastIndexOf("\\"));
-			if (Directory::Exists(path))files = Directory::GetFiles(path);
-			else {
-				matchcontrol(true);
-				MessageBox::Show(this, "BD路径不存在！", "BDMatch", MessageBoxButtons::OK);
-				return -2;
-			}
-			Regex^ bdfilekey = gcnew Regex(returnregt(bdtext));
-			for (int i = 0; i < files->Length; i++)
-				if (bdfilekey->IsMatch(files[i])) bdfiles->Add(files[i]);
-			if (Setting->draw == true) {
-				Result->Text += "\r\n批量处理将不作声谱图。";
-				Setting->draw = false;
-			}
-			matchcount = assfiles->Count;
-			long start = clock();//开始计时
-			for (int i = 0; i < assfiles->Count; i++) {
-				String^ asskey = assfiles[i];
-				for (int j = 0; j < assmatch->Count; j++) {
-					asskey = asskey->Replace(assmatch[j]->Value->Replace("*", ""), "|");
-				}
-				int tvfileindex = -1, bdfileindex = -1;
-				for (int j = 0; j < tvfiles->Count; j++) {
-					String^ tvkey = tvfiles[j];
-					for (int k = 0; k < tvmatch->Count; k++) {
-						tvkey = tvkey->Replace(tvmatch[k]->Value->Replace("*", ""), "|");
-					}
-					if (tvkey == asskey) {
-						tvfileindex = j;
-						break;
-					}
-				}
-				for (int j = 0; j < bdfiles->Count; j++) {
-					String^ bdkey = bdfiles[j];
-					for (int k = 0; k < bdmatch->Count; k++) {
-						bdkey = bdkey->Replace(bdmatch[k]->Value->Replace("*", ""), "|");
-					}
-					if (bdkey == asskey) {
-						bdfileindex = j;
-						break;
-					}
-				}
-				Result->Text += "\r\nASS文件：  " + assfiles[i]->Substring(assfiles[i]->LastIndexOf("\\") + 1) + "\r\n";
-				re = -10;
-				int re1 = 0;
-				if (tvfileindex >= 0 && bdfileindex >= 0) {
-					re1 = match(assfiles[i], tvfiles[tvfileindex], bdfiles[bdfileindex]);
-					if (re < 0)re = re1;
-					if (re1 == -6) {
-						Result->Text += "\r\n用户中止操作。";
-						matchcontrol(true);
-						return -6;
-					}
-					Result->Text += "\r\n----------------------------------------------------------------------------------------------";
-				}
-				else {
-					Result->Text += "\r\n未找到对应的TV或BD文件！";
-					Result->Text += "\r\n----------------------------------------------------------------------------------------------";
-				}
-				finishedmatch = i + 1;
-			}
-			Setting->draw = drawstore;
-			//结束计时
-			long end = clock();
-			double spend = double(end - start) / (double)CLOCKS_PER_SEC;
-			Result->Text += "\r\n总时间：" + spend.ToString() + "秒";
 		}
 		else {
-			matchcontrol(true);
-			MessageBox::Show(this, "文件名格式错误！", "BDMatch", MessageBoxButtons::OK);
-			return -1;
+			//按*分解
+			Regex^ starkey = gcnew Regex("(\\*.*?$)|(\\*.*?\\*)|(^.*?\\*)");
+			MatchCollection^ assmatch = starkey->Matches(asstext->Replace("*", "**"));
+			MatchCollection^ tvmatch = starkey->Matches(tvtext->Replace("*", "**"));
+			MatchCollection^ bdmatch = starkey->Matches(bdtext->Replace("*", "**"));
+			if (assmatch->Count == tvmatch->Count&& assmatch->Count == bdmatch->Count) {
+				//检查合乎命名规则的文件
+				String^ path = "";
+				array<String^>^ files;
+				List<String^>^ assfiles = gcnew List<String^>();
+				List<String^>^ tvfiles = gcnew List<String^>();
+				List<String^>^ bdfiles = gcnew List<String^>();
+				path = asstext->Substring(0, asstext->LastIndexOf("\\"));
+				if (Directory::Exists(path))files = Directory::GetFiles(path);
+				else {
+					Result->Text += "\r\nASS路径：  " + path + " 不存在！\r\n";
+					if (matches_num > 0)Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+					re = -2;
+					continue;
+				}
+				Regex^ assfilekey = gcnew Regex(returnregt(asstext));
+				for (int i = 0; i < files->Length; i++)
+					if (assfilekey->IsMatch(files[i])) assfiles->Add(files[i]);
+				path = tvtext->Substring(0, tvtext->LastIndexOf("\\"));
+				if (Directory::Exists(path))files = Directory::GetFiles(path);
+				else {
+					Result->Text += "\r\nTV路径：  " + path + " 不存在！\r\n";
+					if (matches_num > 0)Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+					re = -2;
+					continue;
+				}
+				Regex^ tvfilekey = gcnew Regex(returnregt(tvtext));
+				for (int i = 0; i < files->Length; i++)
+					if (tvfilekey->IsMatch(files[i])) tvfiles->Add(files[i]);
+				path = bdtext->Substring(0, bdtext->LastIndexOf("\\"));
+				if (Directory::Exists(path))files = Directory::GetFiles(path);
+				else {
+					Result->Text += "\r\nBD路径：  " + path + " 不存在！\r\n";
+					if (matches_num > 0)Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+					re = -2;
+					continue;
+				}
+				Regex^ bdfilekey = gcnew Regex(returnregt(bdtext));
+				for (int i = 0; i < files->Length; i++)
+					if (bdfilekey->IsMatch(files[i])) bdfiles->Add(files[i]);
+				if (Setting->draw == true && matches_num == 1) {
+					Result->Text += "\r\n批量处理将不作声谱图。";
+					Setting->draw = false;
+				}
+				match_num = assfiles->Count;
+				for (int i = 0; i < assfiles->Count; i++) {
+					String^ asskey = assfiles[i];
+					for (int j = 0; j < assmatch->Count; j++) {
+						asskey = asskey->Replace(assmatch[j]->Value->Replace("*", ""), "|");
+					}
+					int tvfileindex = -1, bdfileindex = -1;
+					for (int j = 0; j < tvfiles->Count; j++) {
+						String^ tvkey = tvfiles[j];
+						for (int k = 0; k < tvmatch->Count; k++) {
+							tvkey = tvkey->Replace(tvmatch[k]->Value->Replace("*", ""), "|");
+						}
+						if (tvkey == asskey) {
+							tvfileindex = j;
+							break;
+						}
+					}
+					for (int j = 0; j < bdfiles->Count; j++) {
+						String^ bdkey = bdfiles[j];
+						for (int k = 0; k < bdmatch->Count; k++) {
+							bdkey = bdkey->Replace(bdmatch[k]->Value->Replace("*", ""), "|");
+						}
+						if (bdkey == asskey) {
+							bdfileindex = j;
+							break;
+						}
+					}
+					Result->Text += "\r\nASS文件：  " + assfiles[i]->Substring(assfiles[i]->LastIndexOf("\\") + 1) + "\r\n";
+					re = -10;
+					int re1 = 0;
+					if (tvfileindex >= 0 && bdfileindex >= 0) {
+						re1 = match(assfiles[i], tvfiles[tvfileindex], bdfiles[bdfileindex]);
+						if (re < 0)re = re1;
+						if (re1 == -6) {
+							Result->Text += "\r\n用户中止操作。";
+							matchcontrol(true);
+							return -6;
+						}
+						Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+					}
+					else {
+						Result->Text += "\r\n未找到对应的TV或BD文件！";
+						Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+					}
+					fin_match_num = i + 1;
+				}
+			}
+			else {
+				Result->Text += "\r\nASS输入：  " + asstext + "\r\nTV输入：  " + tvtext + "\r\nBD输入：  " + bdtext +
+					"\r\n输入格式错误！\r\n";
+				if (matches_num > 0)Result->Text += "\r\n----------------------------------------------------------------------------------------------";
+				re = -1;
+				continue;
+			}
 		}
+		fin_matches_num++;
+	}
+	Setting->draw = drawstore;
+	//结束计时
+	if (fin_matches_num > 0) {
+		long end = clock();
+		double spend = double(end - start) / (double)CLOCKS_PER_SEC;
+		Result->Text += "\r\n总时间：" + spend.ToString() + "秒";
 	}
 	if (re >= 0) {
 		adddropdown(ASStext, ASStext->Text);
@@ -1007,10 +1060,10 @@ void BDMatch::MyForm::progsingle(int type, double val)
 }
 void BDMatch::MyForm::progtotal()
 {
-	double val = TotalProgress->Maximum *(finishedmatch
-		+ SingleProgress->Value / static_cast<double>(SingleProgress->Maximum)) / static_cast<double>(matchcount);
+	double val = TotalProgress->Maximum *(fin_matches_num + (fin_match_num
+		+ SingleProgress->Value / static_cast<double>(SingleProgress->Maximum)) / static_cast<double>(match_num))
+		/ static_cast<double>(matches_num);
 	TotalProgress->Value = static_cast<int>(val);
-
 	return System::Void();
 }
 
@@ -1021,6 +1074,8 @@ System::Void BDMatch::MyForm::MyForm_Load(System::Object ^ sender, System::Event
 	TotalProgress->CheckForIllegalCrossThreadCalls = false;
 	About->Text = "v" + appversion;
 	loadsettings("settings.ini", Setting);
+	TextEditorPanel->Visible = false;
+	TextEditorPanel->Dock = System::Windows::Forms::DockStyle::Fill;
 	return System::Void();
 }
 
@@ -1044,7 +1099,15 @@ System::Void BDMatch::MyForm::TVfind_Click(System::Object ^ sender, System::Even
 		if ((myStream = Filebrowse->OpenFile()) != nullptr)
 		{
 			using namespace System::Text::RegularExpressions;
-			TVtext->Text = Filebrowse->FileName;
+			if (Filebrowse->FileNames->Length > 1) {
+				TVtext->Text = "";
+				for (int i = 0; i < Filebrowse->FileNames->Length; i++) {
+					TVtext->Text += "\"" + Filebrowse->FileNames[i] + "\"";
+				}
+			}
+			else {
+				TVtext->Text = Filebrowse->FileName;
+			}
 			myStream->Close();
 		}
 	}
@@ -1068,7 +1131,15 @@ System::Void BDMatch::MyForm::TVtext_DragDrop(System::Object ^ sender, System::W
 	using namespace System::IO;
 	if (e->Data->GetDataPresent(DataFormats::FileDrop)) {
 		array<String^>^files = (array<String^>^)e->Data->GetData(DataFormats::FileDrop);
-		TVtext->Text = files[0];
+		if (files->Length > 1) {
+			TVtext->Text = "";
+			for (int i = 0; i < files->Length; i++) {
+				TVtext->Text += "\"" + files[i] + "\"";
+			}
+		}
+		else {
+			TVtext->Text = files[0];
+		}
 	}
 	else
 		if (e->Data->GetDataPresent(DataFormats::StringFormat)) {
@@ -1092,7 +1163,15 @@ System::Void BDMatch::MyForm::BDfind_Click(System::Object ^ sender, System::Even
 		if ((myStream = Filebrowse->OpenFile()) != nullptr)
 		{
 			using namespace System::Text::RegularExpressions;
-			BDtext->Text = Filebrowse->FileName;
+			if (Filebrowse->FileNames->Length > 1) {
+				BDtext->Text = "";
+				for (int i = 0; i < Filebrowse->FileNames->Length; i++) {
+					BDtext->Text += "\"" + Filebrowse->FileNames[i] + "\"";
+				}
+			}
+			else {
+				BDtext->Text = Filebrowse->FileName;
+			}
 			myStream->Close();
 		}
 	}
@@ -1116,7 +1195,15 @@ System::Void BDMatch::MyForm::BDtext_DragDrop(System::Object ^ sender, System::W
 	using namespace System::IO;
 	if (e->Data->GetDataPresent(DataFormats::FileDrop)) {
 		array<String^>^files = (array<String^>^)e->Data->GetData(DataFormats::FileDrop);
-		BDtext->Text = files[0];
+		if (files->Length > 1) {
+			BDtext->Text = "";
+			for (int i = 0; i < files->Length; i++) {
+				BDtext->Text += "\"" + files[i] + "\"";
+			}
+		}
+		else {
+			BDtext->Text = files[0];
+		}
 	}
 	else
 		if (e->Data->GetDataPresent(DataFormats::StringFormat)) {
@@ -1140,7 +1227,15 @@ System::Void BDMatch::MyForm::ASSfind_Click(System::Object ^ sender, System::Eve
 		if ((myStream = Filebrowse->OpenFile()) != nullptr)
 		{
 			using namespace System::Text::RegularExpressions;
-			ASStext->Text = Filebrowse->FileName;
+			if (Filebrowse->FileNames->Length > 1) {
+				ASStext->Text = "";
+				for (int i = 0; i < Filebrowse->FileNames->Length; i++) {
+					ASStext->Text += "\"" + Filebrowse->FileNames[i] + "\"";
+				}
+			}
+			else {
+				ASStext->Text = Filebrowse->FileName;
+			}
 			myStream->Close();
 		}
 	}
@@ -1164,7 +1259,15 @@ System::Void BDMatch::MyForm::ASStext_DragDrop(System::Object ^ sender, System::
 	using namespace System::IO;
 	if (e->Data->GetDataPresent(DataFormats::FileDrop)) {
 		array<String^>^files = (array<String^>^)e->Data->GetData(DataFormats::FileDrop);
-		ASStext->Text = files[0];
+		if (files->Length > 1) {
+			ASStext->Text = "";
+			for (int i = 0; i < files->Length; i++) {
+				ASStext->Text += "\"" + files[i] + "\"";
+			}
+		}
+		else {
+			ASStext->Text = files[0];
+		}
 	}
 	else
 		if (e->Data->GetDataPresent(DataFormats::StringFormat)) {
@@ -1199,7 +1302,7 @@ System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::Event
 
 System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nBy Thomasys, 2018\n\nReference:\nFFmpeg3.4.1\nFFTW3.3.7\n" +
+	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nBy Thomasys, 2018\n\nReference:\nFFmpeg 3.4.1\nFFTW 3.3.7\n" +
 		"Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005). ", "关于", MessageBoxButtons::OK);
 	return System::Void();
 }
@@ -1263,5 +1366,43 @@ System::Void BDMatch::MyForm::LineSel_ValueChanged(System::Object ^ sender, Syst
 	if (LineSel->Enabled)drawchart();
 	return System::Void();
 }
+
+System::Void BDMatch::MyForm::Result_TextChanged(System::Object ^ sender, System::EventArgs ^ e)
+{
+	Result->SelectionStart = Result->TextLength;
+	Result->ScrollToCaret();
+	return System::Void();
+}
+
+System::Void BDMatch::MyForm::CompleteEdit_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	TextEditorPanel->Visible = false;
+	if (EditorLabel->Text == "ASS输入编辑") ASStext->Text = TextEditor->Text->Replace("\r\n", "");
+	else if (EditorLabel->Text == "TV输入编辑") TVtext->Text = TextEditor->Text->Replace("\r\n", "");
+	else BDtext->Text = TextEditor->Text->Replace("\r\n", "");
+	return System::Void();
+}
+System::Void BDMatch::MyForm::ASSLabel_MouseDoubleClick(System::Object ^ sender, System::Windows::Forms::MouseEventArgs ^ e)
+{
+	EditorLabel->Text = "ASS输入编辑";
+	TextEditor->Text = ASStext->Text->Replace("\"\"", "\"\r\n\"");
+	TextEditorPanel->Visible = true;
+	return System::Void();
+}
+System::Void BDMatch::MyForm::TVLabel_MouseDoubleClick(System::Object ^ sender, System::Windows::Forms::MouseEventArgs ^ e)
+{
+	EditorLabel->Text = "TV输入编辑";
+	TextEditor->Text = TVtext->Text->Replace("\"\"", "\"\r\n\"");
+	TextEditorPanel->Visible = true;
+	return System::Void();
+}
+System::Void BDMatch::MyForm::BDLabel_MouseDoubleClick(System::Object ^ sender, System::Windows::Forms::MouseEventArgs ^ e)
+{
+	EditorLabel->Text = "BD输入编辑";
+	TextEditor->Text = BDtext->Text->Replace("\"\"", "\"\r\n\"");
+	TextEditorPanel->Visible = true;
+	return System::Void();
+}
+
 
 

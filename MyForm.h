@@ -53,7 +53,7 @@ namespace BDMatch {
 		drawpara tvdraw, bddraw;
 		bool drawstore;
 		Settings ^ setform = nullptr;
-		unsigned int matchcount = 0, finishedmatch = 0;
+		unsigned int match_num = 0, fin_match_num = 0, matches_num = 0, fin_matches_num = 0;
 		bool debugmode = false;
 		System::Threading::CancellationTokenSource^ CancelSource;
 		int ISAMode = 0;
@@ -69,10 +69,13 @@ namespace BDMatch {
 
 	private: System::Windows::Forms::ProgressBar^  TotalProgress;
 	private: System::Windows::Forms::ProgressBar^  SingleProgress;
-			 			 
-	private: System::Windows::Forms::Label^ label1;
-	private: System::Windows::Forms::Label^ label2;
-	private: System::Windows::Forms::Label^ label3;
+	private: System::Windows::Forms::Label^  ASSLabel;
+	private: System::Windows::Forms::Label^  TVLabel;
+	private: System::Windows::Forms::Label^  BDLabel;
+
+
+
+
 			 
 	private: System::Windows::Forms::Label^ About;
 	private: System::Windows::Forms::Label^ settings;
@@ -90,6 +93,16 @@ namespace BDMatch {
 	private: System::Windows::Forms::Label^  label4;
 	private: System::Windows::Forms::ComboBox^  ViewSel;
 	private: System::Windows::Forms::NumericUpDown^  LineSel;
+	private: System::Windows::Forms::Panel^  TextEditorPanel;
+
+
+
+	private: System::Windows::Forms::TableLayoutPanel^  tableLayoutPanel1;
+	private: System::Windows::Forms::Label^  EditorLabel;
+
+	private: System::Windows::Forms::Button^  CompleteEdit;
+
+	private: System::Windows::Forms::TextBox^  TextEditor;
 
 
 			 
@@ -114,9 +127,9 @@ namespace BDMatch {
 			this->BDfind = (gcnew System::Windows::Forms::Button());
 			this->TVfind = (gcnew System::Windows::Forms::Button());
 			this->About = (gcnew System::Windows::Forms::Label());
-			this->label3 = (gcnew System::Windows::Forms::Label());
-			this->label2 = (gcnew System::Windows::Forms::Label());
-			this->label1 = (gcnew System::Windows::Forms::Label());
+			this->BDLabel = (gcnew System::Windows::Forms::Label());
+			this->TVLabel = (gcnew System::Windows::Forms::Label());
+			this->ASSLabel = (gcnew System::Windows::Forms::Label());
 			this->ASSfind = (gcnew System::Windows::Forms::Button());
 			this->Match = (gcnew System::Windows::Forms::Button());
 			this->TVtext = (gcnew System::Windows::Forms::ComboBox());
@@ -134,6 +147,11 @@ namespace BDMatch {
 			this->label5 = (gcnew System::Windows::Forms::Label());
 			this->LineSel = (gcnew System::Windows::Forms::NumericUpDown());
 			this->Filebrowse = (gcnew System::Windows::Forms::OpenFileDialog());
+			this->TextEditorPanel = (gcnew System::Windows::Forms::Panel());
+			this->tableLayoutPanel1 = (gcnew System::Windows::Forms::TableLayoutPanel());
+			this->EditorLabel = (gcnew System::Windows::Forms::Label());
+			this->CompleteEdit = (gcnew System::Windows::Forms::Button());
+			this->TextEditor = (gcnew System::Windows::Forms::TextBox());
 			this->AllTablePanel->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->splitContainer1))->BeginInit();
 			this->splitContainer1->Panel1->SuspendLayout();
@@ -143,6 +161,8 @@ namespace BDMatch {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->Spectrum))->BeginInit();
 			this->tableLayoutPanel2->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->LineSel))->BeginInit();
+			this->TextEditorPanel->SuspendLayout();
+			this->tableLayoutPanel1->SuspendLayout();
 			this->SuspendLayout();
 			// 
 			// AllTablePanel
@@ -162,9 +182,9 @@ namespace BDMatch {
 			this->AllTablePanel->Controls->Add(this->BDfind, 3, 3);
 			this->AllTablePanel->Controls->Add(this->TVfind, 3, 2);
 			this->AllTablePanel->Controls->Add(this->About, 3, 4);
-			this->AllTablePanel->Controls->Add(this->label3, 0, 3);
-			this->AllTablePanel->Controls->Add(this->label2, 0, 2);
-			this->AllTablePanel->Controls->Add(this->label1, 0, 1);
+			this->AllTablePanel->Controls->Add(this->BDLabel, 0, 3);
+			this->AllTablePanel->Controls->Add(this->TVLabel, 0, 2);
+			this->AllTablePanel->Controls->Add(this->ASSLabel, 0, 1);
 			this->AllTablePanel->Controls->Add(this->ASSfind, 3, 1);
 			this->AllTablePanel->Controls->Add(this->Match, 2, 4);
 			this->AllTablePanel->Controls->Add(this->TVtext, 1, 2);
@@ -282,45 +302,48 @@ namespace BDMatch {
 			this->About->MouseEnter += gcnew System::EventHandler(this, &MyForm::About_MouseEnter);
 			this->About->MouseLeave += gcnew System::EventHandler(this, &MyForm::About_MouseLeave);
 			// 
-			// label3
+			// BDLabel
 			// 
-			this->label3->BackColor = System::Drawing::Color::Transparent;
-			this->label3->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label3->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13));
-			this->label3->Location = System::Drawing::Point(8, 125);
-			this->label3->Margin = System::Windows::Forms::Padding(8, 7, 0, 0);
-			this->label3->Name = L"label3";
-			this->label3->Size = System::Drawing::Size(92, 47);
-			this->label3->TabIndex = 5;
-			this->label3->Text = L"BD£º";
-			this->label3->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
+			this->BDLabel->BackColor = System::Drawing::Color::Transparent;
+			this->BDLabel->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->BDLabel->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13));
+			this->BDLabel->Location = System::Drawing::Point(8, 125);
+			this->BDLabel->Margin = System::Windows::Forms::Padding(8, 7, 0, 0);
+			this->BDLabel->Name = L"BDLabel";
+			this->BDLabel->Size = System::Drawing::Size(92, 47);
+			this->BDLabel->TabIndex = 5;
+			this->BDLabel->Text = L"BD£º";
+			this->BDLabel->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
+			this->BDLabel->MouseDoubleClick += gcnew System::Windows::Forms::MouseEventHandler(this, &MyForm::BDLabel_MouseDoubleClick);
 			// 
-			// label2
+			// TVLabel
 			// 
-			this->label2->BackColor = System::Drawing::Color::Transparent;
-			this->label2->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label2->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13));
-			this->label2->Location = System::Drawing::Point(8, 71);
-			this->label2->Margin = System::Windows::Forms::Padding(8, 7, 0, 0);
-			this->label2->Name = L"label2";
-			this->label2->Size = System::Drawing::Size(92, 47);
-			this->label2->TabIndex = 3;
-			this->label2->Text = L"TV£º";
-			this->label2->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
+			this->TVLabel->BackColor = System::Drawing::Color::Transparent;
+			this->TVLabel->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->TVLabel->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13));
+			this->TVLabel->Location = System::Drawing::Point(8, 71);
+			this->TVLabel->Margin = System::Windows::Forms::Padding(8, 7, 0, 0);
+			this->TVLabel->Name = L"TVLabel";
+			this->TVLabel->Size = System::Drawing::Size(92, 47);
+			this->TVLabel->TabIndex = 3;
+			this->TVLabel->Text = L"TV£º";
+			this->TVLabel->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
+			this->TVLabel->MouseDoubleClick += gcnew System::Windows::Forms::MouseEventHandler(this, &MyForm::TVLabel_MouseDoubleClick);
 			// 
-			// label1
+			// ASSLabel
 			// 
-			this->label1->BackColor = System::Drawing::Color::Transparent;
-			this->label1->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label1->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->ASSLabel->BackColor = System::Drawing::Color::Transparent;
+			this->ASSLabel->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->ASSLabel->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->label1->Location = System::Drawing::Point(3, 20);
-			this->label1->Margin = System::Windows::Forms::Padding(3, 0, 0, 0);
-			this->label1->Name = L"label1";
-			this->label1->Size = System::Drawing::Size(97, 44);
-			this->label1->TabIndex = 0;
-			this->label1->Text = L"ASS£º";
-			this->label1->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
+			this->ASSLabel->Location = System::Drawing::Point(3, 20);
+			this->ASSLabel->Margin = System::Windows::Forms::Padding(3, 0, 0, 0);
+			this->ASSLabel->Name = L"ASSLabel";
+			this->ASSLabel->Size = System::Drawing::Size(97, 44);
+			this->ASSLabel->TabIndex = 0;
+			this->ASSLabel->Text = L"ASS£º";
+			this->ASSLabel->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
+			this->ASSLabel->MouseDoubleClick += gcnew System::Windows::Forms::MouseEventHandler(this, &MyForm::ASSLabel_MouseDoubleClick);
 			// 
 			// ASSfind
 			// 
@@ -398,6 +421,7 @@ namespace BDMatch {
 			this->Result->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
 			this->Result->Size = System::Drawing::Size(1071, 184);
 			this->Result->TabIndex = 14;
+			this->Result->TextChanged += gcnew System::EventHandler(this, &MyForm::Result_TextChanged);
 			// 
 			// SingleProgress
 			// 
@@ -559,12 +583,85 @@ namespace BDMatch {
 			// Filebrowse
 			// 
 			this->Filebrowse->FileName = L"openFileDialog1";
+			this->Filebrowse->Multiselect = true;
+			// 
+			// TextEditorPanel
+			// 
+			this->TextEditorPanel->Controls->Add(this->tableLayoutPanel1);
+			this->TextEditorPanel->Location = System::Drawing::Point(178, 0);
+			this->TextEditorPanel->Name = L"TextEditorPanel";
+			this->TextEditorPanel->Size = System::Drawing::Size(138, 426);
+			this->TextEditorPanel->TabIndex = 5;
+			// 
+			// tableLayoutPanel1
+			// 
+			this->tableLayoutPanel1->ColumnCount = 3;
+			this->tableLayoutPanel1->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
+				50)));
+			this->tableLayoutPanel1->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
+				150)));
+			this->tableLayoutPanel1->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
+				50)));
+			this->tableLayoutPanel1->Controls->Add(this->EditorLabel, 0, 0);
+			this->tableLayoutPanel1->Controls->Add(this->CompleteEdit, 1, 2);
+			this->tableLayoutPanel1->Controls->Add(this->TextEditor, 0, 1);
+			this->tableLayoutPanel1->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->tableLayoutPanel1->Location = System::Drawing::Point(0, 0);
+			this->tableLayoutPanel1->Name = L"tableLayoutPanel1";
+			this->tableLayoutPanel1->RowCount = 3;
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 50)));
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 100)));
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 50)));
+			this->tableLayoutPanel1->Size = System::Drawing::Size(138, 426);
+			this->tableLayoutPanel1->TabIndex = 0;
+			// 
+			// EditorLabel
+			// 
+			this->EditorLabel->BackColor = System::Drawing::Color::Transparent;
+			this->tableLayoutPanel1->SetColumnSpan(this->EditorLabel, 3);
+			this->EditorLabel->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->EditorLabel->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(134)));
+			this->EditorLabel->Location = System::Drawing::Point(3, 0);
+			this->EditorLabel->Margin = System::Windows::Forms::Padding(3, 0, 0, 0);
+			this->EditorLabel->Name = L"EditorLabel";
+			this->EditorLabel->Size = System::Drawing::Size(135, 50);
+			this->EditorLabel->TabIndex = 1;
+			this->EditorLabel->Text = L"ÊäÈë±à¼­";
+			this->EditorLabel->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
+			// 
+			// CompleteEdit
+			// 
+			this->CompleteEdit->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->CompleteEdit->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(134)));
+			this->CompleteEdit->Location = System::Drawing::Point(-3, 379);
+			this->CompleteEdit->Name = L"CompleteEdit";
+			this->CompleteEdit->Size = System::Drawing::Size(144, 44);
+			this->CompleteEdit->TabIndex = 2;
+			this->CompleteEdit->Text = L"Íê³É";
+			this->CompleteEdit->UseVisualStyleBackColor = true;
+			this->CompleteEdit->Click += gcnew System::EventHandler(this, &MyForm::CompleteEdit_Click);
+			// 
+			// TextEditor
+			// 
+			this->tableLayoutPanel1->SetColumnSpan(this->TextEditor, 3);
+			this->TextEditor->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->TextEditor->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(134)));
+			this->TextEditor->Location = System::Drawing::Point(3, 53);
+			this->TextEditor->Multiline = true;
+			this->TextEditor->Name = L"TextEditor";
+			this->TextEditor->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
+			this->TextEditor->Size = System::Drawing::Size(132, 320);
+			this->TextEditor->TabIndex = 3;
 			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 15);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1081, 803);
+			this->Controls->Add(this->TextEditorPanel);
 			this->Controls->Add(this->AllTablePanel);
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->Name = L"MyForm";
@@ -582,6 +679,9 @@ namespace BDMatch {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->Spectrum))->EndInit();
 			this->tableLayoutPanel2->ResumeLayout(false);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->LineSel))->EndInit();
+			this->TextEditorPanel->ResumeLayout(false);
+			this->tableLayoutPanel1->ResumeLayout(false);
+			this->tableLayoutPanel1->PerformLayout();
 			this->ResumeLayout(false);
 
 		}
@@ -637,5 +737,11 @@ namespace BDMatch {
 	private: System::Void TimeRoll_Scroll(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void LineSel_ValueChanged(System::Object^  sender, System::EventArgs^  e);
 
+	private: System::Void Result_TextChanged(System::Object^  sender, System::EventArgs^  e);
+
+	private: System::Void CompleteEdit_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void ASSLabel_MouseDoubleClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
+	private: System::Void TVLabel_MouseDoubleClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
+	private: System::Void BDLabel_MouseDoubleClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
 };
 }

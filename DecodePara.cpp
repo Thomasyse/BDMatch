@@ -213,7 +213,7 @@ void BDMatch::Decode::decodeaudio()
 	else {
 		samplenum = static_cast<int>(ceil(samplerate / 1000.0*filefm->duration / 1000.0));
 	}
-	efftnum = static_cast<int>(ceil(samplenum / float(FFTnum)));
+	efftnum = static_cast<int>(ceil(samplenum / float(FFTnum)));//estimated_fft_num
 
 	packet = av_packet_alloc();
 	double shiftf = 0;
@@ -339,39 +339,41 @@ void BDMatch::Decode::decodeaudio()
 							if (codecfm->channels > 1)sample_seq_r->add(0);
 						}
 					}
-					if (sample_seq_l->gethead() == 0 && samplecount > 0) {
-						(*fftdata)[0][fftsampnum] = new node(FFTnum / 2);
-						double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
-						for (int j = 0; j < FFTnum; j++) {
-							*(in + j) = sample_seq_l->read0(j);
+					if (samplecount > 0 && fftsampnum < efftnum) {
+						if (sample_seq_l->gethead() == 0) {
+							(*fftdata)[0][fftsampnum] = new node(FFTnum / 2);
+							double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
+							for (int j = 0; j < FFTnum; j++) {
+								*(in + j) = sample_seq_l->read0(j);
+							}
+							FFTC^ fftcl = gcnew FFTC((*fftdata)[0][fftsampnum], plan, in, mindb,
+								gcnew ProgressCallback(this, &Decode::subprogback));
+							Task^ taskl = gcnew Task(gcnew Action(fftcl, &FFTC::FFT), canceltoken);
+							if (taskl->Status != System::Threading::Tasks::TaskStatus::Canceled)taskl->Start();
+							else {
+								fftcl->~FFTC();
+								return;
+							}
+							tasks->Add(taskl);
+							//int a = fftdata[0, fftsampnum]->sum()/FFTnum;//调试用
+							fftsampnum++;
 						}
-						FFTC^ fftcl = gcnew FFTC((*fftdata)[0][fftsampnum], plan, in, mindb,
-							gcnew ProgressCallback(this, &Decode::subprogback));
-						Task^ taskl = gcnew Task(gcnew Action(fftcl, &FFTC::FFT), canceltoken);
-						if (taskl->Status != System::Threading::Tasks::TaskStatus::Canceled)taskl->Start();
-						else{
-							fftcl->~FFTC();
-							return;
+						if (sample_seq_r->gethead() == 0 && codecfm->channels > 1) {
+							(*fftdata)[1][fftsampnum - 1] = new node(FFTnum / 2);
+							double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
+							for (int j = 0; j < FFTnum; j++) {
+								*(in + j) = sample_seq_r->read0(j);
+							}
+							FFTC^ fftcr = gcnew FFTC((*fftdata)[1][fftsampnum - 1], plan, in, mindb,
+								gcnew ProgressCallback(this, &Decode::subprogback));
+							Task^ taskr = gcnew Task(gcnew Action(fftcr, &FFTC::FFT), canceltoken);
+							if (taskr->Status != System::Threading::Tasks::TaskStatus::Canceled)taskr->Start();
+							else {
+								fftcr->~FFTC();
+								return;
+							}
+							tasks->Add(taskr);
 						}
-						tasks->Add(taskl);
-						//int a = fftdata[0, fftsampnum]->sum()/FFTnum;//调试用
-						fftsampnum++;
-					}
-					if (sample_seq_r->gethead() == 0 && samplecount > 0 && codecfm->channels > 1) {
-						(*fftdata)[1][fftsampnum - 1] = new node(FFTnum / 2);
-						double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
-						for (int j = 0; j < FFTnum; j++) {
-							*(in + j) = sample_seq_r->read0(j);
-						}
-						FFTC^ fftcr = gcnew FFTC((*fftdata)[1][fftsampnum - 1], plan, in, mindb,
-							gcnew ProgressCallback(this, &Decode::subprogback));
-						Task^ taskr = gcnew Task(gcnew Action(fftcr, &FFTC::FFT), canceltoken);
-						if (taskr->Status != System::Threading::Tasks::TaskStatus::Canceled)taskr->Start();
-						else{
-							fftcr->~FFTC();
-							return;
-						}
-						tasks->Add(taskr);
 					}
 					samplecount++;
 				}

@@ -363,6 +363,7 @@ DataStruct::SettingVals::SettingVals(SettingVals ^ in)
 	findfield = in->findfield;
 	maxlength = in->maxlength;
 	minchecknum = in->minchecknum;
+	assoffset = in->assoffset;
 	outputpcm = in->outputpcm;
 	draw = in->draw;
 	matchass = in->matchass;
@@ -387,6 +388,9 @@ String^ DataStruct::SettingVals::getname(const SettingType &type)
 		break;
 	case MinCheckNum:
 		name = "MaxCheckNum";
+		break;
+	case AssOffset:
+		name = "AssOffset";
 		break;
 	case MatchAss:
 		name = "MatchAss";
@@ -426,6 +430,9 @@ int DataStruct::SettingVals::getval(const SettingType & type)
 		break;
 	case MinCheckNum:
 		val = minchecknum;
+		break;
+	case AssOffset:
+		val = assoffset;
 		break;
 	case MatchAss:
 		val = static_cast<int>(matchass);
@@ -476,6 +483,9 @@ int DataStruct::SettingVals::setval(const SettingType & type,int val)
 		val = max(val, 10);
 		val = min(val, 1000000);
 		minchecknum = val;
+		break;
+	case AssOffset:
+		assoffset = val;
 		break;
 	case OutputPCM:
 		outputpcm = static_cast<bool>(val);
