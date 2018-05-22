@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.3.0"
+#define appversion "1.3.1"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -323,10 +323,17 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			}
 			bdtime[i] = besttime;
 			//调试用->
-			//String^ besttimestr = mstotime(besttime * ftt);
-			//int bestfind = bdse.find(besttime, 0);
-			//int ls = bdse.find(116168, 0);
-			//String^ besttimestr2 = mstotime(116168 * ftt);
+			/*
+			String^ besttimestr = mstotime(besttime * ftt);
+			int bestfind = bdse.find(besttime, 0);
+			String^ time = "0:11:47.61";
+			int fftindex = static_cast<int>((int::Parse(time[0].ToString()) * 360000 + int::Parse(time->Substring(2, 2)) * 6000 +
+				int::Parse(time->Substring(5, 2)) * 100 + int::Parse(time->Substring(8, 2)) + Setting->assoffset) * ttf);
+			int ls = bdse.find(fftindex, 0);
+			long long lsresult = -1;
+			if (ls > 0)lsresult = tasks[ls]->Result;
+			String^ besttimestr2 = mstotime(65788 * ftt);
+			*/
 			if (debugmode) {
 				int delta1 = bdse.find(besttime, 1);
 				if (delta1 > maxdelta)maxdelta = delta1;
@@ -780,6 +787,7 @@ int BDMatch::MyForm::matchinput()
 	String ^ tvtext_all = TVtext->Text;
 	String ^ bdtext_all = BDtext->Text;
 	match_num = fin_match_num = 0;
+	matches_num = fin_matches_num = 0;
 	if (asstext_all == "" || tvtext_all == "" || bdtext_all == "") {
 		matchcontrol(true);
 		MessageBox::Show(this, "文件名为空！", "BDMatch", MessageBoxButtons::OK);

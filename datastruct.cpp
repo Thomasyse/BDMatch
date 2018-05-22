@@ -132,6 +132,7 @@ int DataStruct::bdsearch::find(int searchnum, const int &retype)
 		};
 		index++;
 	}
+	if (index >= bditem.size())index = -1;
 	return index;
 }
 int DataStruct::bdsearch::sort()
