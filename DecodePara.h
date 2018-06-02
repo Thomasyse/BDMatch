@@ -7,14 +7,14 @@
 #include <stdlib.h>
 #include <math.h>
 extern "C" {
-#include "libavcodec\avcodec.h"
-#include "libavformat\avformat.h"
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
 #include <libavutil/imgutils.h>
 #include <libavutil/samplefmt.h>
 #include <libavutil/timestamp.h>
 #include <libavutil/frame.h>
 #include <libavutil/mem.h>
-#include "libswscale\swscale.h"
+#include "libswscale/swscale.h"
 #include <libavutil/channel_layout.h>
 #include "libavutil/md5.h"
 #include "libavutil/opt.h"
@@ -93,9 +93,10 @@ namespace BDMatch{
 		int resamprate = 0;
 		int mindb = 0;
 		int channels = 0;
-		int returnval = 0;
+		int returnval = -100;
 		int progtype = 0;
 		int decodednum = 0;
+		int start_time = 0;
 		double sampleratio = 1.0;
 		double progval = 0.0;
 		bool outputpcm = false;

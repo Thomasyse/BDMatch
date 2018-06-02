@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.3.1"
+#define appversion "1.3.3"
 #define tvmaxnum 6
 #define secpurple 45
 #define setintnum 5
@@ -93,8 +93,11 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	Result->Text += "TV文件：  " + tvtext->Substring(tvtext->LastIndexOf("\\") + 1) + "\r\n" + tvdecode->getfeedback();
 	Result->Text += "\r\nBD文件：  " + bdtext->Substring(bdtext->LastIndexOf("\\") + 1) + "\r\n" + bddecode->getfeedback() +
 		"\r\n解码时间：" + spend.ToString() + "秒";
-	if (tvdecode->getreturn() < 0 || bddecode->getreturn() < 0) return -4;
-
+	if (tvdecode->getreturn() < 0 || bddecode->getreturn() < 0) {
+		tvdecode->~Decode();
+		bddecode->~Decode();
+		return -4;
+	}
 	int re = 0;
 	if (Setting->matchass) {
 		re = writeass(tvdecode, bddecode, asstext);
@@ -134,6 +137,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	String^ tvass;
 	String^ head = "";
 	String^ content = "";
+	String^ tmpstr = "";
 	tvass = File::ReadAllText(asstext);
 	int eventpos = tvass->IndexOf("\r\n[Events]\r\n");
 	if (eventpos == -1) {
@@ -179,25 +183,25 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		if (iscom) {
 			tvtime[i] = -1;
 			bdtime[i] = -1;
-			Result->Text += "\r\n信息：第" + (i + 1).ToString() + "行为注释，将不作处理。";
+			tmpstr += "\r\n信息：第" + (i + 1).ToString() + "行为注释，将不作处理。";
 			continue;
 		}
 		if (end == start) {
 			tvtime[i] = -1;
 			bdtime[i] = -1;
-			Result->Text += "\r\n信息：第" + (i + 1).ToString() + "行时长为零，将不作处理。";
+			tmpstr += "\r\n信息：第" + (i + 1).ToString() + "行时长为零，将不作处理。";
 			continue;
 		}
 		if (end - start > Setting->maxlength * 100 * ttf) {
 			tvtime[i] = -1;
 			bdtime[i] = -1;
-			Result->Text += "\r\n警告：第" + (i + 1).ToString() + "行时长过长，将不作处理。";
+			tmpstr += "\r\n警告：第" + (i + 1).ToString() + "行时长过长，将不作处理。";
 			continue;
 		}
 		if (end >= tvfftnum || (end - find0) > bdfftnum) {
 			tvtime[i] = -1;
 			bdtime[i] = -1;
-			Result->Text += "\r\n警告：第" + (i + 1).ToString() + "行超过音频长度，将不作处理。";
+			tmpstr += "\r\n警告：第" + (i + 1).ToString() + "行超过音频长度，将不作处理。";
 			continue;
 		}
 		int maxdb = -128;
@@ -209,7 +213,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		if (maxdb <= -128) {
 			tvtime[i] = -1;
 			bdtime[i] = -1;
-			Result->Text += "\r\n警告：第" + (i + 1).ToString() + "行声音过小，将不作处理。";
+			tmpstr += "\r\n警告：第" + (i + 1).ToString() + "行声音过小，将不作处理。";
 			continue;
 		}
 		bool existed = false;
@@ -228,6 +232,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		tvtime[i] = start;
 		bdtime[i] = 0;
 	}
+	Result->Text += tmpstr;
+	tmpstr = "";
 	//搜索匹配
 	int ch = min(tvch, bdch);
 	ch = min(ch, 2);
@@ -382,7 +388,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			timelist[i]->end(bdtime[i] + duration);
 			if (i < alltimematch->Count - 1 && timelist[i]->end() > bdtime[i + 1] && (timelist[i]->end() - bdtime[i + 1]) <= interval) {
 				timelist[i]->end(bdtime[i + 1]);
-				Result->Text += "\r\n信息：第" + (i + 1).ToString() + "行和第" + (i + 2).ToString() + "行发生微小重叠，已自动修正。";
+				tmpstr += "\r\n信息：第" + (i + 1).ToString() + "行和第" + (i + 2).ToString() + "行发生微小重叠，已自动修正。";
 			}
 			if (Setting->draw) {
 				bddraw.timelist[i, 0] = timelist[i]->start();
@@ -408,6 +414,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			}
 		}
 	}
+	Result->Text += tmpstr;
+	tmpstr = "";
 	String^ outfile = asstext->Substring(0, asstext->LastIndexOf(".")) + ".matched.ass";
 	if (File::Exists(outfile))
 	{
@@ -1310,7 +1318,7 @@ System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::Event
 
 System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nBy Thomasys, 2018\n\nReference:\nFFmpeg 3.4.1\nFFTW 3.3.7\n" +
+	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nBy Thomasys, 2018\n\nReference:\nFFmpeg 4.0\nFFTW 3.3.7\n" +
 		"Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005). ", "关于", MessageBoxButtons::OK);
 	return System::Void();
 }

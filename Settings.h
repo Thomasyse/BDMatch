@@ -624,7 +624,7 @@ namespace BDMatch {
 			this->DecodeTabPage->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
 			this->DecodeTabPage->Location = System::Drawing::Point(4, 39);
 			this->DecodeTabPage->Name = L"DecodeTabPage";
-			this->DecodeTabPage->Size = System::Drawing::Size(864, 606);
+			this->DecodeTabPage->Size = System::Drawing::Size(864, 519);
 			this->DecodeTabPage->TabIndex = 0;
 			this->DecodeTabPage->Text = L"解码设置";
 			this->DecodeTabPage->UseVisualStyleBackColor = true;
@@ -666,7 +666,7 @@ namespace BDMatch {
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->DecodeLayoutPanel->Size = System::Drawing::Size(864, 606);
+			this->DecodeLayoutPanel->Size = System::Drawing::Size(864, 519);
 			this->DecodeLayoutPanel->TabIndex = 22;
 			// 
 			// label15
@@ -735,7 +735,7 @@ namespace BDMatch {
 			this->label9->Location = System::Drawing::Point(51, 380);
 			this->label9->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label9->Name = L"label9";
-			this->label9->Size = System::Drawing::Size(780, 210);
+			this->label9->Size = System::Drawing::Size(780, 123);
 			this->label9->TabIndex = 20;
 			this->label9->Text = L"同时进行TV和BD文件的解码，请在拥有高性能硬盘的设备上开启此选项，否则可能会导致在硬盘负载较大时解码速度急剧下降。";
 			// 
@@ -745,7 +745,7 @@ namespace BDMatch {
 			this->SpectrumTabPage->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12));
 			this->SpectrumTabPage->Location = System::Drawing::Point(4, 39);
 			this->SpectrumTabPage->Name = L"SpectrumTabPage";
-			this->SpectrumTabPage->Size = System::Drawing::Size(864, 606);
+			this->SpectrumTabPage->Size = System::Drawing::Size(864, 519);
 			this->SpectrumTabPage->TabIndex = 2;
 			this->SpectrumTabPage->Text = L"声谱设置";
 			this->SpectrumTabPage->UseVisualStyleBackColor = true;
@@ -769,7 +769,7 @@ namespace BDMatch {
 			this->SpectrumLayoutPanel->RowCount = 2;
 			this->SpectrumLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->SpectrumLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->SpectrumLayoutPanel->Size = System::Drawing::Size(864, 606);
+			this->SpectrumLayoutPanel->Size = System::Drawing::Size(864, 519);
 			this->SpectrumLayoutPanel->TabIndex = 23;
 			// 
 			// label12
@@ -782,7 +782,7 @@ namespace BDMatch {
 			this->label12->Location = System::Drawing::Point(51, 52);
 			this->label12->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label12->Name = L"label12";
-			this->label12->Size = System::Drawing::Size(780, 538);
+			this->label12->Size = System::Drawing::Size(780, 451);
 			this->label12->TabIndex = 22;
 			this->label12->Text = L"打开此选项可以查看解码得到的声谱图，并对原字幕时间轴和匹配生成的时间轴对应的声谱进行对比。";
 			// 

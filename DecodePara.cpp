@@ -105,7 +105,8 @@ void BDMatch::Decode::decodeaudio()
 		returnval = -3;
 		return; // Could not open codec
 	}
-	
+	//延迟
+	start_time = filefm->streams[audiostream]->start_time;
 	//重采样变量1
 	samplerate = codecfm->sample_rate;
 	bool resamp = false;
@@ -392,10 +393,11 @@ void BDMatch::Decode::decodeaudio()
 	String^ samprateinfo = "";
 	if (resamp)samprateinfo = samplerate.ToString() + "Hz -> " + resamprate.ToString() + "Hz";
 	else samprateinfo = samplerate.ToString() + "Hz";
-	feedback += "    声道：" + channels.ToString() + "    总帧数：" + count.ToString() + "    格式：" + chfmt+
-		"\r\n采样位数：" + bit_depth_raw.ToString() + "bit -> " + (out_bitdepth).ToString() +"bit    采样率：" + samprateinfo 
-		+ "    采样格式：" 
-		+ marshal_as<String^>(av_get_sample_fmt_name(codecfm->sample_fmt))->Replace("AV_SAMPLE_FMT_", "")->ToUpper();;
+	feedback += "    声道：" + channels.ToString() + "    总帧数：" + count.ToString() + "    格式：" + chfmt +
+		"\r\n采样位数：" + bit_depth_raw.ToString() + "bit -> " + (out_bitdepth).ToString() + "bit    采样率：" + samprateinfo
+		+ "    采样格式："
+		+ marshal_as<String^>(av_get_sample_fmt_name(codecfm->sample_fmt))->Replace("AV_SAMPLE_FMT_", "")->ToUpper();
+	if (start_time != 0)feedback += "    延迟：" + start_time.ToString() + "ms";
 	//补充wav头信息
 	if (outputpcm) {
 		long pcmfilesize = ftell(pcm) - 8;
@@ -414,6 +416,7 @@ void BDMatch::Decode::decodeaudio()
 		feedback += "\r\n输出解码音频：" + marshal_as<String^>(filename);
 	}
 	//释放内存
+	returnval = 0;
 	delete ffmpeg;
 	ffmpeg = nullptr;
 	return;
