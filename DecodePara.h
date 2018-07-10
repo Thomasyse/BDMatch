@@ -46,11 +46,9 @@ namespace BDMatch{
 		AVCodecContext *codecfm = NULL;
 		AVCodec *codec = NULL;
 		AVPacket *packet = NULL;
-		uint8_t *temp = NULL;
 		uint8_t **dst_data = NULL;
-		noded* sample_seq_l = nullptr;
-		noded* sample_seq_r = nullptr;
 		AVFrame *decoded_frame = NULL;
+		double **sample_seqs = nullptr;
 		struct SwrContext *swr_ctx = NULL;
 	};
 
@@ -69,12 +67,14 @@ namespace BDMatch{
 		int getchannels();
 		int getsamprate();
 		int getFFTnum();
-		double getsampleratio();
 		bool getaudioonly();
 		std::vector<std::vector<node*>>* getfftdata();
 		ProgressCallback^ progback = nullptr;
 	private:
-		double getshiftf(uint8_t * temp, int &sampletype, const int &start);
+		double **getshiftf(uint8_t ** audiodata, const int &realch, const int &filech, const int &nb_samples, const int &sampletype);
+		bool add_fft_task(double *sample_seq, const int &ch);
+		double **fetch_data_planar(double **&data, double **seqs, int &nb_last_seq, const int &nb_samples, const int &ch);
+		double **fetch_data_linear(double **&data, double **seqs, int &nb_last_seq, const int &nb_samples, const int &ch);
 		void subprogback(int type, double val);
 		int clearfftdata();
 		String^ filename;
@@ -97,7 +97,6 @@ namespace BDMatch{
 		int progtype = 0;
 		int decodednum = 0;
 		int start_time = 0;
-		double sampleratio = 1.0;
 		double progval = 0.0;
 		bool outputpcm = false;
 		bool audioonly = false;

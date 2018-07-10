@@ -35,12 +35,10 @@ void BDMatch::Decode::decodeaudio()
 	AVCodecContext *&codecfm = ffmpeg->codecfm;
 	AVCodec *&codec = ffmpeg->codec;
 	AVPacket *&packet = ffmpeg->packet;
-	uint8_t *&temp = ffmpeg->temp;
 	uint8_t **&dst_data = ffmpeg->dst_data;
-	noded *&sample_seq_l = ffmpeg->sample_seq_l;
-	noded *&sample_seq_r = ffmpeg->sample_seq_r;
 	AVFrame *&decoded_frame = ffmpeg->decoded_frame;
 	struct SwrContext *&swr_ctx = ffmpeg->swr_ctx;
+	double **&sample_seqs = ffmpeg->sample_seqs;
 
 	filefm = NULL;//文件格式
 	std::string filestr = marshal_as<std::string>(filename->ToString());
@@ -107,8 +105,9 @@ void BDMatch::Decode::decodeaudio()
 	}
 	//延迟
 	start_time = filefm->streams[audiostream]->start_time;
-	//重采样变量1
+	//采样率
 	samplerate = codecfm->sample_rate;
+	//重采样变量1
 	bool resamp = false;
 	if (resamprate > 0 && samplerate != resamprate)resamp = true;
 	//准备写入文件
@@ -186,10 +185,9 @@ void BDMatch::Decode::decodeaudio()
 	//重采样变量2
 	dst_data = NULL;
 	int dst_linesize;
-	bool setsampnum = false;
 	//对音频解码(加重采样)
 	if (resamp) {
-		samplenum = static_cast<int>(ceil(samplerate / 1000.0*filefm->duration / 1000.0));
+		samplenum = static_cast<int>(ceil(resamprate / 1000.0*filefm->duration / 1000.0));
 		swr_ctx = swr_alloc();
 		if (!swr_ctx) {
 			feedback = "无法构建重采样环境！";
@@ -220,8 +218,10 @@ void BDMatch::Decode::decodeaudio()
 	double shiftf = 0;
 	fftdata = new std::vector<std::vector<node*>>(2, std::vector<node*>(efftnum));
 	fftsampnum = 0;
-	sample_seq_l = new noded(FFTnum);
-	sample_seq_r = new noded(FFTnum);
+	sample_seqs = new double*[2];
+	sample_seqs[0] = (double*)fftw_malloc(sizeof(double)*FFTnum);
+	sample_seqs[1] = (double*)fftw_malloc(sizeof(double)*FFTnum);
+	int nb_last_seq = 0;
 	decoded_frame = NULL;
 	int realch = 1;
 	String ^chfmt = "Packed";
@@ -230,12 +230,11 @@ void BDMatch::Decode::decodeaudio()
 		realch = codecfm->channels;
 		chfmt = "Planar";
 	}
-	temp = NULL;
 	while (av_read_frame(filefm, packet) >= 0)//file中调用对应格式的packet获取函数
 	{
 		if (packet->stream_index == audiostream)//如果是音频
 		{
-			int data_size = 0, i = 0, ch = 0;
+			int data_size = 0;
 			if (!decoded_frame) {
 				if (!(decoded_frame = av_frame_alloc())) {
 					feedback = "无法为音频帧分配内存！";
@@ -277,19 +276,12 @@ void BDMatch::Decode::decodeaudio()
 				}
 				int nb_samples;
 				uint8_t **audiodata;
+				//重采样
 				if (resamp) {
 					nb_samples =
-						av_rescale_rnd(decoded_frame->nb_samples, resamprate, samplerate, AV_ROUND_UP);
+						av_rescale_rnd(decoded_frame->nb_samples, resamprate, samplerate, AV_ROUND_ZERO);
 					ret = av_samples_alloc_array_and_samples(&dst_data, &dst_linesize, channels,
 						nb_samples, codecfm->sample_fmt, 0);
-					if (!setsampnum) {
-						samplenum = static_cast<int>(ceil(samplenum / double(decoded_frame->nb_samples)*nb_samples));
-						efftnum = static_cast<int>(ceil(samplenum / float(FFTnum)));
-						sampleratio = decoded_frame->nb_samples / double(nb_samples);
-						delete fftdata;
-						fftdata = new std::vector<std::vector<node*>>(2, std::vector<node*>(efftnum));
-						setsampnum = true;
-					}
 					if (ret < 0) {
 						feedback = "无法为重采样数据分配内存！";
 						if (outputpcm)fclose(pcm);
@@ -310,74 +302,36 @@ void BDMatch::Decode::decodeaudio()
 					nb_samples = decoded_frame->nb_samples;
 					audiodata = decoded_frame->extended_data;
 				}
-				if (!isplanar)data_size *= codecfm->channels;
-				for (i = 0; i < nb_samples; i++) {
-					for (ch = 0; ch < realch; ch++) {
-						temp = audiodata[ch] + data_size * i;
-						if (outputpcm)fwrite(temp, 1, data_size, pcm);//输出pcm数据
-						if (!isplanar) {//线性音频
-							shiftf = getshiftf(temp, sampletype, 0);
-							sample_seq_l->add(shiftf);
-							if (codecfm->channels > 1) {
-								shiftf = getshiftf(temp, sampletype, data_size / codecfm->channels);
-								sample_seq_r->add(shiftf);
-							}
-						}
-						else {//平面音频
-							if (ch == 0) {
-								shiftf = getshiftf(temp, sampletype, 0);
-								sample_seq_l->add(shiftf);
-							}
-							if (ch == 1) {
-								shiftf = getshiftf(temp, sampletype, 0);
-								sample_seq_r->add(shiftf);
-							}
-						}
+				//输出pcm数据
+				if (outputpcm) {
+					if (!isplanar) {
+						data_size *= codecfm->channels;
+						fwrite(audiodata[0], nb_samples, data_size, pcm);
 					}
-					if (samplecount == samplenum - 1) {
-						for (int j = sample_seq_l->gethead(); j < FFTnum; j++) {
-							sample_seq_l->add(0);
-							if (codecfm->channels > 1)sample_seq_r->add(0);
-						}
+					else {
+						for (int i = 0; i < nb_samples; i++)
+							for (int ch = 0; ch < realch; ch++)
+								fwrite(audiodata[ch] + i * data_size, 1, data_size, pcm);
 					}
-					if (samplecount > 0 && fftsampnum < efftnum) {
-						if (sample_seq_l->gethead() == 0) {
-							(*fftdata)[0][fftsampnum] = new node(FFTnum / 2);
-							double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
-							for (int j = 0; j < FFTnum; j++) {
-								*(in + j) = sample_seq_l->read0(j);
-							}
-							FFTC^ fftcl = gcnew FFTC((*fftdata)[0][fftsampnum], plan, in, mindb,
-								gcnew ProgressCallback(this, &Decode::subprogback));
-							Task^ taskl = gcnew Task(gcnew Action(fftcl, &FFTC::FFT), canceltoken);
-							if (taskl->Status != System::Threading::Tasks::TaskStatus::Canceled)taskl->Start();
-							else {
-								fftcl->~FFTC();
-								return;
-							}
-							tasks->Add(taskl);
-							//int a = fftdata[0, fftsampnum]->sum()/FFTnum;//调试用
-							fftsampnum++;
-						}
-						if (sample_seq_r->gethead() == 0 && codecfm->channels > 1) {
-							(*fftdata)[1][fftsampnum - 1] = new node(FFTnum / 2);
-							double* in = (double*)fftw_malloc(sizeof(double)*FFTnum);
-							for (int j = 0; j < FFTnum; j++) {
-								*(in + j) = sample_seq_r->read0(j);
-							}
-							FFTC^ fftcr = gcnew FFTC((*fftdata)[1][fftsampnum - 1], plan, in, mindb,
-								gcnew ProgressCallback(this, &Decode::subprogback));
-							Task^ taskr = gcnew Task(gcnew Action(fftcr, &FFTC::FFT), canceltoken);
-							if (taskr->Status != System::Threading::Tasks::TaskStatus::Canceled)taskr->Start();
-							else {
-								fftcr->~FFTC();
-								return;
-							}
-							tasks->Add(taskr);
-						}
-					}
-					samplecount++;
 				}
+				//处理数据
+				double **normalized_samples = getshiftf(audiodata, realch, codecfm->channels, nb_samples, sampletype);
+				if (isplanar) sample_seqs = fetch_data_planar(normalized_samples, sample_seqs, nb_last_seq, nb_samples, codecfm->channels);//平面音频
+				else sample_seqs = fetch_data_linear(normalized_samples, sample_seqs, nb_last_seq, nb_samples, codecfm->channels);//线性音频
+				if (sample_seqs == nullptr) {
+					for (int ch = 0; ch < realch; ch++)delete[] normalized_samples[ch];
+					delete[] normalized_samples;
+					if (dst_data)
+						av_freep(&dst_data[0]);
+					av_freep(&dst_data);
+					av_frame_free(&decoded_frame);
+					av_free_packet(packet);
+					delete ffmpeg;
+					ffmpeg = nullptr;
+					return;
+				}
+				for (int ch = 0; ch < realch; ch++)delete[] normalized_samples[ch];
+				delete[] normalized_samples;
 				if (dst_data)
 					av_freep(&dst_data[0]);
 				av_freep(&dst_data);
@@ -455,10 +409,6 @@ int BDMatch::Decode::getFFTnum()
 {
 	return FFTnum;
 }
-double BDMatch::Decode::getsampleratio()
-{
-	return sampleratio;
-}
 bool BDMatch::Decode::getaudioonly()
 {
 	return audioonly;
@@ -486,35 +436,148 @@ std::vector<std::vector<node*>>* BDMatch::Decode::getfftdata()
 	return fftdata;
 }
 
-double BDMatch::Decode::getshiftf(uint8_t * temp, int &sampletype,const int &start)
+double** BDMatch::Decode::getshiftf(uint8_t ** audiodata, const int &realch, const int &filech, const int &nb_samples, const int &sampletype)
 {
-	double shiftd = 0;
-	switch (sampletype) {
-	case 1:
-		shiftd = static_cast<double>(*(float *)(temp + start));
-		break;
-	case 2:
-		shiftd = *(double *)(temp + start);
-		break;
-	case 8:
-		shiftd = *(temp + start) / 255.0;
-		break;
-	case 16:
-		shiftd = *(short *)(temp + start) / 32767.0;
-		break;
-	case 24:
-		shiftd = (*(int *)(temp + start) >> 8) / 8388607.0;
-		break;
-	case 32:
-		shiftd = *(int *)(temp + start) / 2147483647.0;
-		break;
-	case 64:
-		shiftd = *(long long *)(temp + start) / static_cast<double>(9223372036854775807);
-		break;
-	default:
-		break;
+	double **result = new double*[realch];
+	int length = nb_samples * filech / realch;
+	for (int ch = 0; ch < realch; ch++) {
+		double *shiftd = new double[length];
+		if (sampletype == 1) {
+			float *tempf = reinterpret_cast<float *>(audiodata[ch]);
+			for (int i = 0; i < length; i++)shiftd[i] = static_cast<double>(tempf[i]);
+		}
+		else if (sampletype == 2) {
+			double *tempd = reinterpret_cast<double *>(audiodata[ch]);
+			for (int i = 0; i < length; i++)shiftd[i] = tempd[i];
+		}
+		else if (sampletype == 8) {
+			for (int i = 0; i < length; i++)shiftd[i] = static_cast<double>(audiodata[ch][i]) / 255.0;
+		}
+		else if (sampletype == 16) {
+			short *temps = reinterpret_cast<short *>(audiodata[ch]);
+			for (int i = 0; i < length; i++)shiftd[i] = static_cast<double>(temps[i]) / 32767.0;
+		}
+		else if (sampletype == 24) {
+			int *tempi = reinterpret_cast<int *>(audiodata[ch]);
+			for (int i = 0; i < length; i++)shiftd[i] = static_cast<double>(tempi[i] >> 8) / 8388607.0;
+		}
+		else if (sampletype == 32) {
+			int *tempi2 = reinterpret_cast<int *>(audiodata[ch]);
+			for (int i = 0; i < length; i++)shiftd[i] = static_cast<double>(tempi2[i]) / 2147483647.0;
+		}
+		else if (sampletype == 64) {
+			long long *templ = reinterpret_cast<long long *>(audiodata[ch]);
+			for (int i = 0; i < length; i++)shiftd[i] = static_cast<double>(templ[i]) / static_cast<double>(9223372036854775807);
+		}
+		result[ch] = shiftd;
 	}
-	return shiftd;
+	return result;
+}
+
+bool BDMatch::Decode::add_fft_task(double *sample_seq, const int &ch)
+{
+	(*fftdata)[ch][fftsampnum] = new node(FFTnum / 2);
+	FFTC^ fftc = gcnew FFTC((*fftdata)[ch][fftsampnum], plan, sample_seq, mindb,
+		gcnew ProgressCallback(this, &Decode::subprogback));
+	Task^ task = gcnew Task(gcnew Action(fftc, &FFTC::FFT), canceltoken);
+	if (task->Status != System::Threading::Tasks::TaskStatus::Canceled)task->Start();
+	else {
+		fftc->~FFTC();
+		return false;
+	}
+	tasks->Add(task);
+	return true;
+}
+
+double ** BDMatch::Decode::fetch_data_planar(double **& data, double ** seqs, int & nb_last_seq, const int & nb_samples, const int & ch)
+{
+	int nb_fft_smp = (nb_last_seq + nb_samples) / FFTnum;
+	int smp_start = FFTnum - nb_last_seq;
+	for (int i = 0; i < ch; i++) {
+		for (int j = nb_last_seq, k = 0; k < smp_start; j++, k++) {
+			seqs[i][j] = data[i][k];
+		}
+	}
+	if (nb_fft_smp < 1)
+		for (int i = 0; i < ch; i++) {
+			for (int j = nb_last_seq; j < FFTnum; j++) {
+				seqs[i][j] = 0;
+			}
+		}
+	for (int i = 0; i < ch; i++) {
+		if (!add_fft_task(seqs[i], i))return nullptr;
+		seqs[i] = (double*)fftw_malloc(sizeof(double)*FFTnum);
+	}
+	fftsampnum++;
+	for (int n = 0; n < nb_fft_smp - 1; n++) {
+		for (int i = 0; i < ch; i++) {
+			for (int j = 0, k = smp_start; j < FFTnum; j++, k++) {
+				seqs[i][j] = data[i][k];
+			}
+		}
+		smp_start += FFTnum;
+		for (int i = 0; i < ch; i++) {
+			if (!add_fft_task(seqs[i], i))return nullptr;
+			seqs[i] = (double*)fftw_malloc(sizeof(double)*FFTnum);
+		}
+		fftsampnum++;
+	}
+	if (nb_fft_smp < 1)nb_last_seq = 0;
+	else {
+		nb_last_seq = nb_samples + nb_last_seq - nb_fft_smp * FFTnum;;
+		for (int i = 0; i < ch; i++) {
+			for (int j = 0, k = smp_start; j < nb_last_seq; j++, k++) {
+				seqs[i][j] = data[i][k];
+			}
+		}
+	}
+	return seqs;
+}
+
+double ** BDMatch::Decode::fetch_data_linear(double **& data, double ** seqs, int & nb_last_seq, const int & nb_samples, const int & ch)
+{
+	int nb_fft_smp = (nb_last_seq + nb_samples) / FFTnum;
+	int smp_start_ch = (FFTnum - nb_last_seq)*ch;
+	int FFTnum_ch = FFTnum * ch;
+	for (int j = nb_last_seq, k = 0; k < smp_start_ch; j++) {
+		for (int i = 0; i < ch; i++, k++) {
+			seqs[i][j] = data[0][k];
+		}
+	}
+	if (nb_fft_smp < 1)
+		for (int i = 0; i < ch; i++) {
+			for (int j = nb_last_seq; j < FFTnum; j++) {
+				seqs[i][j] = 0;
+			}
+		}
+	for (int i = 0; i < ch; i++) {
+		if (!add_fft_task(seqs[i], i))return nullptr;
+		seqs[i] = (double*)fftw_malloc(sizeof(double)*FFTnum);
+	}
+	fftsampnum++;
+	for (int n = 0; n < nb_fft_smp - 1; n++) {
+		for (int j = 0, k = smp_start_ch; j < FFTnum; j++) {
+			for (int i = 0; i < ch; i++, k++) {
+				seqs[i][j] = data[0][k];
+			}
+		}
+		smp_start_ch += FFTnum_ch;
+		for (int i = 0; i < ch; i++) {
+			if (!add_fft_task(seqs[i], i))return nullptr;
+			seqs[i] = (double*)fftw_malloc(sizeof(double)*FFTnum);
+		}
+		fftsampnum++;
+	}
+	if (nb_fft_smp < 1)nb_last_seq = 0;
+	else {
+		nb_last_seq = nb_samples + nb_last_seq - nb_fft_smp * FFTnum;
+		for (int j = 0, k = smp_start_ch; j < nb_last_seq; j++) {
+			for (int i = 0; i < ch; i++, k++) {
+				seqs[i][j] = data[0][k];
+			}
+		}
+	}
+	return seqs;
 }
 
 void BDMatch::Decode::subprogback(int type, double val)
@@ -529,14 +592,13 @@ void BDMatch::Decode::subprogback(int type, double val)
 
 BDMatch::FFmpeg::~FFmpeg()
 {
-	temp = nullptr;
-	if (sample_seq_l) {
-		delete sample_seq_l;
-		sample_seq_l = nullptr;
-	}
-	if (sample_seq_r) {
-		delete sample_seq_r;
-		sample_seq_r = nullptr;
+	if (sample_seqs) {
+		for (int ch = 0; ch < 2; ch++)if (sample_seqs[ch]) {
+			fftw_free(sample_seqs[ch]);
+			sample_seqs[ch] = nullptr;
+		}
+		delete[] sample_seqs;
+		sample_seqs = nullptr;
 	}
 	if (dst_data)
 		av_freep(&dst_data[0]);
@@ -594,12 +656,12 @@ int BDMatch::FFTC::FD8(double *inseq, node* outseq)
 	char *out = outseq->getdata();
 	for (int i = 0; i < outseq->size(); i++) {
 		double addx = inseq[i];
-		addx = 10 * log10(addx);
-		addx -= 15;
-		addx *= 256 / (15 - mindb);
-		addx += 127;
-		addx = min(addx, 127);
-		addx = max(addx, -128);
+		addx = 10.0 * log10(addx);
+		addx -= 15.0;
+		addx *= 256.0 / (15.0 - static_cast<double>(mindb));
+		addx += 127.0;
+		addx = min(addx, 127.0);
+		addx = max(addx, -128.0);
 		out[i] = static_cast<char>(addx);
 	}
 	out = nullptr;

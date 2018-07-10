@@ -1,6 +1,7 @@
 #include "MyForm.h"
-#define appversion "1.3.3"
-#define tvmaxnum 6
+#define appversion "1.3.4"
+#define tvmaxnum 12
+#define tvminnum 12
 #define secpurple 45
 #define setintnum 5
 
@@ -58,24 +59,24 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 			return -6;
 		}
 	}
-
 	do {
 		Application::DoEvents();
-	} while (tvdecode->getsamprate() == 0);
+	} while (tvdecode->getsamprate() == 0 && (tvdecode->getreturn() >= 0 || tvdecode->getreturn() == -100));
 	Decode^ bddecode = gcnew Decode(bdtext, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, tvdecode->getsamprate(), 2,
 		decodetasks, CancelSource->Token, plan, gcnew ProgressCallback(this, &MyForm::progsingle));//解码BD文件
 	Task^ bdTask = gcnew Task(gcnew Action(bddecode, &Decode::decodeaudio), CancelSource->Token);
-	try {
-		bdTask->Start();
+	if (tvdecode->getreturn() >= 0 || tvdecode->getreturn() == -100) {
+		try {
+			bdTask->Start();
+		}
+		catch (InvalidOperationException^ e) {
+			tvdecode->~Decode();
+			bddecode->~Decode();
+			fftw_destroy_plan(plan);
+			return -6;
+		}
+		decodetasks->Add(bdTask);
 	}
-	catch (InvalidOperationException^ e) {
-		tvdecode->~Decode();
-		bddecode->~Decode();
-		fftw_destroy_plan(plan);
-		return -6;
-	}
-	decodetasks->Add(bdTask);
-	
 	try {
 		Task::WaitAll(decodetasks->ToArray(), CancelSource->Token);
 	}
@@ -162,9 +163,9 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	array<timec^>^ timelist = gcnew array<timec^>(alltimematch->Count);//储存ass时间
 	std::vector<int>tvtime(alltimematch->Count), bdtime(alltimematch->Count);
 	int rightshift = static_cast<int>(log2(Setting->FFTnum));
-	double ttf = tvdecode->getsamprate() / double(tvdecode->getFFTnum() * 100);//Time to Frequency
-	double ftt = bddecode->getFFTnum() * 100 / double(bddecode->getsamprate()) * bddecode->getsampleratio();//Frequency to Time
-	int find0 = static_cast<int>(Setting->findfield * 100 * ttf);//查找范围
+	double ttf = tvdecode->getsamprate() / (static_cast<double>(tvdecode->getFFTnum()) * 100.0);//Time to Frequency
+	double ftt = bddecode->getFFTnum() * 100.0 / static_cast<double>(tvdecode->getsamprate());//Frequency to Time
+	int find0 = static_cast<int>(round(static_cast<double>(Setting->findfield) * 100.0 * ttf));//查找范围
 	//计算每行时间，屏蔽不必要的行
 	for (int i = 0; i < alltimematch->Count; i++) {
 		String^ match = alltimematch[i]->ToString();
@@ -177,8 +178,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		time = timematch[1]->Value;
 		int end = int::Parse(time[0].ToString()) * 360000 + int::Parse(time->Substring(2, 2)) * 6000 +
 			int::Parse(time->Substring(5, 2)) * 100 + int::Parse(time->Substring(8, 2)) + Setting->assoffset;
-		start = static_cast<int>(start * ttf);
-		end = static_cast<int>(end * ttf);
+		start = static_cast<int>(round(static_cast<double>(start) * ttf));
+		end = static_cast<int>(round(static_cast<double>(end) * ttf));
 		timelist[i] = gcnew timec(start, end, iscom, timehead);
 		if (iscom) {
 			tvtime[i] = -1;
@@ -263,16 +264,33 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			int findnum = (findend - findstart) / interval;
 			//初筛
 			int tvmax[tvmaxnum] , tvmaxtime[tvmaxnum];
+			int tvmin[tvminnum], tvmintime[tvminnum];
 			for (auto& j : tvmax) j = -128 * Setting->FFTnum / 2;
 			for (auto& j : tvmaxtime) j = 0;
+			for (auto& j : tvmin) j = 128 * Setting->FFTnum / 2;
+			for (auto& j : tvmintime) j = 0;
 			for (int j = 0; j <= duration; j++) {
-				if ((*tvfftdata)[0][j + tvtime[i]]->sum() > tvmax[0] || j == 0) {
-					for (int k = tvmaxnum - 1; k > 0; k--) {
-						tvmax[k] = tvmax[k - 1];
-						tvmaxtime[k] = tvmaxtime[k - 1];
+				for (int k = 0; k < tvmaxnum; k++) {
+					if ((*tvfftdata)[0][j + tvtime[i]]->sum() > tvmax[k] || j == 0) {
+						for (int m = tvmaxnum - 1; m > k; m--) {
+							tvmax[m] = tvmax[m - 1];
+							tvmaxtime[m] = tvmaxtime[m - 1];
+						}
+						tvmax[k] = (*tvfftdata)[0][j + tvtime[i]]->sum();
+						tvmaxtime[k] = j;
+						break;
 					}
-					tvmax[0] = (*tvfftdata)[0][j + tvtime[i]]->sum();
-					tvmaxtime[0] = j;
+				}
+				for (int k = 0; k < tvminnum; k++) {
+					if ((*tvfftdata)[0][j + tvtime[i]]->sum() < tvmin[k] || j == 0) {
+						for (int m = tvminnum - 1; m > k; m--) {
+							tvmin[m] = tvmin[m - 1];
+							tvmintime[m] = tvmintime[m - 1];
+						}
+						tvmin[k] = (*tvfftdata)[0][j + tvtime[i]]->sum();
+						tvmintime[k] = j;
+						break;
+					}
 				}
 			}
 			bdsearch bdse(findnum);
@@ -282,8 +300,11 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				for (int k = 0; k < tvmaxnum; k++) {
 					delta += labs((*bdfftdata)[0][bdtimein + tvmaxtime[k]]->sum() - tvmax[k]);
 				}
+				for (int k = 0; k < tvminnum; k++) {
+					delta += labs((*bdfftdata)[0][bdtimein + tvmintime[k]]->sum() - tvmin[k]);
+				}
 				delta = delta >> rightshift;
-				if (delta < 250)bdse.push(bdtimein, delta);
+				if (delta < 600)bdse.push(bdtimein, delta);
 			}
 			bdse.sort();
 			//精确匹配
@@ -394,8 +415,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				bddraw.timelist[i, 0] = timelist[i]->start();
 				bddraw.timelist[i, 1] = timelist[i]->end();
 			}
-			int start = static_cast<int>(timelist[i]->start() *ftt);
-			int end = static_cast<int>(timelist[i]->end() *ftt);
+			int start = static_cast<int>(round(static_cast<double>(timelist[i]->start()) *ftt));
+			int end = static_cast<int>(round(static_cast<double>(timelist[i]->end()) *ftt));
 			String^ starttime = mstotime(start);
 			String^ endtime = mstotime(end);
 			String^ replacetext = timelist[i]->head() + starttime + "," + endtime + ",";
@@ -494,8 +515,8 @@ int BDMatch::MyForm::drawpre(Decode ^ tvdecode, Decode ^ bddecode,int &re)
 		bddraw.ch = bddecode->getchannels();
 		tvdraw.milisec = tvdecode->getmilisecnum();
 		bddraw.milisec = bddecode->getmilisecnum();
-		tvdraw.ttf= tvdecode->getsamprate() / double(tvdecode->getFFTnum() * 100);
-		bddraw.ttf = bddecode->getsamprate() / bddecode->getsampleratio() / double(bddecode->getFFTnum() * 100);
+		tvdraw.ttf= tvdecode->getsamprate() / (static_cast<double>(tvdecode->getFFTnum()) * 100.0);
+		bddraw.ttf = tvdecode->getsamprate() / (static_cast<double>(bddecode->getFFTnum()) * 100.0);
 		ViewSel->SelectedIndex = 0;
 		ChSelect->SelectedIndex = 0;
 		ChSelect->Enabled = true;
@@ -533,9 +554,9 @@ int BDMatch::MyForm::drawchart()
 	TimeRoll->SmallChange = offset / 4;
 	int tvstart = 0, tvend = 0, bdstart = 0;
 	if (ViewSel->SelectedIndex == 0) {
-		tvstart = static_cast<int>((TimeRoll->Value - offset)* tvdraw.ttf);
-		tvend = static_cast<int>((TimeRoll->Value + offset)* tvdraw.ttf);
-		bdstart = static_cast<int>((TimeRoll->Value - offset)* bddraw.ttf);
+		tvstart = static_cast<int>(round((TimeRoll->Value - offset)* tvdraw.ttf));
+		tvend = static_cast<int>(round((TimeRoll->Value + offset)* tvdraw.ttf));
+		bdstart = static_cast<int>(round((TimeRoll->Value - offset)* bddraw.ttf));
 		ChartTime->Text = mstotime(TimeRoll->Value);
 	}
 	else {
@@ -553,8 +574,8 @@ int BDMatch::MyForm::drawchart()
 				+ bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 1]) / 2 - offset;
 		}
 		if (tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] == -1)ChartTime->Text = "未匹配！";
-		else ChartTime->Text = mstotime(static_cast<int>(tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / tvdraw.ttf) + 1)
-			+ "\n" + mstotime(static_cast<int>(bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / bddraw.ttf));
+		else ChartTime->Text = mstotime(static_cast<int>(round(tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / tvdraw.ttf)) + 1)
+			+ "\n" + mstotime(static_cast<int>(round(bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / bddraw.ttf)));
 	}
 	int duration = tvend - tvstart + 1;
 	Bitmap^ spectrum1 = gcnew Bitmap(duration, Setting->FFTnum);

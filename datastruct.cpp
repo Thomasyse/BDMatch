@@ -3,59 +3,6 @@
 #include <algorithm>  
 using namespace DataStruct;
 
-DataStruct::noded::noded(int num)
-{
-	count = num;
-	data = new double[count];
-	head = data;
-	end = data + count;
-	for (int i = 0; i < count; i++) *(data + i) = 0;
-}
-DataStruct::noded::noded(noded& a)
-{
-	count = a.size();
-	data = new double[count];
-	end = data + count;
-	head = data + a.gethead();
-	for (int i = 0; i < count; i++)
-		*(data + i) = *(a.data + i);
-}
-double DataStruct::noded::read0(const int &pos)
-{
-	return *(data + pos);
-	return 0;
-}
-int DataStruct::noded::add(const double &val)
-{
-	*head = val;
-	if (++head >= end) head = data;
-	return 0;
-}
-double DataStruct::noded::maxabs()
-{
-	double maxx = fabs(*data);
-	for (int i = 1; i < count; i++) {
-		if (fabs(*(data + i)) > maxx) maxx = fabs(*(data + i));
-	}
-	return maxx;
-}
-int DataStruct::noded::size()
-{
-	return count;
-}
-int DataStruct::noded::gethead()
-{
-	return (head - data);
-}
-DataStruct::noded::~noded()
-{
-	if (data) {
-		delete[] data;
-		data = nullptr;
-	}
-}
-
-
 DataStruct::node::node(const int &num)
 {
 	count = num;
@@ -81,10 +28,12 @@ char * DataStruct::node::getdata()
 #pragma managed
 int DataStruct::node::sum()
 {
-	int sum = 0;
-	for (int i = 0; i < count; i++)
-		sum += *(data + i);
-	return sum;
+	if (sumval == -2147483648) {
+		sumval = 0;
+		for (int i = 0; i < count; i++)
+			sumval += *(data + i);
+	}
+	return sumval;
 }
 char DataStruct::node::maxv()
 {

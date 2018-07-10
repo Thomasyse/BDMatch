@@ -10,23 +10,6 @@
 
 namespace DataStruct {
 	
-	public class noded
-	{
-	public:
-		noded(int num);
-		noded(noded& a);
-		double read0(const int &pos);
-		int add(const double &val);
-		double maxabs();
-		int size();
-		int gethead();
-		~noded();
-	private:
-		int count = 0;
-		double *head = nullptr;
-		double *end = nullptr;
-		double *data = nullptr;
-	};
 	
 	public class node
 	{
@@ -41,6 +24,7 @@ namespace DataStruct {
 		~node();
 	private:
 		int count = 0;
+		int sumval = -2147483648;
 		char *data = nullptr;
 	};
 
@@ -142,7 +126,7 @@ namespace DataStruct {
 		int minfinddb = -12;
 		int findfield = 10;
 		int maxlength = 20;
-		int minchecknum = 60;
+		int minchecknum = 80;
 		int assoffset = 0;
 		bool outputpcm = false;
 		bool draw = false;
