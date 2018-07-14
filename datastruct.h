@@ -23,8 +23,8 @@ namespace DataStruct {
 		int size();
 		~node();
 	private:
+		int sumval = -2147483647;
 		int count = 0;
-		int sumval = -2147483648;
 		char *data = nullptr;
 	};
 
@@ -34,11 +34,21 @@ namespace DataStruct {
 		bdsearch(const int &num);
 		int push(const int &time, const int &diff);
 		int read(const int &pos);
-		int find(int searchnum, const int &retype);
+		int find(const int &searchnum, const int &retype);
 		int sort();
 		int size();
 	private:
 		std::vector<std::array<int, 2>>bditem;
+	};
+
+	public class se_re
+	{
+	public:
+		se_re();
+		long long& operator[](const int &index);
+		se_re(se_re &in);
+	private:
+		long long data[2] = { 922372036854775808,0 };
 	};
 
 	using namespace System;
@@ -61,56 +71,56 @@ namespace DataStruct {
 		String^ head1;
 	};
 
-	
-	ref class Var {
-	public:
-		Var(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
-			int tvstart0, int bdstart0, int duration0, int ch0, int ISAMode0,
-			int minchecknum0, int checkfield0, long long *diffa0);
-		long long caldiff();
-	private:
-		std::vector<std::vector<node*>>* tv;
-		std::vector<std::vector<node*>>* bd;
-		int tvstart;
-		int bdstart;
-		int duration;
-		int ch;
-		int ISAMode;
-		int minchecknum;
-		int checkfield;
-		long long *diffa;
-	};
-
 	class Varcal {
 	public:
-		Varcal(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
-			int tvstart0, int bdstart0, int duration0, int ch0, long long *diffa0);
-		virtual long long caldiff();
+		Varcal(std::vector<std::vector<node*>>* const & tv0, std::vector<std::vector<node*>>* const & bd0, bdsearch *& const bdse0,
+			const int &tvstart0, const int &sestart0, const int &seend0, const int &duration0, const int &ch0, const int &minchecknum0,
+			const int &checkfield0, long long *&diffa0, se_re *& re0);
+		virtual int caldiff();
 	protected:
-		std::vector<std::vector<node*>>* tv;
-		std::vector<std::vector<node*>>* bd;
-		int tvstart;
-		int bdstart;
-		int duration;
-		int ch;
-		int size;
-		long long *diffa;
+		std::vector<std::vector<node*>>* const &tv;
+		std::vector<std::vector<node*>>* const &bd;
+		int tvstart = 0;
+		int sestart = 0;
+		int seend = 0;
+		int duration = 0;
+		int ch = 0;
+		int minchecknum = 0;
+		int checkfield = 0;
+		int size = 0;
+		bdsearch *&bdse;
+		long long *&diffa;
+		se_re *re;
 	};
 
-	class Varcalsse:public Varcal {
+	class Varcalsse :public Varcal {
 	public:
-		Varcalsse(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
-			int tvstart0, int bdstart0, int duration0, int ch0, long long* diffa0)
-			:Varcal(tv0, bd0, tvstart0, bdstart0, duration0, ch0, diffa0) {}
-		long long caldiff();
+		Varcalsse(std::vector<std::vector<node*>>* const & tv0, std::vector<std::vector<node*>>* const & bd0, bdsearch *& const bdse0,
+			const int &tvstart0, const int &sestart0, const int &seend0, const int &duration0, const int &ch0, const int &minchecknum0,
+			const int &checkfield0, long long *&diffa0, se_re *& re0)
+			:Varcal(tv0, bd0, bdse0, tvstart0, sestart0, seend0, duration0, ch0, minchecknum0, checkfield0, diffa0, re0) {}
+		int caldiff();
 	};
 
-	class Varcalavx2:public Varcal {
+	class Varcalavx2 :public Varcal {
 	public:
-		Varcalavx2(std::vector<std::vector<node*>>* tv0, std::vector<std::vector<node*>>* bd0,
-			int tvstart0, int bdstart0, int duration0, int ch0, long long* diffa0)
-			:Varcal(tv0, bd0, tvstart0, bdstart0, duration0, ch0, diffa0) {}
-		long long caldiff();
+		Varcalavx2(std::vector<std::vector<node*>>* const & tv0, std::vector<std::vector<node*>>* const & bd0, bdsearch *& const bdse0,
+			const int &tvstart0, const int &sestart0, const int &seend0, const int &duration0, const int &ch0, const int &minchecknum0,
+			const int &checkfield0, long long *&diffa0, se_re *& re0)
+			:Varcal(tv0, bd0, bdse0, tvstart0, sestart0, seend0, duration0, ch0, minchecknum0, checkfield0, diffa0, re0) {}
+		int caldiff();
+	};
+
+	ref class Var {
+	public:
+		Var(std::vector<std::vector<node*>>* const & tv, std::vector<std::vector<node*>>* const & bd, bdsearch *& const bdse0,
+			const int &tvstart, const int &sestart0, const int &seend0, const int &duration, const int &ch, int ISAMode,
+			const int &minchecknum0, const int &checkfield0, long long *&diffa0, se_re *& re);
+		~Var();
+		int caldiff();
+	private:
+		Varcal * varcal = nullptr;
+		long long *&diffa;
 	};
 
 	enum SettingType { FFTNum, MinCheckNum, FindField, MinFinddB, MaxLength, AssOffset, OutputPCM, Draw, MatchAss, ParallelDecode, FastMatch };

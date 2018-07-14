@@ -39,7 +39,8 @@ namespace BDMatch{
 
 	public delegate void ProgressCallback(int type, double val = 0);
 
-	struct FFmpeg {
+	struct FFmpeg 
+	{
 	public:
 		~FFmpeg();
 		AVFormatContext * filefm = NULL;
@@ -52,11 +53,38 @@ namespace BDMatch{
 		struct SwrContext *swr_ctx = NULL;
 	};
 
+	class Normalization 
+	{
+	public:
+		Normalization(uint8_t ** const &audiodata0, double ** &normalized_samples0, double ** &seqs0, int &nb_last_seq,
+			const int &realch0, const int &filech0, const int &nb_samples0, const int &sampletype0, const int &FFTnum0);
+		virtual int getshiftf();
+	protected:
+		uint8_t **audiodata = nullptr;
+		const int &realch;
+		const int &filech;
+		const int &nb_samples;
+		const int &sampletype;
+		const int &FFTnum;
+		int &nb_last;
+		double ** &seqs;
+		double **&normalized_samples;
+	};
+
+	class Normalizationavx2:public Normalization
+	{
+	public:
+		Normalizationavx2(uint8_t ** const &audiodata0, double ** &normalized_samples0, double ** &seqs0, int &nb_last_seq,
+			const int &realch0, const int &filech0, const int &nb_samples0, const int &sampletype0, const int &FFTnum0)
+			:Normalization(audiodata0, normalized_samples0, seqs0, nb_last_seq, realch0, filech0, nb_samples0, sampletype0, FFTnum0) {}
+		int getshiftf();
+	};
+
 	ref class Decode
 	{
 	public:
 		Decode(String^ filename0, int FFTnum0, bool outputpcm0, int mindb0, int resamprate0, int progtype0,
-			List<Task^>^ tasks0, System::Threading::CancellationToken canceltoken0, fftw_plan plan0, ProgressCallback^ progback0);
+			List<Task^>^ tasks0, System::Threading::CancellationToken canceltoken0, fftw_plan plan0, int ISAMode0, ProgressCallback^ progback0);
 		~Decode();
 		void decodeaudio();
 		String^ getfeedback();
@@ -71,10 +99,8 @@ namespace BDMatch{
 		std::vector<std::vector<node*>>* getfftdata();
 		ProgressCallback^ progback = nullptr;
 	private:
-		double **getshiftf(uint8_t ** audiodata, const int &realch, const int &filech, const int &nb_samples, const int &sampletype);
-		bool add_fft_task(double *sample_seq, const int &ch);
-		double **fetch_data_planar(double **&data, double **seqs, int &nb_last_seq, const int &nb_samples, const int &ch);
-		double **fetch_data_linear(double **&data, double **seqs, int &nb_last_seq, const int &nb_samples, const int &ch);
+		bool add_fft_task(std::vector<std::vector<node*>>* &fftdata, fftw_plan &p, double **sample_seq, const int &FFTnum,
+			const double&c_mindb, const int &ISAMode, const int &filech, const int &nb_fft_samples);
 		void subprogback(int type, double val);
 		int clearfftdata();
 		String^ filename;
@@ -97,27 +123,65 @@ namespace BDMatch{
 		int progtype = 0;
 		int decodednum = 0;
 		int start_time = 0;
+		int ISAMode = 0;
+		double c_mindb = 0.0;
 		double progval = 0.0;
 		bool outputpcm = false;
 		bool audioonly = false;
 		FFmpeg *ffmpeg = nullptr;
 	};
 
+	class FFTCal
+	{
+	public:
+		FFTCal(std::vector<std::vector<node*>>*& nodes0, fftw_plan &p0, double**& in0, const int &FFTnum0,
+			const double &c_mindb0, const int &filech0, const int &fft_index0, const int &nb_fft0);
+		~FFTCal();
+		virtual void FFT();
+		virtual int FD8(double* inseq, node*& outseq);
+	protected:
+		int fft_index = 0;
+		int nb_fft = 0;
+		int FFTnum = 0;
+		int filech = 0;
+		double c_mindb = 0;
+		std::vector<std::vector<node*>>* nodes = nullptr;
+		fftw_plan p = nullptr;
+		double** in = nullptr;
+	};
+
+	class FFTCalsse :public FFTCal
+	{
+	public:
+		FFTCalsse(std::vector<std::vector<node*>>*& nodes0, fftw_plan &p0, double**& in0, const int &FFTnum0,
+			const double &c_mindb0, const int &filech0, const int &fft_index0, const int &nb_fft0)
+			:FFTCal(nodes0, p0, in0, FFTnum0, c_mindb0, filech0, fft_index0, nb_fft0) {}
+		void FFT();
+		int FD8(double* inseq, node*& outseq);
+	};
+
+	class FFTCalavx :public FFTCal
+	{
+	public:
+		FFTCalavx(std::vector<std::vector<node*>>*& nodes0, fftw_plan &p0, double**& in0, const int &FFTnum0,
+			const double &c_mindb0, const int &filech0, const int &fft_index0, const int &nb_fft0)
+			:FFTCal(nodes0, p0, in0, FFTnum0, c_mindb0, filech0, fft_index0, nb_fft0) {}
+		void FFT();
+		int FD8(double* inseq, node*& outseq);
+	};
+
 	ref class FFTC
 	{
 	public:
-		FFTC(node* fftseq0, fftw_plan p0, double* in0, int mindb0, ProgressCallback^ progback0);
+		FFTC(std::vector<std::vector<node*>>*& fftdata, fftw_plan &p, double**& in, const int& FFTnum, const double &c_mindb,
+			const int &ISAMode, const int &filech, const int &fft_index, const int &nb_fft0, ProgressCallback^ progback0);
 		~FFTC();
 		void FFT();
 	private:
-		int FFTnum;
-		int mindb;
+		FFTCal * fftcal = nullptr;
+		int nb_fft = 0;
 		ProgressCallback^ progback = nullptr;
-		node* fftseq = nullptr;
-		fftw_plan p = nullptr;
-		fftw_complex* out = nullptr;
-		double *in = nullptr;
-		int FD8(double* inseq, node* outseq);
 	};
+
 }
 

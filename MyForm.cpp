@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.3.4"
+#define appversion "1.3.5"
 #define tvmaxnum 12
 #define tvminnum 12
 #define secpurple 45
@@ -38,12 +38,13 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	fftw_free(in);
 	fftw_free(out);
 	Decode^ tvdecode = gcnew Decode(tvtext, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, 0, 1,
-		decodetasks, CancelSource->Token, plan, gcnew ProgressCallback(this, &MyForm::progsingle));//解码TV文件
+		decodetasks, CancelSource->Token, plan, ISAMode, gcnew ProgressCallback(this, &MyForm::progsingle));//解码TV文件
 	Task^ tvTask = gcnew Task(gcnew Action(tvdecode, &Decode::decodeaudio), CancelSource->Token);
 	try {
 		tvTask->Start();
 	}
 	catch (InvalidOperationException^ e) {
+		decodetasks->Clear();
 		tvdecode->~Decode();
 		fftw_destroy_plan(plan);
 		return -6;
@@ -55,6 +56,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		}
 		catch (OperationCanceledException^ e) {
 			tvdecode->~Decode();
+			decodetasks->Clear();
 			fftw_destroy_plan(plan);
 			return -6;
 		}
@@ -63,7 +65,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		Application::DoEvents();
 	} while (tvdecode->getsamprate() == 0 && (tvdecode->getreturn() >= 0 || tvdecode->getreturn() == -100));
 	Decode^ bddecode = gcnew Decode(bdtext, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, tvdecode->getsamprate(), 2,
-		decodetasks, CancelSource->Token, plan, gcnew ProgressCallback(this, &MyForm::progsingle));//解码BD文件
+		decodetasks, CancelSource->Token, plan, ISAMode, gcnew ProgressCallback(this, &MyForm::progsingle));//解码BD文件
 	Task^ bdTask = gcnew Task(gcnew Action(bddecode, &Decode::decodeaudio), CancelSource->Token);
 	if (tvdecode->getreturn() >= 0 || tvdecode->getreturn() == -100) {
 		try {
@@ -72,6 +74,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		catch (InvalidOperationException^ e) {
 			tvdecode->~Decode();
 			bddecode->~Decode();
+			decodetasks->Clear();
 			fftw_destroy_plan(plan);
 			return -6;
 		}
@@ -83,14 +86,13 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	catch (OperationCanceledException^ e) {
 		tvdecode->~Decode();
 		bddecode->~Decode();
+		decodetasks->Clear();
 		fftw_destroy_plan(plan);
 		return -6;
 	}
-	fftw_destroy_plan(plan);
 	//输出解码时间
 	long end = clock();
 	double spend = double(end - start) / (double)CLOCKS_PER_SEC;
-
 	Result->Text += "TV文件：  " + tvtext->Substring(tvtext->LastIndexOf("\\") + 1) + "\r\n" + tvdecode->getfeedback();
 	Result->Text += "\r\nBD文件：  " + bdtext->Substring(bdtext->LastIndexOf("\\") + 1) + "\r\n" + bddecode->getfeedback() +
 		"\r\n解码时间：" + spend.ToString() + "秒";
@@ -99,6 +101,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		bddecode->~Decode();
 		return -4;
 	}
+	fftw_destroy_plan(plan);
 	int re = 0;
 	if (Setting->matchass) {
 		re = writeass(tvdecode, bddecode, asstext);
@@ -248,7 +251,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		fivesec = static_cast<int>(500 * ttf);
 		Result->Text += "\r\n信息：使用快速匹配。";
 	}
-	long long *diffa = new long long[3];
+	int nb_per_task = min(24, find0 / Environment::ProcessorCount / interval);
+	int nb_tasks = ceil(static_cast<double>(find0 / interval) / static_cast<double>(nb_per_task));
 	for (int i = 0; i < alltimematch->Count; i++) {
 		if (tvtime[i] >= 0) {
 			if (Setting->fastmatch && offset && lastlinetime > fivesec && tvtime[i - 1] > 0 && labs(tvtime[i] - lastlinetime) < fivesec) {
@@ -307,7 +311,9 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				if (delta < 600)bdse.push(bdtimein, delta);
 			}
 			bdse.sort();
+			bdsearch *bdse_ptr = &bdse;
 			//精确匹配
+			long long *diffa = new long long[3];
 			diffa[0] = 922372036854775808;
 			diffa[1] = 0;
 			int minchecknumcal = Setting->minchecknum;
@@ -315,20 +321,26 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			else if (Setting->fastmatch)minchecknumcal = Setting->minchecknum / 2 * 3;
 			int checkfield = minchecknumcal * interval;
 			diffa[2] = minchecknumcal;
-			List<Task<long long>^>^ tasks = gcnew List<Task<long long>^>();
-			for (int j = 0; j < bdse.size(); j++) {
-				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, tvtime[i], bdse.read(j),
-					duration, ch, ISAMode, minchecknumcal, checkfield, diffa);
-				Task<long long>^ varTask = gcnew Task<long long>(gcnew Func<long long>(calvar, &Var::caldiff), CancelSource->Token);
-				if (varTask->Status != System::Threading::Tasks::TaskStatus::Canceled)varTask->Start();
+			List<Task<int>^>^ tasks = gcnew List<Task<int>^>();
+			//int nb_tasks = Environment::ProcessorCount * 4;
+			se_re *search_result = new se_re[nb_tasks];
+			se_re *se_re_ptr = search_result;
+			for (int j = 0; j < nb_tasks; j++) {
+				int sestart = j * nb_per_task;
+				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, bdse_ptr, tvtime[i], sestart, min(sestart + nb_per_task, bdse.size()),
+					duration, ch, ISAMode, minchecknumcal, checkfield, diffa, se_re_ptr);
+				Task<int>^ varTask = gcnew Task<int>(gcnew Func<int>(calvar, &Var::caldiff), CancelSource->Token);
+				if (!CancelSource->IsCancellationRequested)varTask->Start();
 				else {
 					tvdecode->~Decode();
 					bddecode->~Decode();
 					delete[] diffa;
+					delete[] search_result;
 					Result->Text += "\r\n\r\n用户中止操作。";
 					return -2;
 				}
 				tasks->Add(varTask);
+				se_re_ptr++;
 			}
 			try {
 				Task::WaitAll(tasks->ToArray(), CancelSource->Token);
@@ -337,15 +349,17 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				tvdecode->~Decode();
 				bddecode->~Decode();
 				delete[] diffa;
+				delete[] search_result;
 				Result->Text += "\r\n\r\n用户中止操作。";
 				return -2;
 			}
 			long long minsum = 922372036854775808;
 			int besttime = 0;
-			for (int j = 0; j < tasks->Count; j++) {
-				if (tasks[j]->Result >= 0 && tasks[j]->Result < minsum) {
-					besttime = bdse.read(j);
-					minsum = tasks[j]->Result;
+			for (int j = 0; j < nb_tasks; j++) {
+				long long sum = search_result[j][0];
+				if (sum < minsum) {
+					besttime = search_result[j][1];
+					minsum = sum;
 				}
 			}
 			bdtime[i] = besttime;
@@ -377,10 +391,11 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				offset = bdtime[i] - tvtime[i];
 				lastlinetime = tvtime[i];
 			}
+			delete[] search_result;
+			delete[] diffa;
 		}
 		progsingle(3, (i + 1) / static_cast<double>(alltimematch->Count));
 	}
-	delete diffa;
 	//调试用->
 	if (debugmode) {
 		aveindex /= alltimematch->Count / 100.0;
@@ -1019,15 +1034,19 @@ int BDMatch::MyForm::searchISA()
 	Result->Text += marshal_as<String^>(InstructionSet::Brand());
 	ISAMode = 0;
 	if (InstructionSet::AVX2() && InstructionSet::AVX()) {
+		ISAMode = 3;
+		Result->Text += "：使用AVX、AVX2指令集加速。";
+	}
+	else if (InstructionSet::AVX()) {
 		ISAMode = 2;
-		Result->Text += "：使用AVX、AVX2指令集加速匹配。";
+		Result->Text += "：使用SSE2、SSSE3、SSE4.1、AVX指令集加速。";
 	}
 	else if (InstructionSet::SSE41() && InstructionSet::SSE2() && InstructionSet::SSSE3()) {
 		ISAMode = 1;
-		Result->Text += "：使用SSE2、SSSE3、SSE4.1指令集加速匹配。";
+		Result->Text += "：使用SSE2、SSSE3、SSE4.1指令集加速。";
 	}
 	else {
-		Result->Text += "：不使用增强指令集加速匹配。";
+		Result->Text += "：不使用增强指令集加速。";
 	}
 	Result->Text += "\r\n----------------------------------------------------------------------------------------------";
 	return 0;
