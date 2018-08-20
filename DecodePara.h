@@ -122,7 +122,7 @@ namespace BDMatch{
 		int returnval = -100;
 		int progtype = 0;
 		int decodednum = 0;
-		int start_time = 0;
+		long long start_time = 0;
 		int ISAMode = 0;
 		double c_mindb = 0.0;
 		double progval = 0.0;

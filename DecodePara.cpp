@@ -286,8 +286,8 @@ void BDMatch::Decode::decodeaudio()
 				uint8_t **audiodata;
 				//ÖØ²ÉÑù
 				if (resamp) {
-					nb_samples =
-						av_rescale_rnd(decoded_frame->nb_samples, resamprate, samplerate, AV_ROUND_ZERO);
+					nb_samples = static_cast<int>(
+						av_rescale_rnd(decoded_frame->nb_samples, resamprate, samplerate, AV_ROUND_ZERO));
 					ret = av_samples_alloc_array_and_samples(&dst_data, &dst_linesize, channels,
 						nb_samples, codecfm->sample_fmt, 0);
 					if (ret < 0) {
@@ -461,7 +461,7 @@ bool BDMatch::Decode::add_fft_task(std::vector<std::vector<node*>>* &fftdata, ff
 
 void BDMatch::Decode::subprogback(int type, double val)
 {
-	decodednum += val;
+	decodednum += static_cast<int>(val);
 	double temp = decodednum / static_cast<double>(efftnum);
 	if (temp >= progval + 0.02 || temp == 0) {
 		progval = temp;

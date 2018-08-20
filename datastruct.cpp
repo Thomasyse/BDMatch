@@ -154,7 +154,7 @@ String ^ DataStruct::timec::head(String ^ head0)
 	return "";
 }
 
-DataStruct::Varcal::Varcal(std::vector<std::vector<node*>>* const & tv0, std::vector<std::vector<node*>>* const & bd0, bdsearch *& const bdse0,
+DataStruct::Varcal::Varcal(std::vector<std::vector<node*>>* const & tv0, std::vector<std::vector<node*>>* const & bd0, bdsearch *& bdse0,
 	const int &tvstart0, const int &sestart0, const int &seend0, const int &duration0, const int &ch0, const int &minchecknum0,
 	const int &checkfield0, long long *&diffa0, se_re *& re0)
 	:tv(tv0),bd(bd0),bdse(bdse0),diffa(diffa0)
@@ -205,7 +205,7 @@ int DataStruct::Varcal::caldiff()
 			_InterlockedExchange64(diffa + 1, result[1]);
 			_InterlockedExchange64(diffa + 2, minchecknum);
 		}
-		else if (labs(bdstart - diffa[1]) <= checkfield) _InterlockedDecrement64(diffa + 2);
+		else if (labs(bdstart - static_cast<int>(diffa[1])) <= checkfield) _InterlockedDecrement64(diffa + 2);
 		if (diffa[2] <= 0) {
 			*re = result;
 			return -1;
@@ -267,7 +267,7 @@ int DataStruct::Varcalsse::caldiff()
 			_InterlockedExchange64(diffa + 1, result[1]);
 			_InterlockedExchange64(diffa + 2, minchecknum);
 		}
-		else if (labs(bdstart - diffa[1]) <= checkfield) _InterlockedDecrement64(diffa + 2);
+		else if (labs(bdstart - static_cast<int>(diffa[1])) <= checkfield) _InterlockedDecrement64(diffa + 2);
 		if (diffa[2] <= 0) {
 			*re = result;
 			return -1;
@@ -335,7 +335,7 @@ int DataStruct::Varcalavx2::caldiff()
 			_InterlockedExchange64(diffa + 1, result[1]);
 			_InterlockedExchange64(diffa + 2, minchecknum);
 		}
-		else if (labs(bdstart - diffa[1]) <= checkfield) _InterlockedDecrement64(diffa + 2);
+		else if (labs(bdstart - static_cast<int>(diffa[1])) <= checkfield) _InterlockedDecrement64(diffa + 2);
 		if (diffa[2] <= 0) {
 			*re = result;
 			return -1;
@@ -347,7 +347,7 @@ int DataStruct::Varcalavx2::caldiff()
 }
 #pragma managed
 
-DataStruct::Var::Var(std::vector<std::vector<node*>>* const & tv, std::vector<std::vector<node*>>* const & bd, bdsearch *& const bdse0,
+DataStruct::Var::Var(std::vector<std::vector<node*>>* const & tv, std::vector<std::vector<node*>>* const & bd, bdsearch *& bdse0,
 	const int &tvstart, const int &sestart0, const int &seend0, const int &duration, const int &ch, int ISAMode,
 	const int &minchecknum0, const int &checkfield0, long long *&diffa0, se_re *& re)
 	:diffa(diffa0)

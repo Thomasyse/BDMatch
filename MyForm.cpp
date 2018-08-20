@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.3.5"
+#define appversion "1.3.6"
 #define tvmaxnum 12
 #define tvminnum 12
 #define secpurple 45
@@ -43,7 +43,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	try {
 		tvTask->Start();
 	}
-	catch (InvalidOperationException^ e) {
+	catch (InvalidOperationException^) {
 		decodetasks->Clear();
 		tvdecode->~Decode();
 		fftw_destroy_plan(plan);
@@ -54,7 +54,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		try {
 			tvTask->Wait(CancelSource->Token);
 		}
-		catch (OperationCanceledException^ e) {
+		catch (OperationCanceledException^) {
 			tvdecode->~Decode();
 			decodetasks->Clear();
 			fftw_destroy_plan(plan);
@@ -71,7 +71,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		try {
 			bdTask->Start();
 		}
-		catch (InvalidOperationException^ e) {
+		catch (InvalidOperationException^) {
 			tvdecode->~Decode();
 			bddecode->~Decode();
 			decodetasks->Clear();
@@ -83,7 +83,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	try {
 		Task::WaitAll(decodetasks->ToArray(), CancelSource->Token);
 	}
-	catch (OperationCanceledException^ e) {
+	catch (OperationCanceledException^) {
 		tvdecode->~Decode();
 		bddecode->~Decode();
 		decodetasks->Clear();
@@ -252,7 +252,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		Result->Text += "\r\n信息：使用快速匹配。";
 	}
 	int nb_per_task = min(24, find0 / Environment::ProcessorCount / interval);
-	int nb_tasks = ceil(static_cast<double>(find0 / interval) / static_cast<double>(nb_per_task));
+	int nb_tasks = static_cast<int>(ceil(static_cast<double>(find0 / interval) / static_cast<double>(nb_per_task)));
 	for (int i = 0; i < alltimematch->Count; i++) {
 		if (tvtime[i] >= 0) {
 			if (Setting->fastmatch && offset && lastlinetime > fivesec && tvtime[i - 1] > 0 && labs(tvtime[i] - lastlinetime) < fivesec) {
@@ -358,7 +358,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			for (int j = 0; j < nb_tasks; j++) {
 				long long sum = search_result[j][0];
 				if (sum < minsum) {
-					besttime = search_result[j][1];
+					besttime = static_cast<int>(search_result[j][1]);
 					minsum = sum;
 				}
 			}

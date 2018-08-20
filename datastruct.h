@@ -73,7 +73,7 @@ namespace DataStruct {
 
 	class Varcal {
 	public:
-		Varcal(std::vector<std::vector<node*>>* const & tv0, std::vector<std::vector<node*>>* const & bd0, bdsearch *& const bdse0,
+		Varcal(std::vector<std::vector<node*>>* const & tv0, std::vector<std::vector<node*>>* const & bd0, bdsearch *& bdse0,
 			const int &tvstart0, const int &sestart0, const int &seend0, const int &duration0, const int &ch0, const int &minchecknum0,
 			const int &checkfield0, long long *&diffa0, se_re *& re0);
 		virtual int caldiff();
@@ -95,7 +95,7 @@ namespace DataStruct {
 
 	class Varcalsse :public Varcal {
 	public:
-		Varcalsse(std::vector<std::vector<node*>>* const & tv0, std::vector<std::vector<node*>>* const & bd0, bdsearch *& const bdse0,
+		Varcalsse(std::vector<std::vector<node*>>* const & tv0, std::vector<std::vector<node*>>* const & bd0, bdsearch *& bdse0,
 			const int &tvstart0, const int &sestart0, const int &seend0, const int &duration0, const int &ch0, const int &minchecknum0,
 			const int &checkfield0, long long *&diffa0, se_re *& re0)
 			:Varcal(tv0, bd0, bdse0, tvstart0, sestart0, seend0, duration0, ch0, minchecknum0, checkfield0, diffa0, re0) {}
@@ -104,7 +104,7 @@ namespace DataStruct {
 
 	class Varcalavx2 :public Varcal {
 	public:
-		Varcalavx2(std::vector<std::vector<node*>>* const & tv0, std::vector<std::vector<node*>>* const & bd0, bdsearch *& const bdse0,
+		Varcalavx2(std::vector<std::vector<node*>>* const & tv0, std::vector<std::vector<node*>>* const & bd0, bdsearch *& bdse0,
 			const int &tvstart0, const int &sestart0, const int &seend0, const int &duration0, const int &ch0, const int &minchecknum0,
 			const int &checkfield0, long long *&diffa0, se_re *& re0)
 			:Varcal(tv0, bd0, bdse0, tvstart0, sestart0, seend0, duration0, ch0, minchecknum0, checkfield0, diffa0, re0) {}
@@ -113,7 +113,7 @@ namespace DataStruct {
 
 	ref class Var {
 	public:
-		Var(std::vector<std::vector<node*>>* const & tv, std::vector<std::vector<node*>>* const & bd, bdsearch *& const bdse0,
+		Var(std::vector<std::vector<node*>>* const & tv, std::vector<std::vector<node*>>* const & bd, bdsearch *& bdse0,
 			const int &tvstart, const int &sestart0, const int &seend0, const int &duration, const int &ch, int ISAMode,
 			const int &minchecknum0, const int &checkfield0, long long *&diffa0, se_re *& re);
 		~Var();
