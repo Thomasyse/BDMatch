@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.3.6"
+#define appversion "1.3.7"
 #define tvmaxnum 12
 #define tvminnum 12
 #define secpurple 45
@@ -9,7 +9,6 @@ using namespace BDMatch;
 [STAThreadAttribute]
 int main(array<System::String^>^args)
 {
-	av_register_all();
 	Application::EnableVisualStyles();
 	MyForm^ myform = gcnew MyForm();
 	Application::Run(myform);
@@ -345,7 +344,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			try {
 				Task::WaitAll(tasks->ToArray(), CancelSource->Token);
 			}
-			catch (OperationCanceledException^ e) {
+			catch (OperationCanceledException^) {
 				tvdecode->~Decode();
 				bddecode->~Decode();
 				delete[] diffa;
@@ -855,7 +854,7 @@ int BDMatch::MyForm::matchinput()
 		Result->Text += "\r\n批量处理将不作声谱图。";
 		Setting->draw = false;
 	}
-	for (int index = 0; index < matches_num; index++) {
+	for (int index = 0; index < static_cast<int>(matches_num); index++) {
 		asstext = assmatch_all[index]->Value->Replace("\"", "");
 		tvtext = tvmatch_all[index]->Value->Replace("\"", "");
 		bdtext = bdmatch_all[index]->Value->Replace("\"", "");
@@ -1358,7 +1357,7 @@ System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::Event
 
 System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nBy Thomasys, 2018\n\nReference:\nFFmpeg 4.0\nFFTW 3.3.7\n" +
+	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nBy Thomasys, 2018\n\nReference:\nFFmpeg 4.0.2\nFFTW 3.3.7\n" +
 		"Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005). ", "关于", MessageBoxButtons::OK);
 	return System::Void();
 }
