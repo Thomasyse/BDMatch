@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.3.7"
+#define appversion "1.3.8"
 #define tvmaxnum 12
 #define tvminnum 12
 #define secpurple 45
@@ -1024,7 +1024,9 @@ int BDMatch::MyForm::matchinput()
 		adddropdown(ASStext, ASStext->Text);
 		adddropdown(TVtext, TVtext->Text);
 		adddropdown(BDtext, BDtext->Text);
+		taskbar->ProgressState(TBPFLAG::TBPF_NOPROGRESS);
 	}
+	else taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 	matchcontrol(true);
 	return 0;
 }
@@ -1096,6 +1098,7 @@ void BDMatch::MyForm::progsingle(int type, double val)
 		progval[1] = val;
 		break;
 	case 3:
+		if (val < progval[2] + 0.02)return System::Void();
 		progval[2] = val;
 		progval[0] = 1;
 		progval[1] = 1;
@@ -1115,13 +1118,39 @@ void BDMatch::MyForm::progsingle(int type, double val)
 }
 void BDMatch::MyForm::progtotal()
 {
-	double val = TotalProgress->Maximum *(fin_matches_num + (fin_match_num
+	double val = TotalProgress->Maximum * (fin_matches_num + (fin_match_num
 		+ SingleProgress->Value / static_cast<double>(SingleProgress->Maximum)) / static_cast<double>(match_num))
 		/ static_cast<double>(matches_num);
 	TotalProgress->Value = static_cast<int>(val);
+	taskbar->ProgressValue(static_cast<unsigned long long>(val), 
+		static_cast<unsigned long long>(TotalProgress->Maximum));
 	return System::Void();
 }
 
+
+System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	if (Match->Text == "匹配") {
+		if (ASStext->Text == "debug mode") {
+			debugmode = !debugmode;
+			Result->Text = debugmode ? "调试模式打开。" : "调试模式关闭";
+			return System::Void();
+		}
+		matchcontrol(false);
+		drawstore = Setting->draw;
+		CancelSource = gcnew System::Threading::CancellationTokenSource();
+		Task<int>^matchtask = gcnew Task<int>(gcnew Func<int>(this, &MyForm::matchinput), TaskCreationOptions::LongRunning);
+		taskbar->ProgressState(TBPFLAG::TBPF_NORMAL);
+		matchtask->Start();
+	}
+	else {
+		CancelSource->Cancel();
+		Setting->draw = drawstore;
+		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
+		matchcontrol(true);
+	}
+	return System::Void();
+}
 
 System::Void BDMatch::MyForm::MyForm_Load(System::Object ^ sender, System::EventArgs ^ e)
 {
@@ -1131,12 +1160,14 @@ System::Void BDMatch::MyForm::MyForm_Load(System::Object ^ sender, System::Event
 	loadsettings("settings.ini", Setting);
 	TextEditorPanel->Visible = false;
 	TextEditorPanel->Dock = System::Windows::Forms::DockStyle::Fill;
+	taskbar = new TaskBar(this->Handle.ToPointer());
 	return System::Void();
 }
 
 System::Void BDMatch::MyForm::MyForm_FormClosing(System::Object ^ sender, System::Windows::Forms::FormClosingEventArgs ^ e)
 {
 	savesettings("settings.ini", Setting);
+	delete taskbar;
 	return System::Void();
 }
 
@@ -1332,28 +1363,6 @@ System::Void BDMatch::MyForm::ASStext_DragDrop(System::Object ^ sender, System::
 	return System::Void();
 }
 
-
-System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::EventArgs ^ e)
-{
-	if (Match->Text == "匹配") {
-		if (ASStext->Text == "debug mode") {
-			debugmode = !debugmode;
-			Result->Text = debugmode ? "调试模式打开。" : "调试模式关闭";
-			return;
-		}
-		matchcontrol(false);
-		drawstore = Setting->draw;
-		CancelSource = gcnew System::Threading::CancellationTokenSource();
-		Task<int>^matchtask = gcnew Task<int>(gcnew Func<int>(this, &MyForm::matchinput), TaskCreationOptions::LongRunning);
-		matchtask->Start();
-	}
-	else {
-		CancelSource->Cancel();
-		Setting->draw = drawstore;
-		matchcontrol(true);
-	}
-	return System::Void();
-}
 
 System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::EventArgs ^ e)
 {

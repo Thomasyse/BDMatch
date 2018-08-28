@@ -2,7 +2,7 @@
 #include "datastruct.h"
 #include "Settings.h"
 #include "DecodePara.h"
-
+#include "user interface.h"
 
 namespace BDMatch {
 
@@ -13,7 +13,7 @@ namespace BDMatch {
 	using namespace System::Data;
 	using namespace System::Drawing;
 	using namespace DataStruct;
-	
+
 	/// <summary>
 	/// MyForm 摘要
 	/// </summary>
@@ -27,7 +27,6 @@ namespace BDMatch {
 			//TODO:  在此处添加构造函数代码
 			//
 		}
-		
 	protected:
 		/// <summary>
 		/// 清理所有正在使用的资源。
@@ -48,7 +47,7 @@ namespace BDMatch {
 		std::vector<std::vector<node*>>* data = nullptr;
 		array<int, 2>^ timelist = nullptr;
 	};
-	private: 
+	private:
 		SettingVals ^ Setting = gcnew SettingVals;
 		drawpara tvdraw, bddraw;
 		bool drawstore;
@@ -57,7 +56,7 @@ namespace BDMatch {
 		bool debugmode = false;
 		System::Threading::CancellationTokenSource^ CancelSource;
 		int ISAMode = 0;
-
+		TaskBar *taskbar;
 	private: System::Windows::Forms::Button^ Match;
 	private: System::Windows::Forms::Button^ TVfind;
 	private: System::Windows::Forms::Button^ BDfind;
@@ -76,13 +75,13 @@ namespace BDMatch {
 
 
 
-			 
+
 	private: System::Windows::Forms::Label^ About;
 	private: System::Windows::Forms::Label^ settings;
-			 			
+
 	private: System::Windows::Forms::OpenFileDialog^ Filebrowse;
 	private: System::Windows::Forms::TableLayoutPanel^  AllTablePanel;
-			 
+
 	private: System::Windows::Forms::SplitContainer^  splitContainer1;
 	private: System::Windows::Forms::TrackBar^  TimeRoll;
 	private: System::Windows::Forms::PictureBox^  Spectrum;
@@ -105,7 +104,7 @@ namespace BDMatch {
 	private: System::Windows::Forms::TextBox^  TextEditor;
 
 
-			 
+
 	private:
 		/// <summary>
 		/// 必需的设计器变量。
@@ -693,7 +692,7 @@ namespace BDMatch {
 		void progsingle(int type, double val);
 		void progtotal();
 
-	private: 
+	private:
 		int match(String^ ASSText, String^ TVText, String^ BDText);
 		int writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSText);
 		int drawpre();
@@ -706,7 +705,7 @@ namespace BDMatch {
 		int savesettings(String^ path, SettingVals^ settingvals);
 		int matchinput();
 		int searchISA();
-		
+
 		String ^ returnregt(String ^ search);
 		int matchcontrol(bool val);
 
@@ -743,5 +742,5 @@ namespace BDMatch {
 	private: System::Void ASSLabel_MouseDoubleClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
 	private: System::Void TVLabel_MouseDoubleClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
 	private: System::Void BDLabel_MouseDoubleClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
-};
+	};
 }

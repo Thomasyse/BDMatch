@@ -27,6 +27,9 @@
     <ClCompile Include="datastruct.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="user interface.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DecodePara.h">
@@ -42,6 +45,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="datastruct.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="user interface.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

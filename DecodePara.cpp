@@ -447,14 +447,14 @@ std::vector<std::vector<node*>>* BDMatch::Decode::getfftdata()
 bool BDMatch::Decode::add_fft_task(std::vector<std::vector<node*>>* &fftdata, fftw_plan &p, double **sample_seq, const int &FFTnum,
 	const double&c_mindb, const int &ISAMode, const int &filech, const int &nb_fft_samples)
 {
-	if (canceltoken.IsCancellationRequested)return false;
 	if (nb_fft_samples <= 0)return true;
 	int fft_index = fftsampnum;
 	fftsampnum += nb_fft_samples;
 	FFTC^ fftc = gcnew FFTC(fftdata, p, sample_seq, FFTnum, c_mindb, ISAMode, filech, fft_index, nb_fft_samples,
 		gcnew ProgressCallback(this, &Decode::subprogback));
 	Task^ task = gcnew Task(gcnew Action(fftc, &FFTC::FFT), canceltoken);
-	task->Start();
+	if(!task->IsCanceled)task->Start();
+	else return false;
 	tasks->Add(task);
 	return true;
 }

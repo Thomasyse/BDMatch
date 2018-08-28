@@ -156,6 +156,7 @@
     <ClCompile Include="MyForm.cpp" />
     <ClCompile Include="datastruct.cpp" />
     <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="user interface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DecodePara.h" />
@@ -167,6 +168,7 @@
     <ClInclude Include="Settings.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="user interface.h" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="MyForm.resx">
