@@ -1098,7 +1098,7 @@ void BDMatch::MyForm::progsingle(int type, double val)
 		progval[1] = val;
 		break;
 	case 3:
-		if (val < progval[2] + 0.02)return System::Void();
+		if (val < 1.0 && val < progval[2] + 0.02)return System::Void();
 		progval[2] = val;
 		progval[0] = 1;
 		progval[1] = 1;
