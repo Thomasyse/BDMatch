@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.3.9"
+#define appversion "1.4.0"
 #define tvmaxnum 12
 #define tvminnum 12
 #define secpurple 45
@@ -133,8 +133,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	int bdmilisec = bddecode->getmilisecnum();
 	int tvfftnum = tvdecode->getfftsampnum();
 	int bdfftnum = bddecode->getfftsampnum();
-	std::vector<std::vector<node*>>* tvfftdata = tvdecode->getfftdata();
-	std::vector<std::vector<node*>>* bdfftdata = bddecode->getfftdata();
+	node** tvfftdata = tvdecode->getfftdata();
+	node** bdfftdata = bddecode->getfftdata();
 	int tvch = tvdecode->getchannels();
 	int bdch = bddecode->getchannels();
 	String^ tvass;
@@ -209,8 +209,8 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		}
 		int maxdb = -128;
 		for (int j = start; j <= end; j++) {
-			if ((*tvfftdata)[0][j]->maxv() > maxdb) {
-				maxdb = (*tvfftdata)[0][j]->maxv();
+			if (tvfftdata[0][j].maxv() > maxdb) {
+				maxdb = tvfftdata[0][j].maxv();
 			}
 		}
 		if (maxdb <= -128) {
@@ -274,23 +274,23 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			for (auto& j : tvmintime) j = 0;
 			for (int j = 0; j <= duration; j++) {
 				for (int k = 0; k < tvmaxnum; k++) {
-					if ((*tvfftdata)[0][j + tvtime[i]]->sum() > tvmax[k] || j == 0) {
+					if (tvfftdata[0][j + tvtime[i]].sum() > tvmax[k] || j == 0) {
 						for (int m = tvmaxnum - 1; m > k; m--) {
 							tvmax[m] = tvmax[m - 1];
 							tvmaxtime[m] = tvmaxtime[m - 1];
 						}
-						tvmax[k] = (*tvfftdata)[0][j + tvtime[i]]->sum();
+						tvmax[k] = tvfftdata[0][j + tvtime[i]].sum();
 						tvmaxtime[k] = j;
 						break;
 					}
 				}
 				for (int k = 0; k < tvminnum; k++) {
-					if ((*tvfftdata)[0][j + tvtime[i]]->sum() < tvmin[k] || j == 0) {
+					if (tvfftdata[0][j + tvtime[i]].sum() < tvmin[k] || j == 0) {
 						for (int m = tvminnum - 1; m > k; m--) {
 							tvmin[m] = tvmin[m - 1];
 							tvmintime[m] = tvmintime[m - 1];
 						}
-						tvmin[k] = (*tvfftdata)[0][j + tvtime[i]]->sum();
+						tvmin[k] = tvfftdata[0][j + tvtime[i]].sum();
 						tvmintime[k] = j;
 						break;
 					}
@@ -301,10 +301,10 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				int bdtimein = findstart + j * interval;
 				int delta = 0;
 				for (int k = 0; k < tvmaxnum; k++) {
-					delta += labs((*bdfftdata)[0][bdtimein + tvmaxtime[k]]->sum() - tvmax[k]);
+					delta += labs(bdfftdata[0][bdtimein + tvmaxtime[k]].sum() - tvmax[k]);
 				}
 				for (int k = 0; k < tvminnum; k++) {
-					delta += labs((*bdfftdata)[0][bdtimein + tvmintime[k]]->sum() - tvmin[k]);
+					delta += labs(bdfftdata[0][bdtimein + tvmintime[k]].sum() - tvmin[k]);
 				}
 				delta = delta >> rightshift;
 				if (delta < 600)bdse.push(bdtimein, delta);
@@ -480,23 +480,39 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 int BDMatch::MyForm::drawpre()
 {
 	if (tvdraw.num > 0) {
-		for (int i = 0; i < tvdraw.num; i++) {
-			if ((*tvdraw.data)[0][i] != nullptr)delete (*tvdraw.data)[0][i];
-			if ((*tvdraw.data)[1][i] != nullptr)delete (*tvdraw.data)[1][i];
+		for (int i = 0; i < 2; i++) {
+			if (tvdraw.data[i] != nullptr) {
+				delete[] tvdraw.data[i];
+				tvdraw.data[i] = nullptr;
+			}
+			if (tvdraw.spec[i] != nullptr) {
+				delete[] tvdraw.spec[i];
+				tvdraw.spec[i] = nullptr;
+			}
 		}
 		tvdraw.num = 0;
 	}
 	if (bddraw.num > 0) {
-		for (int i = 0; i < bddraw.num; i++) {
-			if ((*bddraw.data)[0][i] != nullptr)delete (*bddraw.data)[0][i];
-			if ((*bddraw.data)[1][i] != nullptr)delete (*bddraw.data)[1][i];
+		for (int i = 0; i < 2; i++) {
+			if (bddraw.data[i] != nullptr) {
+				delete[] bddraw.data[i];
+				bddraw.data[i] = nullptr;
+			}
+			if (bddraw.spec[i] != nullptr) {
+				delete[] bddraw.spec[i];
+				bddraw.spec[i] = nullptr;
+			}
 		}
 		bddraw.num = 0;
 	}
-	delete tvdraw.data;
-	delete bddraw.data;
+	delete[] tvdraw.data;
+	delete[] bddraw.data;
 	tvdraw.data = nullptr;
 	bddraw.data = nullptr;
+	delete[] tvdraw.spec;
+	delete[] bddraw.spec;
+	tvdraw.spec = nullptr;
+	bddraw.spec = nullptr;
 	ViewSel->Enabled = false;
 	LineSel->Enabled = false;
 	ChSelect->Enabled = false;
@@ -523,6 +539,8 @@ int BDMatch::MyForm::drawpre(Decode ^ tvdecode, Decode ^ bddecode,int &re)
 	if (Setting->draw && !re) {
 		tvdraw.data = tvdecode->getfftdata();
 		bddraw.data = bddecode->getfftdata();
+		tvdraw.spec = tvdecode->getfftspec();
+		bddraw.spec = bddecode->getfftspec();
 		tvdraw.num = tvdecode->getfftsampnum();
 		bddraw.num = bddecode->getfftsampnum();
 		tvdraw.ch = tvdecode->getchannels();
@@ -592,10 +610,10 @@ int BDMatch::MyForm::drawchart()
 			+ "\n" + mstotime(static_cast<int>(round(bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / bddraw.ttf)));
 	}
 	int duration = tvend - tvstart + 1;
+	
 	Bitmap^ spectrum1 = gcnew Bitmap(duration, Setting->FFTnum);
 	int x;
 	int y;
-
 	// Loop through the images pixels to reset color.
 	for (x = 0; x < spectrum1->Width; x++)
 	{
@@ -631,10 +649,11 @@ int BDMatch::MyForm::drawchart()
 		{
 			int color = -128;
 			if (y >= Setting->FFTnum / 2) {
-				if (0 <= x + bdstart && x + bdstart < bddraw.num)color = (*bddraw.data)[ChSelect->SelectedIndex][x + bdstart]->read0(Setting->FFTnum - y);
+				if (0 <= x + bdstart && x + bdstart < bddraw.num)
+					color = bddraw.data[ChSelect->SelectedIndex][x + bdstart].read0(Setting->FFTnum - y - 1);
 			}
 			else if (0 <= x + tvstart && x + tvstart < tvdraw.num)
-				color = (*tvdraw.data)[ChSelect->SelectedIndex][x + tvstart]->read0(Setting->FFTnum / 2 - y);
+				color = tvdraw.data[ChSelect->SelectedIndex][x + tvstart].read0(Setting->FFTnum / 2 - y - 1);
 			color += 128;
 			Color newColor = Color::FromArgb(color / 4, color, color);
 			if (y >= Setting->FFTnum / 2) {
