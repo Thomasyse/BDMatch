@@ -96,16 +96,18 @@ namespace BDMatch{
 		int getsamprate();
 		int getFFTnum();
 		bool getaudioonly();
-		std::vector<std::vector<node*>>* getfftdata();
+		node** getfftdata();
+		char** getfftspec();
 		ProgressCallback^ progback = nullptr;
 	private:
-		bool add_fft_task(std::vector<std::vector<node*>>* &fftdata, fftw_plan &p, double **sample_seq, const int &FFTnum,
+		bool add_fft_task(node** &fftdata, fftw_plan &p, double **sample_seq, const int &FFTnum,
 			const double&c_mindb, const int &ISAMode, const int &filech, const int &nb_fft_samples);
 		void subprogback(int type, double val);
 		int clearfftdata();
 		String^ filename;
 		String^ feedback;
-		std::vector<std::vector<node*>>* fftdata = nullptr;
+		node** fftdata = nullptr;
+		char** fft_spec = nullptr;
 		List<Task^>^ tasks = nullptr;
 		System::Threading::CancellationToken canceltoken;
 		fftw_plan plan;
@@ -134,18 +136,18 @@ namespace BDMatch{
 	class FFTCal
 	{
 	public:
-		FFTCal(std::vector<std::vector<node*>>*& nodes0, fftw_plan &p0, double**& in0, const int &FFTnum0,
+		FFTCal(node** & nodes0, fftw_plan &p0, double**& in0, const int &FFTnum0,
 			const double &c_mindb0, const int &filech0, const int &fft_index0, const int &nb_fft0);
 		~FFTCal();
 		virtual void FFT();
-		virtual int FD8(double* inseq, node*& outseq);
+		virtual int FD8(double* inseq, node* outseq);
 	protected:
 		int fft_index = 0;
 		int nb_fft = 0;
 		int FFTnum = 0;
 		int filech = 0;
 		double c_mindb = 0;
-		std::vector<std::vector<node*>>* nodes = nullptr;
+		node** nodes = nullptr;
 		fftw_plan p = nullptr;
 		double** in = nullptr;
 	};
@@ -153,27 +155,27 @@ namespace BDMatch{
 	class FFTCalsse :public FFTCal
 	{
 	public:
-		FFTCalsse(std::vector<std::vector<node*>>*& nodes0, fftw_plan &p0, double**& in0, const int &FFTnum0,
+		FFTCalsse(node** & nodes0, fftw_plan &p0, double**& in0, const int &FFTnum0,
 			const double &c_mindb0, const int &filech0, const int &fft_index0, const int &nb_fft0)
 			:FFTCal(nodes0, p0, in0, FFTnum0, c_mindb0, filech0, fft_index0, nb_fft0) {}
 		void FFT();
-		int FD8(double* inseq, node*& outseq);
+		int FD8(double* inseq, node* outseq);
 	};
 
 	class FFTCalavx :public FFTCal
 	{
 	public:
-		FFTCalavx(std::vector<std::vector<node*>>*& nodes0, fftw_plan &p0, double**& in0, const int &FFTnum0,
+		FFTCalavx(node** & nodes0, fftw_plan &p0, double**& in0, const int &FFTnum0,
 			const double &c_mindb0, const int &filech0, const int &fft_index0, const int &nb_fft0)
 			:FFTCal(nodes0, p0, in0, FFTnum0, c_mindb0, filech0, fft_index0, nb_fft0) {}
 		void FFT();
-		int FD8(double* inseq, node*& outseq);
+		int FD8(double* inseq, node* outseq);
 	};
 
 	ref class FFTC
 	{
 	public:
-		FFTC(std::vector<std::vector<node*>>*& fftdata, fftw_plan &p, double**& in, const int& FFTnum, const double &c_mindb,
+		FFTC(node** & fftdata, fftw_plan &p, double**& in, const int& FFTnum, const double &c_mindb,
 			const int &ISAMode, const int &filech, const int &fft_index, const int &nb_fft0, ProgressCallback^ progback0);
 		~FFTC();
 		void FFT();

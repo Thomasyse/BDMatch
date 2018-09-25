@@ -44,7 +44,8 @@ namespace BDMatch {
 		int milisec = 0;
 		int linenum = 0;
 		double ttf = 1.0;//Time to Frequency
-		std::vector<std::vector<node*>>* data = nullptr;
+		node** data = nullptr;
+		char** spec = nullptr;
 		array<int, 2>^ timelist = nullptr;
 	};
 	private:
