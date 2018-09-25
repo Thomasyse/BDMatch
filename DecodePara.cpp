@@ -447,11 +447,7 @@ std::vector<std::vector<node*>>* BDMatch::Decode::getfftdata()
 bool BDMatch::Decode::add_fft_task(std::vector<std::vector<node*>>* &fftdata, fftw_plan &p, double **sample_seq, const int &FFTnum,
 	const double&c_mindb, const int &ISAMode, const int &filech, const int &nb_fft_samples)
 {
-	if (nb_fft_samples <= 0) {
-		delete[] sample_seq;
-		sample_seq = nullptr;
-		return true;
-	}
+	if (nb_fft_samples <= 0)return true;
 	int fft_index = fftsampnum;
 	fftsampnum += nb_fft_samples;
 	FFTC^ fftc = gcnew FFTC(fftdata, p, sample_seq, FFTnum, c_mindb, ISAMode, filech, fft_index, nb_fft_samples,
@@ -737,222 +733,157 @@ int BDMatch::Normalization::getshiftf()
 	int nb_fft_samples = length / FFTnum;
 	for (int ch = 0; ch < filech; ch++)normalized_samples[ch] = (double*)fftw_malloc(sizeof(double)*length);
 	if (realch == filech) {
-		if (sampletype == 1) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+		if (sampletype == 1)
 			for (int ch = 0; ch < filech; ch++) {
 				float *tempf = reinterpret_cast<float *>(audiodata[ch]);
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempf[k]);
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempf[k]);
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempf[k]);
 			}
-		}
-		else if (sampletype == 2) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+		else if (sampletype == 2)
 			for (int ch = 0; ch < filech; ch++) {
 				double *tempd = reinterpret_cast<double *>(audiodata[ch]);
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = tempd[k];
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = tempd[k];
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = tempd[k];
 			}
-		}
 		else if (sampletype == 8)
-		{
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
 			for (int ch = 0; ch < filech; ch++) {
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(audiodata[ch][k]) / 255.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(audiodata[ch][k]) / 255.0;
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(audiodata[ch][k]) / 255.0;
 			}
-		}
-		else if (sampletype == 16) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+		else if (sampletype == 16) 
 			for (int ch = 0; ch < filech; ch++) {
 				short *temps = reinterpret_cast<short *>(audiodata[ch]);
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(temps[k]) / 32767.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(temps[k]) / 32767.0;
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(temps[k]) / 32767.0;
 			}
-		}
-		else if (sampletype == 24) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+		else if (sampletype == 24) 
 			for (int ch = 0; ch < filech; ch++) {
 				int *tempi = reinterpret_cast<int *>(audiodata[ch]);
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
 			}
-		}
-		else if (sampletype == 32) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+		else if (sampletype == 32) 
 			for (int ch = 0; ch < filech; ch++) {
 				int *tempi2 = reinterpret_cast<int *>(audiodata[ch]);
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempi2[k]) / 2147483647.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi2[k]) / 2147483647.0;
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi2[k]) / 2147483647.0;
 			}
-		}
-		else if (sampletype == 64) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+		else if (sampletype == 64) 
 			for (int ch = 0; ch < filech; ch++) {
 				long long *templ = reinterpret_cast<long long *>(audiodata[ch]);
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
 			}
-		}
 	}
 	else {
 		if (sampletype == 1) {
 			float *tempf = reinterpret_cast<float *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int k = 0;
 			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(tempf[index]);
+				for (int ch = 0; ch < filech; ch++, k++) {
+					normalized_samples[ch][i] = static_cast<double>(tempf[k]);
 				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(tempf[index]);
+			for (int i = 0; i < nb_last_next; i++)
+				for (int ch = 0; ch < filech; ch++, k++) {
+					seqs[ch][i] = static_cast<double>(tempf[k]);
 				}
 		}
 		else if (sampletype == 2) {
 			double *tempd = reinterpret_cast<double *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int k = 0;
 			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					normalized_samples[ch][i] = tempd[index];
+				for (int ch = 0; ch < filech; ch++, k++) {
+					normalized_samples[ch][i] = tempd[k];
 				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					seqs[ch][i] = tempd[index];
+			for (int i = 0; i < nb_last_next; i++)
+				for (int ch = 0; ch < filech; ch++, k++) {
+					seqs[ch][i] = tempd[k];
 				}
 		}
 		else if (sampletype == 8) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int k = 0;
 			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(audiodata[0][index]) / 255.0;
+				for (int ch = 0; ch < filech; ch++, k++) {
+					normalized_samples[ch][i] = static_cast<double>(audiodata[0][k]) / 255.0;
 				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(audiodata[0][index]) / 255.0;
+			for (int i = 0; i < nb_last_next; i++)
+				for (int ch = 0; ch < filech; ch++, k++) {
+					seqs[ch][i] = static_cast<double>(audiodata[0][k]) / 255.0;
 				}
 		}
 		else if (sampletype == 16) {
 			short *temps = reinterpret_cast<short *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int k = 0;
 			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(temps[index]) / 32767.0;
+				for (int ch = 0; ch < filech; ch++, k++) {
+					normalized_samples[ch][i] = static_cast<double>(temps[k]) / 32767.0;
 				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(temps[index]) / 32767.0;
+			for (int i = 0; i < nb_last_next; i++)
+				for (int ch = 0; ch < filech; ch++, k++) {
+					seqs[ch][i] = static_cast<double>(temps[k]) / 32767.0;
 				}
 		}
 		else if (sampletype == 24) {
 			int *tempi = reinterpret_cast<int *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int k = 0;
 			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(tempi[index] >> 8) / 8388607.0;
+				for (int ch = 0; ch < filech; ch++, k++) {
+					normalized_samples[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
 				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(tempi[index] >> 8) / 8388607.0;
+			for (int i = 0; i < nb_last_next; i++)
+				for (int ch = 0; ch < filech; ch++, k++) {
+					seqs[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
 				}
 		}
 		else if (sampletype == 32) {
 			int *tempi2 = reinterpret_cast<int *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int k = 0;
 			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(tempi2[index]) / 2147483647.0;
+				for (int ch = 0; ch < filech; ch++, k++) {
+					normalized_samples[ch][i] = static_cast<double>(tempi2[k]) / 2147483647.0;
 				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(tempi2[index]) / 2147483647.0;
+			for (int i = 0; i < nb_last_next; i++)
+				for (int ch = 0; ch < filech; ch++, k++) {
+					seqs[ch][i] = static_cast<double>(tempi2[k]) / 2147483647.0;
 				}
 		}
 		else if (sampletype == 64) {
 			long long *templ = reinterpret_cast<long long *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int k = 0;
 			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(templ[index]) / static_cast<double>(9223372036854775807);
+				for (int ch = 0; ch < filech; ch++, k++) {
+					normalized_samples[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
 				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(templ[index]) / static_cast<double>(9223372036854775807);
+			for (int i = 0; i < nb_last_next; i++)
+				for (int ch = 0; ch < filech; ch++, k++) {
+					seqs[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
 				}
 		}
 	}
@@ -966,26 +897,19 @@ int BDMatch::Normalizationavx2::getshiftf()
 	int nb_last_next = (nb_samples + nb_last) % FFTnum;
 	int length = nb_samples + nb_last - nb_last_next;
 	int nb_fft_samples = length / FFTnum;
-	if (length > 0)
-		for (int ch = 0; ch < filech; ch++)normalized_samples[ch] = (double*)fftw_malloc(sizeof(double)*length);
+	if (nb_fft_samples <= 0)return 0;
+	for (int ch = 0; ch < filech; ch++)normalized_samples[ch] = (double*)fftw_malloc(sizeof(double)*length);
 	if (realch == filech) {
-		if (sampletype == 1) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-				index = nb_last;
-			}
-			else index2 = nb_last;
+		if (sampletype == 1)
 			for (int ch = 0; ch < filech; ch++) {
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
 				int avxlength = nb_samples / 8;
 				int avx_last = nb_samples % 8;
-				int nb_to_norm = max(length - nb_last, 0);
-				int threshold = nb_to_norm / 8;
-				int remainder = nb_to_norm % 8;
+				int threshold = (length - nb_last) / 8;
+				int remainder = (length - nb_last) % 8;
 				float *tempf = reinterpret_cast<float *>(audiodata[ch]);
-				double *tempd = normalized_samples[ch] + index;
-				double *temp_seq = seqs[ch] + index2;
+				double *tempd = normalized_samples[ch] + nb_last;
+				double *temp_seq = seqs[ch];
 				for (int i = 0; i < threshold; i++) {
 					__m256 temp256 = _mm256_load_ps(tempf);
 					__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
@@ -1013,7 +937,7 @@ int BDMatch::Normalizationavx2::getshiftf()
 						tempf += 8;
 						threshold++;
 					}
-					for (int i = threshold; i < avxlength; i++) {
+					for (int i = threshold; i < avxlength; i++){
 						__m256 temp256 = _mm256_load_ps(tempf);
 						__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
 						__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
@@ -1031,108 +955,65 @@ int BDMatch::Normalizationavx2::getshiftf()
 						else *(temp_seq++) = static_cast<double>(*(tempf++));
 				}
 			}
-		}
-		else if (sampletype == 2) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+		else if (sampletype == 2)
 			for (int ch = 0; ch < filech; ch++) {
 				double *tempd = reinterpret_cast<double *>(audiodata[ch]);
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = tempd[k];
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = tempd[k];
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = tempd[k];
 			}
-		}
 		else if (sampletype == 8)
-		{
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
 			for (int ch = 0; ch < filech; ch++) {
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(audiodata[ch][k]) / 255.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(audiodata[ch][k]) / 255.0;
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(audiodata[ch][k]) / 255.0;
 			}
-		}
-		else if (sampletype == 16) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+		else if (sampletype == 16)
 			for (int ch = 0; ch < filech; ch++) {
 				short *temps = reinterpret_cast<short *>(audiodata[ch]);
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(temps[k]) / 32767.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(temps[k]) / 32767.0;
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(temps[k]) / 32767.0;
 			}
-		}
-		else if (sampletype == 24) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+		else if (sampletype == 24)
 			for (int ch = 0; ch < filech; ch++) {
 				int *tempi = reinterpret_cast<int *>(audiodata[ch]);
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
 			}
-		}
-		else if (sampletype == 32) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+		else if (sampletype == 32)
 			for (int ch = 0; ch < filech; ch++) {
 				int *tempi2 = reinterpret_cast<int *>(audiodata[ch]);
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempi2[k]) / 2147483647.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi2[k]) / 2147483647.0;
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi2[k]) / 2147483647.0;
 			}
-		}
-		else if (sampletype == 64) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+		else if (sampletype == 64)
 			for (int ch = 0; ch < filech; ch++) {
 				long long *templ = reinterpret_cast<long long *>(audiodata[ch]);
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
 				int k = 0;
 				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
+				for (int i = 0; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
 			}
-		}
 	}
 	else {
 		if (sampletype == 1) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-				index = nb_last;
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int index = nb_last;
+			int index2 = 0;
 			int ch = 0;
 			float *tempf = reinterpret_cast<float *>(audiodata[0]);
 			int avxlength = nb_samples * filech / 8;
 			int avx_last = (nb_samples * filech) % 8;
-			int nb_to_norm = max(length - nb_last, 0);
-			int threshold = nb_to_norm * filech / 8;
-			int remainder = nb_to_norm * filech % 8;
+			int threshold = (length - nb_last) * filech / 8;
+			int remainder = (length - nb_last) * filech % 8;
 			for (int i = 0; i < threshold; i++) {
 				__m256 temp256 = _mm256_load_ps(tempf); 
 				__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
@@ -1232,54 +1113,44 @@ int BDMatch::Normalizationavx2::getshiftf()
 		}
 		else if (sampletype == 2) {
 			double *tempd = reinterpret_cast<double *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int k = 0;
 			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					normalized_samples[ch][i] = tempd[index];
+				for (int ch = 0; ch < filech; ch++, k++) {
+					normalized_samples[ch][i] = tempd[k];
 				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					seqs[ch][i] = tempd[index];
+			for (int i = 0; i < nb_last_next; i++)
+				for (int ch = 0; ch < filech; ch++, k++) {
+					seqs[ch][i] = tempd[k];
 				}
 		}
 		else if (sampletype == 8) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int k = 0;
 			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(audiodata[0][index]) / 255.0;
+				for (int ch = 0; ch < filech; ch++, k++) {
+					normalized_samples[ch][i] = static_cast<double>(audiodata[0][k]) / 255.0;
 				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(audiodata[0][index]) / 255.0;
+			for (int i = 0; i < nb_last_next; i++)
+				for (int ch = 0; ch < filech; ch++, k++) {
+					seqs[ch][i] = static_cast<double>(audiodata[0][k]) / 255.0;
 				}
 		}
 		else if (sampletype == 16) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-				index = nb_last;
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int index = nb_last;
+			int index2 = 0;
 			int ch = 0;
 			__m128i *temp128 = reinterpret_cast<__m128i *>(audiodata[0]);
 			short *temps = reinterpret_cast<short *>(audiodata[0]);
 			__m256d const16 = _mm256_set1_pd(32767.0);
 			int avxlength = nb_samples * filech / 8;
 			int avx_last = (nb_samples * filech) % 8;
-			int nb_to_norm = max(length - nb_last, 0);
-			int threshold = nb_to_norm * filech / 8;
-			int remainder = nb_to_norm * filech % 8;
+			int threshold = (length - nb_last) * filech / 8;
+			int remainder = (length - nb_last) * filech % 8;
 			for (int i = 0; i < threshold; i++) {
 				__m128i temp16 = _mm_load_si128(temp128);
 				__m256i temp32 = _mm256_cvtepi16_epi32(temp16);
@@ -1390,22 +1261,18 @@ int BDMatch::Normalizationavx2::getshiftf()
 			}
 		}
 		else if (sampletype == 24) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-				index = nb_last;
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int index = nb_last;
+			int index2 = 0;
 			int ch = 0;
 			int *tempi = reinterpret_cast<int *>(audiodata[0]);
 			__m256i *temp256 = reinterpret_cast<__m256i *>(audiodata[0]);
 			__m256d const24 = _mm256_set1_pd(8388607.0);
 			int avxlength = nb_samples * filech / 8;
 			int avx_last = (nb_samples * filech) % 8;
-			int nb_to_norm = max(length - nb_last, 0);
-			int threshold = nb_to_norm * filech / 8;
-			int remainder = nb_to_norm * filech % 8;
+			int threshold = (length - nb_last) * filech / 8;
+			int remainder = (length - nb_last) * filech % 8;
 			for (int i = 0; i < threshold; i++) {
 				__m256i temp32 = _mm256_load_si256(temp256);
 				temp32 = _mm256_srai_epi32(temp32, 8);
@@ -1516,22 +1383,18 @@ int BDMatch::Normalizationavx2::getshiftf()
 			}
 		}
 		else if (sampletype == 32) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-				index = nb_last;
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int index = nb_last;
+			int index2 = 0;
 			int ch = 0;
 			int *tempi32 = reinterpret_cast<int *>(audiodata[0]);
 			__m256i *temp256 = reinterpret_cast<__m256i *>(audiodata[0]);
 			__m256d const32 = _mm256_set1_pd(2147483647.0);
 			int avxlength = nb_samples * filech / 8;
 			int avx_last = (nb_samples * filech) % 8;
-			int nb_to_norm = max(length - nb_last, 0);
-			int threshold = nb_to_norm * filech / 8;
-			int remainder = nb_to_norm * filech % 8;
+			int threshold = (length - nb_last) * filech / 8;
+			int remainder = (length - nb_last) * filech % 8;
 			for (int i = 0; i < threshold; i++) {
 				__m256i temp32 = _mm256_load_si256(temp256);
 				__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
@@ -1640,19 +1503,16 @@ int BDMatch::Normalizationavx2::getshiftf()
 		}
 		else if (sampletype == 64) {
 			long long *templ = reinterpret_cast<long long *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < filech; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+			int k = 0;
 			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(templ[index]) / static_cast<double>(9223372036854775807);
+				for (int ch = 0; ch < filech; ch++, k++) {
+					normalized_samples[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
 				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < filech; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(templ[index]) / static_cast<double>(9223372036854775807);
+			for (int i = 0; i < nb_last_next; i++)
+				for (int ch = 0; ch < filech; ch++, k++) {
+					seqs[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
 				}
 		}
 	}
