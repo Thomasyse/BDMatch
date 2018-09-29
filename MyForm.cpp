@@ -259,12 +259,16 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	//搜索匹配
 	int ch = min(tvch, bdch);
 	ch = min(ch, 2);
+	//查找间距
 	int interval = static_cast<int>(ttf);
 	if (interval < 1) {
 		interval = 1;
 	}
+	//交叠间距
+	int overlap_interval = static_cast<int>(ceil(ttf));
 	double aveindex = 0, maxindex = 0; int maxdelta = 0, maxline = 0;//调试用
 	int offset = 0; int fivesec = 0; int lastlinetime = 0;
+	//快速匹配
 	if (Setting->fastmatch) {
 		fivesec = static_cast<int>(500 * ttf);
 		Result->Text += "\r\n信息：使用快速匹配。";
@@ -336,7 +340,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			diffa[0] = 922372036854775808;
 			diffa[1] = 0;
 			int minchecknumcal = Setting->minchecknum;
-			if (duration <= 75 * interval)minchecknumcal = findnum;
+			if (duration <= 75 * overlap_interval)minchecknumcal = findnum;
 			else if (Setting->fastmatch)minchecknumcal = Setting->minchecknum / 2 * 3;
 			int checkfield = minchecknumcal * interval;
 			diffa[2] = minchecknumcal;
@@ -441,7 +445,7 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			int duration = static_cast<int>(timelist[i]->end() - timelist[i]->start());
 			timelist[i]->start(bdtime[i]);
 			timelist[i]->end(bdtime[i] + duration);
-			if (i < alltimematch->Count - 1 && timelist[i]->end() > bdtime[i + 1] && (timelist[i]->end() - bdtime[i + 1]) <= interval) {
+			if (i < alltimematch->Count - 1 && timelist[i]->end() > bdtime[i + 1] && (timelist[i]->end() - bdtime[i + 1]) <= overlap_interval) {
 				timelist[i]->end(bdtime[i + 1]);
 				tmpstr += "\r\n信息：第" + (i + 1).ToString() + "行和第" + (i + 2).ToString() + "行发生微小重叠，已自动修正。";
 			}
@@ -480,7 +484,10 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	FileStream^ fs = File::Create(outfile);
 	try
 	{
-		array<Byte>^ info = (gcnew UTF8Encoding(true))->GetBytes(head + content);
+		Encoding^ utf8 = gcnew UTF8Encoding(true);
+		array<Byte>^ bom = utf8->GetPreamble();
+		fs->Write(bom, 0, bom->Length);
+		array<Byte>^ info = (utf8)->GetBytes(head + content);
 		fs->Write(info, 0, info->Length);
 	}
 	finally
