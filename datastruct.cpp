@@ -3,12 +3,10 @@
 #include <algorithm>  
 using namespace DataStruct;
 
-DataStruct::node::node(const int &num)
+DataStruct::node::node()
 {
-	count = num;
-	data = new char[count];
-	for (int i = 0; i < count; i++) *(data + i) = 0;
 }
+
 DataStruct::node::node(node& a)
 {
 	count = a.size();
@@ -16,9 +14,15 @@ DataStruct::node::node(node& a)
 	for (int i = 0; i < count; i++)
 		*(data + i) = *(a.data + i);
 }
+int DataStruct::node::init_data(const int &num, char*& data_ptr)
+{
+	count = num;
+	data = data_ptr;
+	return 0;
+}
 char DataStruct::node::read0(const int &pos)
 {
-	return *(data + pos);
+	return data[pos];
 }
 #pragma unmanaged
 char * DataStruct::node::getdata()
@@ -31,7 +35,7 @@ int DataStruct::node::sum()
 	if (sumval == -2147483647) {
 		sumval = 0;
 		for (int i = 0; i < count; i++)
-			sumval += *(data + i);
+			sumval += data[i];
 	}
 	return sumval;
 }
@@ -39,19 +43,12 @@ char DataStruct::node::maxv()
 {
 	char max = *data;
 	for (int i = 1; i < count; i++)
-		if (*(data + i) > max)max = *(data + i);
+		if (data[i] > max)max = data[i];
 	return max;
 }
 int DataStruct::node::size()
 {
 	return count;
-}
-DataStruct::node::~node()
-{
-	if (data != nullptr) {
-		delete[] data;
-		data = nullptr;
-	}
 }
 
 
@@ -154,12 +151,12 @@ String ^ DataStruct::timec::head(String ^ head0)
 	return "";
 }
 
-DataStruct::Varcal::Varcal(std::vector<std::vector<node*>>* const & tv0, std::vector<std::vector<node*>>* const & bd0, bdsearch *& bdse0,
+DataStruct::Varcal::Varcal(node** const & tv0, node** const & bd0, bdsearch *& bdse0,
 	const int &tvstart0, const int &sestart0, const int &seend0, const int &duration0, const int &ch0, const int &minchecknum0,
 	const int &checkfield0, long long *&diffa0, se_re *& re0)
 	:tv(tv0),bd(bd0),bdse(bdse0),diffa(diffa0)
 {
-	size = (*tv)[0][0]->size();
+	size = tv[0][0].size();
 	tvstart = tvstart0;
 	sestart = sestart0;
 	seend = seend0;
@@ -187,8 +184,8 @@ int DataStruct::Varcal::caldiff()
 			int tvpos = i + tvstart;
 			int bdpos = i + bdstart;
 			for (int j = 0; j < ch; j++) {
-				tvdata = (*tv)[j][tvpos]->getdata();
-				bddata = (*bd)[j][bdpos]->getdata();
+				tvdata = tv[j][tvpos].getdata();
+				bddata = bd[j][bdpos].getdata();
 				for (int k = 0; k < size; k++) {
 					sum += labs(tvdata[k] - bddata[k])*(tvdata[k] + 129);
 				}
@@ -237,8 +234,8 @@ int DataStruct::Varcalsse::caldiff()
 			sumvector[0] = _mm_setzero_si128();
 			sumvector[1] = _mm_setzero_si128();
 			for (int j = 0; j < ch; j++) {
-				tvdata = (*tv)[j][tvpos]->getdata();
-				bddata = (*bd)[j][bdpos]->getdata();
+				tvdata = tv[j][tvpos].getdata();
+				bddata = bd[j][bdpos].getdata();
 				for (int k = 0; k < vectornum; k++) {
 					tvvector = _mm_cvtepi8_epi16(_mm_load_si128(reinterpret_cast<__m128i*>(tvdata)));
 					bdvector = _mm_cvtepi8_epi16(_mm_load_si128(reinterpret_cast<__m128i*>(bddata)));
@@ -301,8 +298,8 @@ int DataStruct::Varcalavx2::caldiff()
 			sumvector[0] = _mm256_setzero_si256();
 			sumvector[1] = _mm256_setzero_si256();
 			for (int j = 0; j < ch; j++) {
-				tvdata = reinterpret_cast<__m128i*>((*tv)[j][tvpos]->getdata());
-				bddata = reinterpret_cast<__m128i*>((*bd)[j][bdpos]->getdata());
+				tvdata = reinterpret_cast<__m128i*>(tv[j][tvpos].getdata());
+				bddata = reinterpret_cast<__m128i*>(bd[j][bdpos].getdata());
 				for (int k = 0; k < vectornum; k++) {
 					tvvector = _mm256_cvtepi8_epi16(_mm_load_si128(tvdata));
 					bdvector = _mm256_cvtepi8_epi16(_mm_load_si128(bddata));
@@ -347,7 +344,7 @@ int DataStruct::Varcalavx2::caldiff()
 }
 #pragma managed
 
-DataStruct::Var::Var(std::vector<std::vector<node*>>* const & tv, std::vector<std::vector<node*>>* const & bd, bdsearch *& bdse0,
+DataStruct::Var::Var(node** const & tv, node** const & bd, bdsearch *& bdse0,
 	const int &tvstart, const int &sestart0, const int &seend0, const int &duration, const int &ch, int ISAMode,
 	const int &minchecknum0, const int &checkfield0, long long *&diffa0, se_re *& re)
 	:diffa(diffa0)
@@ -524,3 +521,4 @@ int DataStruct::SettingVals::setval(const SettingType & type,int val)
 	}
 	return 0;
 }
+

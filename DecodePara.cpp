@@ -228,8 +228,19 @@ void BDMatch::Decode::decodeaudio()
 		realch = codecfm->channels;
 		chfmt = "Planar";
 	}
-	fftdata = new std::vector<std::vector<node*>>(min(codecfm->channels, 2), std::vector<node*>(efftnum));
-	std::vector<std::vector<node*>>* fftdata0 = fftdata;
+	int chs = min(codecfm->channels, 2);
+	int spectrum_size = FFTnum / 2;
+	fftdata = new node*[chs];
+	fft_spec = new char*[chs];
+	for (int i = 0; i < chs; i++) {
+		fftdata[i] = new node[efftnum];
+		fft_spec[i] = new char[efftnum * spectrum_size];
+		char* index = fft_spec[i];
+		for (int j = 0; j < efftnum; j++, index += spectrum_size) {
+			fftdata[i][j].init_data(spectrum_size, index);
+		}
+	}
+	node** fftdata0 = fftdata;
 	fftw_plan plan0 = plan;
 	fftsampnum = 0;
 	sample_seqs = new double*[codecfm->channels];
@@ -424,27 +435,32 @@ bool BDMatch::Decode::getaudioonly()
 
 int BDMatch::Decode::clearfftdata()
 {
-	for (int i = 0; i < fftsampnum; i++) {
-		if ((*fftdata)[0][i] != nullptr) {
-			delete (*fftdata)[0][i];
-			(*fftdata)[0][i] = nullptr;
+	for (int i = 0; i < channels; i++) {
+		if (fftdata[i] != nullptr) {
+			delete[] fftdata[i];
+			fftdata[i] = nullptr;
 		}
-		if ((*fftdata)[1][i] != nullptr) {
-			delete (*fftdata)[1][i];
-			(*fftdata)[1][i] = nullptr;
+		if (fft_spec[i] != nullptr) {
+			delete[] fft_spec[i];
+			fft_spec[i] = nullptr;
 		}
 	}
-	delete fftdata;
+	delete[] fftdata;
 	fftdata = nullptr;
+	delete[] fft_spec;
+	fft_spec = nullptr;
 	return 0;
 }
-
-std::vector<std::vector<node*>>* BDMatch::Decode::getfftdata()
+node** BDMatch::Decode::getfftdata()
 {
 	return fftdata;
 }
+char ** BDMatch::Decode::getfftspec()
+{
+	return fft_spec;
+}
 
-bool BDMatch::Decode::add_fft_task(std::vector<std::vector<node*>>* &fftdata, fftw_plan &p, double **sample_seq, const int &FFTnum,
+bool BDMatch::Decode::add_fft_task(node** &fftdata, fftw_plan &p, double **sample_seq, const int &FFTnum,
 	const double&c_mindb, const int &ISAMode, const int &filech, const int &nb_fft_samples)
 {
 	if (nb_fft_samples <= 0) {
@@ -496,7 +512,7 @@ BDMatch::FFmpeg::~FFmpeg()
 	if (swr_ctx)swr_close(swr_ctx);
 }
 
-BDMatch::FFTCal::FFTCal(std::vector<std::vector<node*>>*& nodes0, fftw_plan &p0, double**& in0, const int &FFTnum0,
+BDMatch::FFTCal::FFTCal(node** & nodes0, fftw_plan &p0, double**& in0, const int &FFTnum0,
 	const double &c_mindb0, const int &filech0, const int &fft_index0, const int &nb_fft0)
 {
 	nodes = nodes0;
@@ -539,7 +555,7 @@ void BDMatch::FFTCal::FFT()
 				double imag = *(out + i)[1];
 				out_d[i] = real * real + imag * imag;
 			}
-			FD8(out_d, (*nodes)[ch][fft_index]);
+			FD8(out_d, nodes[ch] + fft_index);
 		}
 		fft_index++;
 	}
@@ -556,7 +572,7 @@ void BDMatch::FFTCal::FFT()
 	return;
 }
 
-int BDMatch::FFTCal::FD8(double* inseq, node*& outseq)
+int BDMatch::FFTCal::FD8(double* inseq, node* outseq)
 {
 	char *out = outseq->getdata();
 	for (int i = 0; i < outseq->size(); i++) {
@@ -583,7 +599,7 @@ void BDMatch::FFTCalsse::FFT()
 	for (int fi = 0; fi < fi_m; fi += FFTnum) {
 		for (int ch = 0; ch < filech; ch++) {
 			fftw_execute_dft_r2c(p, in[ch] + fi, out);
-			FD8(reinterpret_cast<double*>(out), (*nodes)[ch][fft_index]);
+			FD8(reinterpret_cast<double*>(out), nodes[ch] + fft_index);
 		}
 		fft_index++;
 	}
@@ -598,7 +614,7 @@ void BDMatch::FFTCalsse::FFT()
 	return;
 }
 
-int BDMatch::FFTCalsse::FD8(double* inseq, node *& outseq)
+int BDMatch::FFTCalsse::FD8(double* inseq, node* outseq)
 {
 	char *out = outseq->getdata();
 	__m128d const10 = _mm_set1_pd(10.0);
@@ -640,7 +656,7 @@ void BDMatch::FFTCalavx::FFT()
 	for (int fi = 0; fi < fi_m; fi += FFTnum) {
 		for (int ch = 0; ch < filech; ch++) {
 			fftw_execute_dft_r2c(p, in[ch] + fi, out);
-			FD8(reinterpret_cast<double*>(out), (*nodes)[ch][fft_index]);
+			FD8(reinterpret_cast<double*>(out), nodes[ch] + fft_index);
 		}
 		fft_index++;
 	}
@@ -655,9 +671,8 @@ void BDMatch::FFTCalavx::FFT()
 	return;
 }
 
-int BDMatch::FFTCalavx::FD8(double* inseq, node *& outseq)
+int BDMatch::FFTCalavx::FD8(double* inseq, node* outseq)
 {
-	outseq = new node(FFTnum / 2);
 	char *out = outseq->getdata();
 	__m256d const10 = _mm256_set1_pd(10.0);
 	__m256d const15 = _mm256_set1_pd(15.0);
@@ -694,7 +709,7 @@ int BDMatch::FFTCalavx::FD8(double* inseq, node *& outseq)
 }
 #pragma managed
 
-BDMatch::FFTC::FFTC(std::vector<std::vector<node*>>*& fftdata, fftw_plan &p, double**& in, const int& FFTnum, const double &c_mindb,
+BDMatch::FFTC::FFTC(node** & fftdata, fftw_plan &p, double**& in, const int& FFTnum, const double &c_mindb,
 	const int &ISAMode, const int &filech, const int &fft_index, const int &nb_fft0, ProgressCallback^ progback0)
 {
 	if (ISAMode >= 2) fftcal = new FFTCalavx(fftdata, p, in, FFTnum, c_mindb, filech, fft_index, nb_fft0);
