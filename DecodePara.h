@@ -57,7 +57,8 @@ namespace BDMatch{
 	{
 	public:
 		Normalization(uint8_t ** const &audiodata0, double ** &normalized_samples0, double ** &seqs0, int &nb_last_seq,
-			const int &realch0, const int &filech0, const int &nb_samples0, const int &sampletype0, const int &FFTnum0);
+			const int &realch0, const int &filech0, const int &nb_samples0, const int &sampletype0, const int &FFTnum0,
+			const int &vol_mode0, double &total_vol0, const double &vol_coef0);
 		virtual int getshiftf();
 	protected:
 		uint8_t **audiodata = nullptr;
@@ -69,14 +70,19 @@ namespace BDMatch{
 		int &nb_last;
 		double ** &seqs;
 		double **&normalized_samples;
+		const int &vol_mode;
+		double &total_vol;
+		const double &vol_coef;
 	};
 
 	class Normalizationavx2:public Normalization
 	{
 	public:
 		Normalizationavx2(uint8_t ** const &audiodata0, double ** &normalized_samples0, double ** &seqs0, int &nb_last_seq,
-			const int &realch0, const int &filech0, const int &nb_samples0, const int &sampletype0, const int &FFTnum0)
-			:Normalization(audiodata0, normalized_samples0, seqs0, nb_last_seq, realch0, filech0, nb_samples0, sampletype0, FFTnum0) {}
+			const int &realch0, const int &filech0, const int &nb_samples0, const int &sampletype0, const int &FFTnum0,
+			const int &vol_mode0, double &total_vol0, const double &vol_coef0)
+			:Normalization(audiodata0, normalized_samples0, seqs0, nb_last_seq, realch0, filech0, nb_samples0, sampletype0, FFTnum0,
+				vol_mode0, total_vol0, vol_coef0) {}
 		int getshiftf();
 	};
 
@@ -95,15 +101,19 @@ namespace BDMatch{
 		int getchannels();
 		int getsamprate();
 		int getFFTnum();
+		double get_avg_vol();
 		bool getaudioonly();
 		node** getfftdata();
 		char** getfftspec();
+		int set_vol_mode(const int &input);
+		int set_vol_coef(const double &input);
 		ProgressCallback^ progback = nullptr;
 	private:
-		bool add_fft_task(node** &fftdata, fftw_plan &p, double **sample_seq, const int &FFTnum,
+		bool add_fft_task(node** &fftdata, fftw_plan &p, double **&sample_seq, const int &FFTnum,
 			const double&c_mindb, const int &ISAMode, const int &filech, const int &nb_fft_samples);
 		void subprogback(int type, double val);
 		int clearfftdata();
+		int clearffmpeg();
 		String^ filename;
 		String^ feedback;
 		node** fftdata = nullptr;
@@ -128,6 +138,9 @@ namespace BDMatch{
 		int ISAMode = 0;
 		double c_mindb = 0.0;
 		double progval = 0.0;
+		double total_vol = 0.0;
+		double vol_coef = 0.0;
+		int vol_mode = -1;
 		bool outputpcm = false;
 		bool audioonly = false;
 		FFmpeg *ffmpeg = nullptr;
@@ -136,7 +149,7 @@ namespace BDMatch{
 	class FFTCal
 	{
 	public:
-		FFTCal(node** & nodes0, fftw_plan &p0, double**& in0, const int &FFTnum0,
+		FFTCal(node** & nodes0, fftw_plan &p0, double**& in0,const int &FFTnum0,
 			const double &c_mindb0, const int &filech0, const int &fft_index0, const int &nb_fft0);
 		~FFTCal();
 		virtual void FFT();

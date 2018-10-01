@@ -34,8 +34,9 @@ int DataStruct::node::sum()
 {
 	if (sumval == -2147483647) {
 		sumval = 0;
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; i++) {
 			sumval += data[i];
+		}
 	}
 	return sumval;
 }
@@ -106,6 +107,12 @@ DataStruct::se_re::se_re(se_re &in)
 	data[0] = in[0];
 	data[1] = in[1];
 }
+int DataStruct::se_re::init()
+{
+	data[0] = 922372036854775808;
+	data[1] = 0;
+	return 0;
+}
 
 DataStruct::timec::timec(int start0, int end0, bool iscom0, String^ head0)
 {
@@ -153,8 +160,8 @@ String ^ DataStruct::timec::head(String ^ head0)
 
 DataStruct::Varcal::Varcal(node** const & tv0, node** const & bd0, bdsearch *& bdse0,
 	const int &tvstart0, const int &sestart0, const int &seend0, const int &duration0, const int &ch0, const int &minchecknum0,
-	const int &checkfield0, long long *&diffa0, se_re *& re0)
-	:tv(tv0),bd(bd0),bdse(bdse0),diffa(diffa0)
+	const int &checkfield0, volatile long long *&diffa0, se_re *& re0)
+	:tv(tv0),bd(bd0),bdse(bdse0),diffa(diffa0),re(re0)
 {
 	size = tv[0][0].size();
 	tvstart = tvstart0;
@@ -164,7 +171,6 @@ DataStruct::Varcal::Varcal(node** const & tv0, node** const & bd0, bdsearch *& b
 	duration = duration0;
 	minchecknum = minchecknum0;
 	checkfield = checkfield0;
-	re = re0;
 }
 
 #pragma unmanaged  
@@ -176,19 +182,21 @@ int DataStruct::Varcal::caldiff()
 		return -1;
 	}
 	long long sum = 0;
-	char *tvdata, *bddata;
+	char *tvdata[2], *bddata[2];
 	for (int seindex = sestart; seindex < seend; seindex++) {
 		int bdstart = bdse->read(seindex);
 		sum = 0;
+		for (int i = 0; i < ch; i++) {
+			tvdata[i] = tv[i][tvstart].getdata();
+			bddata[i] = bd[i][bdstart].getdata();
+		}
 		for (int i = 0; i <= duration; i++) {
-			int tvpos = i + tvstart;
-			int bdpos = i + bdstart;
 			for (int j = 0; j < ch; j++) {
-				tvdata = tv[j][tvpos].getdata();
-				bddata = bd[j][bdpos].getdata();
 				for (int k = 0; k < size; k++) {
-					sum += labs(tvdata[k] - bddata[k])*(tvdata[k] + 129);
+					sum += labs(tvdata[j][k] - bddata[j][k])*(tvdata[j][k] + 129);
 				}
+				tvdata[j] += size;
+				bddata[j] += size;
 			}
 			if (sum > diffa[0])break;
 		}
@@ -208,7 +216,9 @@ int DataStruct::Varcal::caldiff()
 			return -1;
 		}
 	}
-	tvdata = bddata = nullptr;
+	for (int i = 0; i < ch; i++) {
+		tvdata[i] = bddata[i] = nullptr;
+	}
 	*re = result;
 	return 0;
 }
@@ -221,32 +231,32 @@ int DataStruct::Varcalsse::caldiff()
 	}
 	long long sum = 0;
 	int vectornum = size / 8;
-	char *tvdata, *bddata;
+	char *tvdata[2], *bddata[2];
 	__m128i tvvector, bdvector, difvector[2];
 	__m128i sumvector[2] = { _mm_setzero_si128(),_mm_setzero_si128() };
 	const __m128i w1vector = _mm_set1_epi16(129);
 	for (int seindex = sestart; seindex < seend; seindex++) {
 		int bdstart = bdse->read(seindex);
 		sum = 0;
+		for (int i = 0; i < ch; i++) {
+			tvdata[i] = tv[i][tvstart].getdata();
+			bddata[i] = bd[i][bdstart].getdata();
+		}
 		for (int i = 0; i <= duration; i++) {
-			int tvpos = i + tvstart;
-			int bdpos = i + bdstart;
 			sumvector[0] = _mm_setzero_si128();
 			sumvector[1] = _mm_setzero_si128();
 			for (int j = 0; j < ch; j++) {
-				tvdata = tv[j][tvpos].getdata();
-				bddata = bd[j][bdpos].getdata();
 				for (int k = 0; k < vectornum; k++) {
-					tvvector = _mm_cvtepi8_epi16(_mm_load_si128(reinterpret_cast<__m128i*>(tvdata)));
-					bdvector = _mm_cvtepi8_epi16(_mm_load_si128(reinterpret_cast<__m128i*>(bddata)));
+					tvvector = _mm_cvtepi8_epi16(_mm_load_si128(reinterpret_cast<__m128i*>(tvdata[j])));
+					bdvector = _mm_cvtepi8_epi16(_mm_load_si128(reinterpret_cast<__m128i*>(bddata[j])));
 					difvector[0] = _mm_mullo_epi16(_mm_abs_epi16(_mm_sub_epi16(tvvector, bdvector)),
 						_mm_add_epi16(tvvector, w1vector));
 					difvector[1] = _mm_mulhi_epi16(_mm_abs_epi16(_mm_sub_epi16(tvvector, bdvector)),
 						_mm_add_epi16(tvvector, w1vector));
 					sumvector[0] = _mm_add_epi32(_mm_unpacklo_epi16(difvector[0], difvector[1]), sumvector[0]);
 					sumvector[1] = _mm_add_epi32(_mm_unpackhi_epi16(difvector[0], difvector[1]), sumvector[1]);
-					tvdata += 8;
-					bddata += 8;
+					tvdata[j] += 8;
+					bddata[j] += 8;
 				}
 			}
 			sumvector[0] = _mm_add_epi32(sumvector[0], sumvector[1]);
@@ -270,7 +280,9 @@ int DataStruct::Varcalsse::caldiff()
 			return -1;
 		}
 	}
-	tvdata = bddata = nullptr;
+	for (int i = 0; i < ch; i++) {
+		tvdata[i] = bddata[i] = nullptr;
+	}
 	*re = result;
 	return 0;
 }
@@ -283,7 +295,7 @@ int DataStruct::Varcalavx2::caldiff()
 	}
 	long long sum = 0;
 	int vectornum = size / 16;
-	__m128i *tvdata, *bddata;
+	__m128i *tvdata[2], *bddata[2];
 	__m256i tvvector, bdvector, difvector[2];
 	__m256i sumvector[2] = { _mm256_setzero_si256(),_mm256_setzero_si256() };
 	__m128i sumvector8[2];
@@ -292,25 +304,25 @@ int DataStruct::Varcalavx2::caldiff()
 	for (int seindex = sestart; seindex < seend; seindex++) {
 		int bdstart = bdse->read(seindex);
 		sum = 0;
+		for (int i = 0; i < ch; i++) {
+			tvdata[i] = reinterpret_cast<__m128i*>(tv[i][tvstart].getdata());
+			bddata[i] = reinterpret_cast<__m128i*>(bd[i][bdstart].getdata());
+		}
 		for (int i = 0; i <= duration; i++) {
-			int tvpos = i + tvstart;
-			int bdpos = i + bdstart;
 			sumvector[0] = _mm256_setzero_si256();
 			sumvector[1] = _mm256_setzero_si256();
 			for (int j = 0; j < ch; j++) {
-				tvdata = reinterpret_cast<__m128i*>(tv[j][tvpos].getdata());
-				bddata = reinterpret_cast<__m128i*>(bd[j][bdpos].getdata());
 				for (int k = 0; k < vectornum; k++) {
-					tvvector = _mm256_cvtepi8_epi16(_mm_load_si128(tvdata));
-					bdvector = _mm256_cvtepi8_epi16(_mm_load_si128(bddata));
+					tvvector = _mm256_cvtepi8_epi16(_mm_load_si128(tvdata[j]));
+					bdvector = _mm256_cvtepi8_epi16(_mm_load_si128(bddata[j]));
 					difvector[0] = _mm256_mullo_epi16(_mm256_abs_epi16(_mm256_sub_epi16(tvvector, bdvector)),
 						_mm256_add_epi16(tvvector, w1vector));
 					difvector[1] = _mm256_mulhi_epi16(_mm256_abs_epi16(_mm256_sub_epi16(tvvector, bdvector)),
 						_mm256_add_epi16(tvvector, w1vector));
 					sumvector[0] = _mm256_add_epi32(_mm256_unpacklo_epi16(difvector[0], difvector[1]), sumvector[0]);
 					sumvector[1] = _mm256_add_epi32(_mm256_unpackhi_epi16(difvector[0], difvector[1]), sumvector[1]);
-					tvdata += 1;
-					bddata += 1;
+					tvdata[j]++;
+					bddata[j]++;
 				}
 			}
 			sumvector[0] = _mm256_add_epi32(sumvector[0], sumvector[1]);
@@ -338,7 +350,9 @@ int DataStruct::Varcalavx2::caldiff()
 			return -1;
 		}
 	}
-	tvdata = bddata = nullptr;
+	for (int i = 0; i < ch; i++) {
+		tvdata[i] = bddata[i] = nullptr;
+	}
 	*re = result;
 	return 0;
 }
@@ -346,8 +360,7 @@ int DataStruct::Varcalavx2::caldiff()
 
 DataStruct::Var::Var(node** const & tv, node** const & bd, bdsearch *& bdse0,
 	const int &tvstart, const int &sestart0, const int &seend0, const int &duration, const int &ch, int ISAMode,
-	const int &minchecknum0, const int &checkfield0, long long *&diffa0, se_re *& re)
-	:diffa(diffa0)
+	const int &minchecknum0, const int &checkfield0, volatile long long *&diffa0, se_re *& re)
 {
 	if (ISAMode == 3) varcal = new Varcalavx2(tv, bd, bdse0, tvstart, sestart0, seend0, duration, ch, minchecknum0, checkfield0, diffa0, re);
 	else if (ISAMode >= 1)varcal = new Varcalsse(tv, bd, bdse0, tvstart, sestart0, seend0, duration, ch, minchecknum0, checkfield0, diffa0, re);
@@ -383,6 +396,7 @@ DataStruct::SettingVals::SettingVals(SettingVals ^ in)
 	matchass = in->matchass;
 	paralleldecode = in->paralleldecode;
 	fastmatch = in->fastmatch;
+	volmatch = in->volmatch;
 }
 String^ DataStruct::SettingVals::getname(const SettingType &type)
 {
@@ -420,6 +434,9 @@ String^ DataStruct::SettingVals::getname(const SettingType &type)
 		break;
 	case FastMatch:
 		name = "FastMatch";
+		break;
+	case VolMatch:
+		name = "VolMatch";
 		break;
 	default:
 		break;
@@ -462,6 +479,9 @@ int DataStruct::SettingVals::getval(const SettingType & type)
 		break;
 	case FastMatch:
 		val = static_cast<int>(fastmatch);
+		break;
+	case VolMatch:
+		val = static_cast<int>(volmatch);
 		break;
 	default:
 		val = 0;
@@ -515,6 +535,9 @@ int DataStruct::SettingVals::setval(const SettingType & type,int val)
 		break;
 	case FastMatch:
 		fastmatch = static_cast<bool>(val);
+		break;
+	case VolMatch:
+		volmatch = static_cast<bool>(val);
 		break;
 	default:
 		break;

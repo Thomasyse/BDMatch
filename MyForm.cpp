@@ -1,9 +1,10 @@
 #include "MyForm.h"
-#define appversion "1.4.1"
+#define appversion "1.4.3"
 #define tvmaxnum 12
 #define tvminnum 12
 #define secpurple 45
 #define setintnum 5
+#define MaxdB 20.0
 
 using namespace BDMatch;
 [STAThreadAttribute]
@@ -38,6 +39,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	fftw_free(out);
 	Decode^ tvdecode = gcnew Decode(tvtext, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, 0, 1,
 		decodetasks, CancelSource->Token, plan, ISAMode, gcnew ProgressCallback(this, &MyForm::progsingle));//解码TV文件
+	if (Setting->volmatch) tvdecode->set_vol_mode(0);
 	Task^ tvTask = gcnew Task(gcnew Action(tvdecode, &Decode::decodeaudio), CancelSource->Token);
 	try {
 		tvTask->Start();
@@ -65,6 +67,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	} while (tvdecode->getsamprate() == 0 && (tvdecode->getreturn() >= 0 || tvdecode->getreturn() == -100));
 	Decode^ bddecode = gcnew Decode(bdtext, Setting->FFTnum, Setting->outputpcm, Setting->minfinddb, tvdecode->getsamprate(), 2,
 		decodetasks, CancelSource->Token, plan, ISAMode, gcnew ProgressCallback(this, &MyForm::progsingle));//解码BD文件
+	if (Setting->volmatch) bddecode->set_vol_mode(1);
 	Task^ bdTask = gcnew Task(gcnew Action(bddecode, &Decode::decodeaudio), CancelSource->Token);
 	if (tvdecode->getreturn() >= 0 || tvdecode->getreturn() == -100) {
 		try {
@@ -89,12 +92,45 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		fftw_destroy_plan(plan);
 		return -6;
 	}
+	decodetasks->Clear();
+	double bd_pre_avg_vol = 0.0;
+	if (Setting->volmatch) {
+		bddecode->set_vol_mode(0);
+		bd_pre_avg_vol = bddecode->get_avg_vol();
+		bddecode->set_vol_coef(sqrt(tvdecode->get_avg_vol() / bddecode->get_avg_vol())*1.49);
+		Task^ bdTask2 = gcnew Task(gcnew Action(bddecode, &Decode::decodeaudio), CancelSource->Token);
+		try {
+			bdTask2->Start();
+		}
+		catch (InvalidOperationException^) {
+			tvdecode->~Decode();
+			bddecode->~Decode();
+			decodetasks->Clear();
+			fftw_destroy_plan(plan);
+			return -6;
+		}
+		decodetasks->Add(bdTask2);
+		try {
+			Task::WaitAll(decodetasks->ToArray(), CancelSource->Token);
+		}
+		catch (OperationCanceledException^) {
+			tvdecode->~Decode();
+			bddecode->~Decode();
+			decodetasks->Clear();
+			fftw_destroy_plan(plan);
+			return -6;
+		}
+	}
 	//输出解码时间
 	long end = clock();
 	double spend = double(end - start) / (double)CLOCKS_PER_SEC;
+	String^ specifier = "F";
 	Result->Text += "TV文件：  " + tvtext->Substring(tvtext->LastIndexOf("\\") + 1) + "\r\n" + tvdecode->getfeedback();
-	Result->Text += "\r\nBD文件：  " + bdtext->Substring(bdtext->LastIndexOf("\\") + 1) + "\r\n" + bddecode->getfeedback() +
-		"\r\n解码时间：" + spend.ToString() + "秒";
+	if (Setting->volmatch)Result->Text += "   响度：" + (10.0*log10(tvdecode->get_avg_vol())).ToString(specifier) + " dB";
+	Result->Text += "\r\nBD文件：  " + bdtext->Substring(bdtext->LastIndexOf("\\") + 1) + "\r\n" + bddecode->getfeedback();
+	if (Setting->volmatch)Result->Text += "   响度：" + (10.0*log10(bd_pre_avg_vol)).ToString(specifier)
+		+ "->" + (10.0*log10(bddecode->get_avg_vol())).ToString(specifier) + " dB";
+	Result->Text +=	"\r\n解码时间：" + spend.ToString() + "秒";
 	if (tvdecode->getreturn() < 0 || bddecode->getreturn() < 0) {
 		tvdecode->~Decode();
 		bddecode->~Decode();
@@ -266,16 +302,19 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	}
 	//交叠间距
 	int overlap_interval = static_cast<int>(ceil(ttf));
-	double aveindex = 0, maxindex = 0; int maxdelta = 0, maxline = 0;//调试用
-	int offset = 0; int fivesec = 0; int lastlinetime = 0;
+	//调试用
+	double aveindex = 0, maxindex = 0; int maxdelta = 0, maxline = 0;
 	//快速匹配
+	int offset = 0; int fivesec = 0; int lastlinetime = 0;
 	if (Setting->fastmatch) {
 		fivesec = static_cast<int>(500 * ttf);
 		Result->Text += "\r\n信息：使用快速匹配。";
 	}
 	//多线程参数
-	int nb_per_task = min(25, find0 / Environment::ProcessorCount / interval);
-	int nb_tasks = static_cast<int>(ceil(static_cast<double>(find0 / interval) / static_cast<double>(nb_per_task)));
+	int nb_per_task = min(25, 2 * find0 / Environment::ProcessorCount / interval);
+	int nb_tasks = static_cast<int>(ceil(static_cast<double>(2 * find0 / interval) / static_cast<double>(nb_per_task)));
+	volatile long long *diffa = new long long[3];
+	se_re *search_result = new se_re[nb_tasks];
 	for (int i = 0; i < alltimematch->Count; i++) {
 		if (tvtime[i] >= 0) {
 			if (Setting->fastmatch && offset && lastlinetime > fivesec && tvtime[i - 1] > 0 && labs(tvtime[i] - lastlinetime) < fivesec) {
@@ -331,12 +370,12 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 					delta += labs(bdfftdata[0][bdtimein + tvmintime[k]].sum() - tvmin[k]);
 				}
 				delta = delta >> rightshift;
+				//bdse.push(bdtimein, delta);
 				if (delta < 600)bdse.push(bdtimein, delta);
 			}
 			bdse.sort();
 			bdsearch *bdse_ptr = &bdse;
 			//精确匹配
-			long long *diffa = new long long[3];
 			diffa[0] = 922372036854775808;
 			diffa[1] = 0;
 			int minchecknumcal = Setting->minchecknum;
@@ -345,11 +384,10 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			int checkfield = minchecknumcal * interval;
 			diffa[2] = minchecknumcal;
 			List<Task<int>^>^ tasks = gcnew List<Task<int>^>();
-			//int nb_tasks = Environment::ProcessorCount * 4;
-			se_re *search_result = new se_re[nb_tasks];
 			se_re *se_re_ptr = search_result;
 			for (int j = 0; j < nb_tasks; j++) {
 				int sestart = j * nb_per_task;
+				se_re_ptr->init();
 				Var^ calvar = gcnew Var(tvfftdata, bdfftdata, bdse_ptr, tvtime[i], sestart, min(sestart + nb_per_task, bdse.size()),
 					duration, ch, ISAMode, minchecknumcal, checkfield, diffa, se_re_ptr);
 				Task<int>^ varTask = gcnew Task<int>(gcnew Func<int>(calvar, &Var::caldiff), CancelSource->Token);
@@ -387,17 +425,20 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 			}
 			bdtime[i] = besttime;
 			//调试用->
-			/*
+			
 			String^ besttimestr = mstotime(besttime * ftt);
 			int bestfind = bdse.find(besttime, 0);
-			String^ time = "0:11:47.61";
+			String^ time = "0:11:30.64";
 			int fftindex = static_cast<int>((int::Parse(time[0].ToString()) * 360000 + int::Parse(time->Substring(2, 2)) * 6000 +
 				int::Parse(time->Substring(5, 2)) * 100 + int::Parse(time->Substring(8, 2)) + Setting->assoffset) * ttf);
-			int ls = bdse.find(fftindex, 0);
+			fftindex += 1;
+			int pos1 = bdse.find(fftindex, 0);
 			long long lsresult = -1;
-			if (ls > 0)lsresult = tasks[ls]->Result;
-			String^ besttimestr2 = mstotime(65788 * ftt);
-			*/
+			int task_id = static_cast<int>(ceil(pos1 / nb_per_task) - 1.0);
+			if (pos1 > 0)lsresult = search_result[task_id][0];
+			String^ besttimestr2 = mstotime(search_result[task_id][1] * ftt);
+			int pos2 = bdse.find(search_result[task_id][1], 0);
+			
 			if (debugmode) {
 				int delta1 = bdse.find(besttime, 1);
 				if (delta1 > maxdelta)maxdelta = delta1;
@@ -414,11 +455,11 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 				offset = bdtime[i] - tvtime[i];
 				lastlinetime = tvtime[i];
 			}
-			delete[] search_result;
-			delete[] diffa;
 		}
 		progsingle(3, (i + 1) / static_cast<double>(alltimematch->Count));
 	}
+	delete[] search_result;
+	delete[] diffa;
 	//调试用->
 	if (debugmode) {
 		aveindex /= alltimematch->Count / 100.0;
@@ -809,7 +850,7 @@ int BDMatch::MyForm::loadsettings(String^ path, SettingVals^ settingvals)
 		}
 		finally{
 			Regex^ numkey = gcnew Regex("[\\+-]?[0-9]+");
-			for (int i = 0; i < 11; i++) {
+			for (int i = 0; i < 12; i++) {
 				SettingType type = static_cast<SettingType>(i);
 				Regex^ setkey = gcnew Regex(settingvals->getname(type) + ":[\\+-]?[0-9]+\\r\\n");
 				String^ setting = setkey->Match(settext)->Value;
@@ -829,7 +870,7 @@ int BDMatch::MyForm::savesettings(String^ path, SettingVals^ settingvals)
 	using namespace System::Text::RegularExpressions;
 	FileStream^ fs = File::OpenWrite(path);
 	try {
-		for (int i = 0; i < 11; i++) {
+		for (int i = 0; i < 12; i++) {
 			SettingType type = static_cast<SettingType>(i);
 			String^ outstr = settingvals->getname(type) + ":" + settingvals->getval(type).ToString() + "\r\n";
 			array<Byte>^info = (gcnew UTF8Encoding(true))->

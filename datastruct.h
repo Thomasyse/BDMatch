@@ -4,7 +4,6 @@
 #include <vector>
 #include <array>
 #include <bitset>  
-#include <array>  
 #include <string>  
 #include <intrin.h>  
 
@@ -47,6 +46,7 @@ namespace DataStruct {
 		se_re();
 		long long& operator[](const int &index);
 		se_re(se_re &in);
+		int init();
 	private:
 		long long data[2] = { 922372036854775808,0 };
 	};
@@ -75,7 +75,7 @@ namespace DataStruct {
 	public:
 		Varcal(node** const & tv0, node** const & bd0, bdsearch *& bdse0,
 			const int &tvstart0, const int &sestart0, const int &seend0, const int &duration0, const int &ch0, const int &minchecknum0,
-			const int &checkfield0, long long *&diffa0, se_re *& re0);
+			const int &checkfield0, volatile long long *&diffa0, se_re *& re0);
 		virtual int caldiff();
 	protected:
 		node** const &tv;
@@ -89,7 +89,7 @@ namespace DataStruct {
 		int checkfield = 0;
 		int size = 0;
 		bdsearch *&bdse;
-		long long *&diffa;
+		volatile long long *&diffa;
 		se_re *re;
 	};
 
@@ -97,7 +97,7 @@ namespace DataStruct {
 	public:
 		Varcalsse(node** const & tv0, node** const & bd0, bdsearch *& bdse0,
 			const int &tvstart0, const int &sestart0, const int &seend0, const int &duration0, const int &ch0, const int &minchecknum0,
-			const int &checkfield0, long long *&diffa0, se_re *& re0)
+			const int &checkfield0, volatile long long *&diffa0, se_re *& re0)
 			:Varcal(tv0, bd0, bdse0, tvstart0, sestart0, seend0, duration0, ch0, minchecknum0, checkfield0, diffa0, re0) {}
 		int caldiff();
 	};
@@ -106,7 +106,7 @@ namespace DataStruct {
 	public:
 		Varcalavx2(node** const & tv0, node** const & bd0, bdsearch *& bdse0,
 			const int &tvstart0, const int &sestart0, const int &seend0, const int &duration0, const int &ch0, const int &minchecknum0,
-			const int &checkfield0, long long *&diffa0, se_re *& re0)
+			const int &checkfield0, volatile long long *&diffa0, se_re *& re0)
 			:Varcal(tv0, bd0, bdse0, tvstart0, sestart0, seend0, duration0, ch0, minchecknum0, checkfield0, diffa0, re0) {}
 		int caldiff();
 	};
@@ -115,15 +115,14 @@ namespace DataStruct {
 	public:
 		Var(node** const & tv, node** const & bd, bdsearch *& bdse0,
 			const int &tvstart, const int &sestart0, const int &seend0, const int &duration, const int &ch, int ISAMode,
-			const int &minchecknum0, const int &checkfield0, long long *&diffa0, se_re *& re);
+			const int &minchecknum0, const int &checkfield0, volatile long long *&diffa0, se_re *& re);
 		~Var();
 		int caldiff();
 	private:
 		Varcal * varcal = nullptr;
-		long long *&diffa;
 	};
 
-	enum SettingType { FFTNum, MinCheckNum, FindField, MinFinddB, MaxLength, AssOffset, OutputPCM, Draw, MatchAss, ParallelDecode, FastMatch };
+	enum SettingType { FFTNum, MinCheckNum, FindField, MinFinddB, MaxLength, AssOffset, OutputPCM, Draw, MatchAss, ParallelDecode, FastMatch, VolMatch };
 
 	public ref struct SettingVals {
 	public:
@@ -143,6 +142,7 @@ namespace DataStruct {
 		bool matchass = true;
 		bool paralleldecode = false;
 		bool fastmatch = false;
+		bool volmatch = false;
 	};
 #pragma unmanaged
 	class InstructionSet

@@ -25,6 +25,7 @@ BDMatch::Settings::Settings(SettingCallback^ setbackin, NullCallback^ nullbackin
 	MinCheckNumSet->Value = setting->minchecknum;
 	ParaDecode->Checked = setting->paralleldecode;
 	FastMatchSet->Checked = setting->fastmatch;
+	VolMatchBox->Checked = setting->volmatch;
 }
 
 System::Void BDMatch::Settings::Settings_FormClosed(System::Object ^ sender, System::Windows::Forms::FormClosedEventArgs ^ e)
@@ -116,6 +117,14 @@ System::Void BDMatch::Settings::ParaDecode_CheckedChanged(System::Object ^ sende
 {
 	if (this->Visible) {
 		setback->Invoke(ParallelDecode, static_cast<int>(ParaDecode->Checked));
+	}
+	return System::Void();
+}
+
+System::Void BDMatch::Settings::VolMatchBox_CheckedChanged(System::Object ^ sender, System::EventArgs ^ e)
+{
+	if (this->Visible) {
+		setback->Invoke(VolMatch, static_cast<int>(VolMatchBox->Checked));
 	}
 	return System::Void();
 }

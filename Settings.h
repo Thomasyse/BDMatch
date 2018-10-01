@@ -103,6 +103,10 @@ namespace BDMatch {
 
 	private: System::Windows::Forms::Label^  label20;
 	private: System::Windows::Forms::Label^  label21;
+	private: System::Windows::Forms::CheckBox^  VolMatchBox;
+
+
+	private: System::Windows::Forms::Label^  label22;
 
 
 
@@ -159,6 +163,8 @@ namespace BDMatch {
 			this->label11 = (gcnew System::Windows::Forms::Label());
 			this->DecodeTabPage = (gcnew System::Windows::Forms::TabPage());
 			this->DecodeLayoutPanel = (gcnew System::Windows::Forms::TableLayoutPanel());
+			this->VolMatchBox = (gcnew System::Windows::Forms::CheckBox());
+			this->label22 = (gcnew System::Windows::Forms::Label());
 			this->label15 = (gcnew System::Windows::Forms::Label());
 			this->label8 = (gcnew System::Windows::Forms::Label());
 			this->label7 = (gcnew System::Windows::Forms::Label());
@@ -641,6 +647,8 @@ namespace BDMatch {
 				99)));
 			this->DecodeLayoutPanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
 				100)));
+			this->DecodeLayoutPanel->Controls->Add(this->VolMatchBox, 0, 8);
+			this->DecodeLayoutPanel->Controls->Add(this->label22, 0, 9);
 			this->DecodeLayoutPanel->Controls->Add(this->label15, 2, 2);
 			this->DecodeLayoutPanel->Controls->Add(this->label8, 0, 5);
 			this->DecodeLayoutPanel->Controls->Add(this->label7, 0, 3);
@@ -657,7 +665,9 @@ namespace BDMatch {
 			this->DecodeLayoutPanel->Location = System::Drawing::Point(0, 0);
 			this->DecodeLayoutPanel->Name = L"DecodeLayoutPanel";
 			this->DecodeLayoutPanel->Padding = System::Windows::Forms::Padding(6, 6, 30, 6);
-			this->DecodeLayoutPanel->RowCount = 8;
+			this->DecodeLayoutPanel->RowCount = 10;
+			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
@@ -668,6 +678,35 @@ namespace BDMatch {
 			this->DecodeLayoutPanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->DecodeLayoutPanel->Size = System::Drawing::Size(864, 519);
 			this->DecodeLayoutPanel->TabIndex = 22;
+			// 
+			// VolMatchBox
+			// 
+			this->VolMatchBox->AutoSize = true;
+			this->DecodeLayoutPanel->SetColumnSpan(this->VolMatchBox, 3);
+			this->VolMatchBox->Dock = System::Windows::Forms::DockStyle::Left;
+			this->VolMatchBox->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F));
+			this->VolMatchBox->Location = System::Drawing::Point(13, 443);
+			this->VolMatchBox->Margin = System::Windows::Forms::Padding(7, 3, 3, 3);
+			this->VolMatchBox->Name = L"VolMatchBox";
+			this->VolMatchBox->Size = System::Drawing::Size(132, 35);
+			this->VolMatchBox->TabIndex = 22;
+			this->VolMatchBox->Text = L"响度补偿";
+			this->VolMatchBox->UseVisualStyleBackColor = true;
+			this->VolMatchBox->CheckedChanged += gcnew System::EventHandler(this, &Settings::VolMatchBox_CheckedChanged);
+			// 
+			// label22
+			// 
+			this->label22->AutoEllipsis = true;
+			this->label22->AutoSize = true;
+			this->DecodeLayoutPanel->SetColumnSpan(this->label22, 3);
+			this->label22->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->label22->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11));
+			this->label22->Location = System::Drawing::Point(51, 486);
+			this->label22->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
+			this->label22->Name = L"label22";
+			this->label22->Size = System::Drawing::Size(780, 25);
+			this->label22->TabIndex = 23;
+			this->label22->Text = L"对BD音频响度进行补偿，使BD音频的响度与TV音频一致，此时会对BD音频进行两次解码。";
 			// 
 			// label15
 			// 
@@ -735,7 +774,7 @@ namespace BDMatch {
 			this->label9->Location = System::Drawing::Point(51, 380);
 			this->label9->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label9->Name = L"label9";
-			this->label9->Size = System::Drawing::Size(780, 123);
+			this->label9->Size = System::Drawing::Size(780, 50);
 			this->label9->TabIndex = 20;
 			this->label9->Text = L"同时进行TV和BD文件的解码，请在拥有高性能硬盘的设备上开启此选项，否则可能会导致在硬盘负载较大时解码速度急剧下降。";
 			// 
@@ -834,6 +873,7 @@ namespace BDMatch {
 	private: System::Void DrawSet_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void MatchAssSet_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void ParaDecode_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void VolMatchBox_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void FastMatchSet_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void AssOffsetSet_ValueChanged(System::Object^  sender, System::EventArgs^  e);
 };

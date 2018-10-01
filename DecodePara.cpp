@@ -1,4 +1,5 @@
 #include "DecodePara.h"
+#define MaxdB 20.0
 
 using namespace BDMatch;
 
@@ -183,11 +184,15 @@ void BDMatch::Decode::decodeaudio()
 	else if (codecfm->sample_fmt == AV_SAMPLE_FMT_DBL || codecfm->sample_fmt == AV_SAMPLE_FMT_DBLP) sampletype = 2;
 	//采样变量
 	int samplecount = 0, samplenum = 0;
-	int fftnum = FFTnum;
-	c_mindb = 256.0 / (15.0 - static_cast<double>(mindb));
-	double c_mindb0 = c_mindb;
-	int isamode = ISAMode;
+	const int fftnum = FFTnum;
+	c_mindb = 256.0 / (MaxdB - static_cast<double>(mindb));
+	const double c_mindb0 = c_mindb;
+	const int isamode = ISAMode;
 	channels = codecfm->channels;
+	//计算音频响度变量
+	const int vol_mode0 = vol_mode;
+	const double vol_coef0 = vol_coef;
+	double total_vol0 = 0.0;
 	//重采样变量2
 	dst_data = NULL;
 	int dst_linesize;
@@ -228,16 +233,18 @@ void BDMatch::Decode::decodeaudio()
 		realch = codecfm->channels;
 		chfmt = "Planar";
 	}
-	int chs = min(codecfm->channels, 2);
-	int spectrum_size = FFTnum / 2;
-	fftdata = new node*[chs];
-	fft_spec = new char*[chs];
-	for (int i = 0; i < chs; i++) {
-		fftdata[i] = new node[efftnum];
-		fft_spec[i] = new char[efftnum * spectrum_size];
-		char* index = fft_spec[i];
-		for (int j = 0; j < efftnum; j++, index += spectrum_size) {
-			fftdata[i][j].init_data(spectrum_size, index);
+	if (vol_mode != 1) {
+		int chs = min(codecfm->channels, 2);
+		int spectrum_size = FFTnum / 2;
+		fftdata = new node*[chs];
+		fft_spec = new char*[chs];
+		for (int i = 0; i < chs; i++) {
+			fftdata[i] = new node[efftnum];
+			fft_spec[i] = new char[efftnum * spectrum_size];
+			char* index = fft_spec[i];
+			for (int j = 0; j < efftnum; j++, index += spectrum_size) {
+				fftdata[i][j].init_data(spectrum_size, index);
+			}
 		}
 	}
 	node** fftdata0 = fftdata;
@@ -323,12 +330,16 @@ void BDMatch::Decode::decodeaudio()
 				}				
 				//处理数据
 				Normalization *normlz;
-				double **normalized_samples;
-				if (ISAMode == 3) normlz = new Normalizationavx2(audiodata, normalized_samples, sample_seqs, nb_last_seq, realch, codecfm->channels, nb_samples, sampletype, fftnum);
-				else normlz = new Normalization(audiodata, normalized_samples, sample_seqs, nb_last_seq, realch, codecfm->channels, nb_samples, sampletype, fftnum);
+				double **normalized_samples = nullptr;
+				if (ISAMode == 3) normlz = new Normalizationavx2(audiodata, normalized_samples, sample_seqs, nb_last_seq,
+					realch, codecfm->channels, nb_samples, sampletype, fftnum, vol_mode0, total_vol0, vol_coef0);
+				else normlz = new Normalization(audiodata, normalized_samples, sample_seqs, nb_last_seq,
+					realch, codecfm->channels, nb_samples, sampletype, fftnum, vol_mode0, total_vol0, vol_coef0);
 				int nb_sample_fft= normlz->getshiftf();
 				delete normlz;
-				bool result = add_fft_task(fftdata0, plan0, normalized_samples, fftnum, c_mindb0, isamode, min(2, codecfm->channels), nb_sample_fft);
+				bool result;
+				if (vol_mode != 1) result = add_fft_task(fftdata0, plan0, normalized_samples, fftnum, c_mindb0, isamode, min(2, codecfm->channels), nb_sample_fft);
+				else result = true;
 				if (!result) {
 					if (dst_data)
 						av_freep(&dst_data[0]);
@@ -359,6 +370,8 @@ void BDMatch::Decode::decodeaudio()
 		}
 		av_packet_unref(packet);
 	}
+	//保存音频响度
+	total_vol = total_vol0;
 	//数据存入pcmdata
 	int count = codecfm->frame_number;
 	int bit_depth_raw = codecfm->bits_per_raw_sample;
@@ -370,7 +383,7 @@ void BDMatch::Decode::decodeaudio()
 		"\r\n采样位数：" + bit_depth_raw.ToString() + "bit -> " + (out_bitdepth).ToString() + "bit    采样率：" + samprateinfo
 		+ "    采样格式："
 		+ marshal_as<String^>(av_get_sample_fmt_name(codecfm->sample_fmt))->Replace("AV_SAMPLE_FMT_", "")->ToUpper();
-	if (start_time != 0)feedback += "    延迟：" + start_time.ToString() + "ms";
+	if (start_time != 0 && !audioonly)feedback += "    延迟：" + start_time.ToString() + "ms";
 	//补充wav头信息
 	if (outputpcm) {
 		long pcmfilesize = ftell(pcm) - 8;
@@ -390,8 +403,7 @@ void BDMatch::Decode::decodeaudio()
 	}
 	//释放内存
 	returnval = 0;
-	delete ffmpeg;
-	ffmpeg = nullptr;
+	clearffmpeg();
 	return;
 }
 
@@ -428,6 +440,10 @@ int BDMatch::Decode::getFFTnum()
 {
 	return FFTnum;
 }
+double BDMatch::Decode::get_avg_vol()
+{
+	return total_vol / efftnum;
+}
 bool BDMatch::Decode::getaudioonly()
 {
 	return audioonly;
@@ -435,20 +451,34 @@ bool BDMatch::Decode::getaudioonly()
 
 int BDMatch::Decode::clearfftdata()
 {
-	for (int i = 0; i < channels; i++) {
-		if (fftdata[i] != nullptr) {
-			delete[] fftdata[i];
-			fftdata[i] = nullptr;
+	if (fftdata) {
+		for (int i = 0; i < channels; i++) {
+			if (fftdata[i]) {
+				delete[] fftdata[i];
+				fftdata[i] = nullptr;
+			}
 		}
-		if (fft_spec[i] != nullptr) {
-			delete[] fft_spec[i];
-			fft_spec[i] = nullptr;
-		}
+		delete[] fftdata;
+		fftdata = nullptr;
 	}
-	delete[] fftdata;
-	fftdata = nullptr;
-	delete[] fft_spec;
-	fft_spec = nullptr;
+	if (fft_spec) {
+		for (int i = 0; i < channels; i++) {
+			if (fft_spec[i]) {
+				delete[] fft_spec[i];
+				fft_spec[i] = nullptr;
+			}
+		}
+		delete[] fft_spec;
+		fft_spec = nullptr;
+	}
+	return 0;
+}
+int BDMatch::Decode::clearffmpeg()
+{
+	if (ffmpeg) {
+		delete ffmpeg;
+		ffmpeg = nullptr;
+	}
 	return 0;
 }
 node** BDMatch::Decode::getfftdata()
@@ -460,12 +490,21 @@ char ** BDMatch::Decode::getfftspec()
 	return fft_spec;
 }
 
-bool BDMatch::Decode::add_fft_task(node** &fftdata, fftw_plan &p, double **sample_seq, const int &FFTnum,
+int BDMatch::Decode::set_vol_mode(const int &input)
+{
+	vol_mode = input;
+	return 0;
+}
+int BDMatch::Decode::set_vol_coef(const double &input)
+{
+	vol_coef = input;
+	return 0;
+}
+
+bool BDMatch::Decode::add_fft_task(node** &fftdata, fftw_plan &p, double **&sample_seq, const int &FFTnum,
 	const double&c_mindb, const int &ISAMode, const int &filech, const int &nb_fft_samples)
 {
 	if (nb_fft_samples <= 0) {
-		delete[] sample_seq;
-		sample_seq = nullptr;
 		return true;
 	}
 	int fft_index = fftsampnum;
@@ -578,7 +617,7 @@ int BDMatch::FFTCal::FD8(double* inseq, node* outseq)
 	for (int i = 0; i < outseq->size(); i++) {
 		double addx = inseq[i];
 		addx = 10.0 * log10(addx);
-		addx -= 15.0;
+		addx -= MaxdB;
 		addx *= c_mindb;
 		addx += 127.0;
 		addx = min(addx, 127.0);
@@ -618,7 +657,7 @@ int BDMatch::FFTCalsse::FD8(double* inseq, node* outseq)
 {
 	char *out = outseq->getdata();
 	__m128d const10 = _mm_set1_pd(10.0);
-	__m128d const15 = _mm_set1_pd(15.0);
+	__m128d const_maxdb = _mm_set1_pd(MaxdB);
 	__m128d const_mindb = _mm_set1_pd(c_mindb);
 	__m128d const127 = _mm_set1_pd(127.0);
 	__m128d constm128 = _mm_set1_pd(-128.0);
@@ -631,7 +670,7 @@ int BDMatch::FFTCalsse::FD8(double* inseq, node* outseq)
 		temp.m128d_f64[0] = log10(temp.m128d_f64[0]);
 		temp.m128d_f64[1] = log10(temp.m128d_f64[1]);
 		temp = _mm_mul_pd(temp, const10);
-		temp = _mm_sub_pd(temp, const15);
+		temp = _mm_sub_pd(temp, const_maxdb);
 		temp = _mm_mul_pd(temp, const_mindb);
 		temp = _mm_add_pd(temp, const127);
 		temp = _mm_min_pd(temp, const127);
@@ -675,7 +714,7 @@ int BDMatch::FFTCalavx::FD8(double* inseq, node* outseq)
 {
 	char *out = outseq->getdata();
 	__m256d const10 = _mm256_set1_pd(10.0);
-	__m256d const15 = _mm256_set1_pd(15.0);
+	__m256d const_maxdb = _mm256_set1_pd(MaxdB);
 	__m256d const_mindb = _mm256_set1_pd(c_mindb);
 	__m256d const127 = _mm256_set1_pd(127.0);
 	__m256d constm128 = _mm256_set1_pd(-128.0);
@@ -690,11 +729,11 @@ int BDMatch::FFTCalavx::FD8(double* inseq, node* outseq)
 		temp.m256d_f64[2] = log10(temp.m256d_f64[2]);
 		temp.m256d_f64[3] = log10(temp.m256d_f64[3]);
 		temp = _mm256_mul_pd(temp, const10);
-		temp = _mm256_sub_pd(temp, const15);
+		temp = _mm256_sub_pd(temp, const_maxdb);
 		temp = _mm256_mul_pd(temp, const_mindb);
 		temp = _mm256_add_pd(temp, const127);
-		temp = _mm256_min_pd(temp, const127);
 		temp = _mm256_max_pd(temp, constm128);
+		temp = _mm256_min_pd(temp, const127);
 		temp = _mm256_round_pd(temp, _MM_FROUND_TO_NEAREST_INT);
 		__m128i temp_int = _mm256_cvtpd_epi32(temp);
 		out[0] = static_cast<char>(_mm_extract_epi8(temp_int, 0));
@@ -737,20 +776,24 @@ void BDMatch::FFTC::FFT()
 }
 
 BDMatch::Normalization::Normalization(uint8_t ** const &audiodata0, double ** &normalized_samples0, double ** &seqs0, int &nb_last_seq,
-	const int &realch0, const int &filech0, const int &nb_samples0, const int &sampletype0, const int &FFTnum0)
+	const int &realch0, const int &filech0, const int &nb_samples0, const int &sampletype0, const int &FFTnum0,
+	const int &vol_mode0, double &total_vol0, const double &vol_coef0)
 	:audiodata(audiodata0), normalized_samples(normalized_samples0), seqs(seqs0), nb_last(nb_last_seq),
-	realch(realch0), filech(filech0), nb_samples(nb_samples0), sampletype(sampletype0), FFTnum(FFTnum0)
+	realch(realch0), filech(filech0), nb_samples(nb_samples0), sampletype(sampletype0), FFTnum(FFTnum0),
+	vol_mode(vol_mode0), total_vol(total_vol0), vol_coef(vol_coef0)
 {
 }
 
 #pragma unmanaged
 int BDMatch::Normalization::getshiftf()
 {
-	normalized_samples = new double*[filech];
 	int nb_last_next = (nb_samples + nb_last) % FFTnum;
 	int length = nb_samples + nb_last - nb_last_next;
 	int nb_fft_samples = length / FFTnum;
-	for (int ch = 0; ch < filech; ch++)normalized_samples[ch] = (double*)fftw_malloc(sizeof(double)*length);
+	if (length > 0) {
+		normalized_samples = new double*[filech];
+		for (int ch = 0; ch < filech; ch++)normalized_samples[ch] = (double*)fftw_malloc(sizeof(double)*length);
+	}
 	if (realch == filech) {
 		if (sampletype == 1) {
 			int index2 = 0;
@@ -972,17 +1015,37 @@ int BDMatch::Normalization::getshiftf()
 		}
 	}
 	nb_last = nb_last_next;
+	//响度计算和匹配
+	if (vol_mode >= 0 && length > 0) {
+		if (vol_coef != 0.0)
+			for (int ch = 0; ch < filech; ch++)
+				for (int i = 0; i < length; i++)
+					normalized_samples[ch][i] *= vol_coef;
+		double sum = 0.0;
+		for (int ch = 0; ch < filech; ch++)
+			for (int i = 0; i < length; i++)
+				sum += normalized_samples[ch][i] * normalized_samples[ch][i];
+		total_vol += sum / FFTnum / filech;
+		if (vol_mode == 1) {
+			for (int ch = 0; ch < filech; ch++) {
+				fftw_free(normalized_samples[ch]);
+				normalized_samples[ch] = nullptr;
+			}
+			delete[] normalized_samples;
+		}
+	}
 	return nb_fft_samples;
 }
 
 int BDMatch::Normalizationavx2::getshiftf()
 {
-	normalized_samples = new double*[filech];
 	int nb_last_next = (nb_samples + nb_last) % FFTnum;
 	int length = nb_samples + nb_last - nb_last_next;
 	int nb_fft_samples = length / FFTnum;
-	if (length > 0)
+	if (length > 0) {
+		normalized_samples = new double*[filech];
 		for (int ch = 0; ch < filech; ch++)normalized_samples[ch] = (double*)fftw_malloc(sizeof(double)*length);
+	}
 	if (realch == filech) {
 		if (sampletype == 1) {
 			int index = 0, index2 = 0;
@@ -999,7 +1062,9 @@ int BDMatch::Normalizationavx2::getshiftf()
 				int threshold = nb_to_norm / 8;
 				int remainder = nb_to_norm % 8;
 				float *tempf = reinterpret_cast<float *>(audiodata[ch]);
-				double *tempd = normalized_samples[ch] + index;
+				double *tempd;
+				if (normalized_samples)tempd = normalized_samples[ch] + index;
+				else tempd = nullptr;
 				double *temp_seq = seqs[ch] + index2;
 				for (int i = 0; i < threshold; i++) {
 					__m256 temp256 = _mm256_load_ps(tempf);
@@ -1672,6 +1737,40 @@ int BDMatch::Normalizationavx2::getshiftf()
 		}
 	}
 	nb_last = nb_last_next;
+	//响度计算和匹配
+	if (vol_mode >= 0 && length > 0) {
+		int avxlength = length / 4;
+		if (vol_coef != 0.0) {
+			__m256d vol_vect = _mm256_set1_pd(vol_coef);
+			for (int ch = 0; ch < filech; ch++) {
+				double *tempd = normalized_samples[ch];
+				for (int i = 0; i < avxlength; i++) {
+					__m256d temp256 = _mm256_load_pd(tempd);
+					temp256 = _mm256_mul_pd(temp256, vol_vect);
+					_mm256_store_pd(tempd, temp256);
+					tempd += 4;
+				}
+			}
+		}
+		__m256d sum256 = _mm256_set1_pd(0.0);
+		for (int ch = 0; ch < filech; ch++) {
+			double *tempd = normalized_samples[ch];
+			for (int i = 0; i < avxlength; i++) {
+				__m256d temp256 = _mm256_load_pd(tempd);
+				temp256 = _mm256_mul_pd(temp256, temp256);
+				sum256 = _mm256_add_pd(sum256, temp256);
+				tempd += 4;
+			}
+		}
+		total_vol += (sum256.m256d_f64[0] + sum256.m256d_f64[1] + sum256.m256d_f64[2] + sum256.m256d_f64[3]) / FFTnum / filech;
+		if (vol_mode == 1) {
+			for (int ch = 0; ch < filech; ch++) {
+				fftw_free(normalized_samples[ch]);
+				normalized_samples[ch] = nullptr;
+			}
+			delete[] normalized_samples;
+		}
+	}
 	return nb_fft_samples;
 }
 #pragma managed
