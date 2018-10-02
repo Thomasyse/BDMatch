@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.4.3"
+#define appversion "1.4.4"
 #define tvmaxnum 12
 #define tvminnum 12
 #define secpurple 45
@@ -475,6 +475,48 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 		tvdraw.linenum = alltimematch->Count;
 		bddraw.linenum = alltimematch->Count;
 		LineSel->Maximum = alltimematch->Count;
+	}
+	//检查可能出错的行
+	std::vector<int>time_diff(alltimematch->Count);
+	std::vector<int>check_result(alltimematch->Count);
+	for (int i = 0; i < alltimematch->Count; i++) {
+		if (tvtime[i] >= 0)time_diff.push_back(bdtime[i] - tvtime[i]);
+		else time_diff[i] = -1;
+	}
+	for (int i = 0; i < alltimematch->Count; i++) {
+		if (tvtime[i] == -1) {
+			check_result[i] = -1;
+			continue;
+		}
+		if (tvtime[i] < 0) {
+			int line_num = -tvtime[i] - 2;
+			int result = check_result[line_num];
+			check_result[i] = result;
+			if (result == 0)
+				tmpstr += "\r\n警告：第" + (i + 1).ToString() + "行（与第"
+				+ (line_num + 1).ToString() + "行时间相同）可能存在匹配错误!";
+			continue;
+		}
+		int temp = 0;
+		bool check = true;
+		bool check2 = true;
+		if (i > 0 && tvtime[i - 1] >= 0) {
+			temp = tvtime[i] - tvtime[i - 1] >= 0 ? 1 : -1;
+			temp *= bdtime[i] - bdtime[i - 1] >= 0 ? 1 : -1;
+			if (temp < 0) check = false;
+			if (labs(time_diff[i] - time_diff[i - 1]) > 3 * interval) check2 = false;
+		}
+		if (check && i < alltimematch->Count - 1 && tvtime[i + 1] >= 0) {
+			temp = tvtime[i + 1] - tvtime[i] >= 0 ? 1 : -1;
+			temp *= bdtime[i + 1] - bdtime[i] >= 0 ? 1 : -1;
+			if (temp < 0) check = false;
+			if (labs(time_diff[i] - time_diff[i + 1]) > 3 * interval && !check2) check = false;
+		}
+		if (!check) {
+			tmpstr += "\r\n警告：第" + (i + 1).ToString() + "行可能存在匹配错误!";
+			check_result[i] = 0;
+		}
+		else check_result[i] = 1;
 	}
 	//写字幕
 	for (int i = 0; i < alltimematch->Count; i++) {
