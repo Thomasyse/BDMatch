@@ -1,5 +1,5 @@
 #include "MyForm.h"
-#define appversion "1.4.4"
+#define appversion "1.4.5"
 #define tvmaxnum 12
 #define tvminnum 12
 #define secpurple 45
@@ -481,42 +481,50 @@ int BDMatch::MyForm::writeass(Decode^ tvdecode, Decode^ bddecode, String^ asstex
 	std::vector<int>check_result(alltimematch->Count);
 	for (int i = 0; i < alltimematch->Count; i++) {
 		if (tvtime[i] >= 0)time_diff.push_back(bdtime[i] - tvtime[i]);
-		else time_diff[i] = -1;
+		else if (tvtime[i] == -1)time_diff[i] = 0;
+		else time_diff[i] = time_diff[-tvtime[i] - 2];
 	}
 	for (int i = 0; i < alltimematch->Count; i++) {
 		if (tvtime[i] == -1) {
 			check_result[i] = -1;
 			continue;
-		}
+		};
 		if (tvtime[i] < 0) {
 			int line_num = -tvtime[i] - 2;
 			int result = check_result[line_num];
 			check_result[i] = result;
-			if (result == 0)
+			if (result > 0)
 				tmpstr += "\r\n警告：第" + (i + 1).ToString() + "行（与第"
 				+ (line_num + 1).ToString() + "行时间相同）可能存在匹配错误!";
 			continue;
 		}
 		int temp = 0;
-		bool check = true;
+		int check = 0;
 		bool check2 = true;
-		if (i > 0 && tvtime[i - 1] >= 0) {
+		if (i > 0 && tvtime[i - 1] != -1) {
 			temp = tvtime[i] - tvtime[i - 1] >= 0 ? 1 : -1;
 			temp *= bdtime[i] - bdtime[i - 1] >= 0 ? 1 : -1;
-			if (temp < 0) check = false;
+			if (temp < 0) check = 1;
 			if (labs(time_diff[i] - time_diff[i - 1]) > 3 * interval) check2 = false;
 		}
-		if (check && i < alltimematch->Count - 1 && tvtime[i + 1] >= 0) {
+		if (check == 0 && i < alltimematch->Count - 1 && tvtime[i + 1] != -1) {
 			temp = tvtime[i + 1] - tvtime[i] >= 0 ? 1 : -1;
 			temp *= bdtime[i + 1] - bdtime[i] >= 0 ? 1 : -1;
-			if (temp < 0) check = false;
-			if (labs(time_diff[i] - time_diff[i + 1]) > 3 * interval && !check2) check = false;
+			if (temp < 0) check = 2;
+			if (labs(time_diff[i] - time_diff[i + 1]) > 3 * interval && !check2) check = 3;
 		}
-		if (!check) {
-			tmpstr += "\r\n警告：第" + (i + 1).ToString() + "行可能存在匹配错误!";
-			check_result[i] = 0;
+		switch (check) {
+		case 1:
+			tmpstr += "\r\n警告：第" + (i + 1).ToString() + "行可能存在匹配错误：与前一行次序不一致！";
+			break;
+		case 2:
+			tmpstr += "\r\n警告：第" + (i + 1).ToString() + "行可能存在匹配错误：与后一行次序不一致！";
+			break;
+		case 3:
+			tmpstr += "\r\n警告：第" + (i + 1).ToString() + "行可能存在匹配错误：与前后行时差不一致！";
+			break;
 		}
-		else check_result[i] = 1;
+		check_result[i] = check;
 	}
 	//写字幕
 	for (int i = 0; i < alltimematch->Count; i++) {

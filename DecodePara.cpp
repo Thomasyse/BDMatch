@@ -224,7 +224,7 @@ void BDMatch::Decode::decodeaudio()
 		samplenum = static_cast<int>(ceil(samplerate / 1000.0*filefm->duration / 1000.0));
 	}
 	efftnum = static_cast<int>(ceil(samplenum / float(FFTnum)));//estimated_fft_num
-
+	//查询音频封装格式
 	packet = av_packet_alloc();
 	int realch = 1;
 	String ^chfmt = "Packed";
@@ -233,6 +233,7 @@ void BDMatch::Decode::decodeaudio()
 		realch = codecfm->channels;
 		chfmt = "Planar";
 	}
+	//为频谱数据分配内存
 	if (vol_mode != 1) {
 		int chs = min(codecfm->channels, 2);
 		int spectrum_size = FFTnum / 2;
