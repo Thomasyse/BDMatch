@@ -1,5 +1,5 @@
 #include "Settings.h"
-using namespace DataStruct;
+using namespace DataStruct1;
 
 BDMatch::Settings::Settings(SettingCallback^ setbackin, NullCallback^ nullbackin, SettingVals ^ settingin)
 {
@@ -11,21 +11,21 @@ BDMatch::Settings::Settings(SettingCallback^ setbackin, NullCallback^ nullbackin
 	setback = setbackin;
 	nullback = nullbackin;
 	for (int i = 0; i < FFTnumList->Items->Count; i++) {
-		if (int::Parse(FFTnumList->GetItemText(FFTnumList->Items[i])) == setting->FFTnum) {
+		if (int::Parse(FFTnumList->GetItemText(FFTnumList->Items[i])) == setting->fft_num) {
 			FFTnumList->SelectedIndex = i;
 		}
 	}
-	OutPCM->Checked = setting->outputpcm;
-	FindSec->Value = setting->findfield;
-	MindB->Value = setting->minfinddb;
-	MaxLengthSet->Value = setting->maxlength;
-	AssOffsetSet->Value = setting->assoffset;
+	OutPCM->Checked = setting->output_pcm;
+	FindSec->Value = setting->find_field;
+	MindB->Value = setting->min_find_db;
+	MaxLengthSet->Value = setting->max_length;
+	AssOffsetSet->Value = setting->ass_offset;
 	DrawSet->Checked = setting->draw;
-	MatchAssSet->Checked = setting->matchass;
-	MinCheckNumSet->Value = setting->minchecknum;
-	ParaDecode->Checked = setting->paralleldecode;
-	FastMatchSet->Checked = setting->fastmatch;
-	VolMatchBox->Checked = setting->volmatch;
+	MatchAssSet->Checked = setting->match_ass;
+	MinCheckNumSet->Value = setting->min_check_num;
+	ParaDecode->Checked = setting->parallel_decode;
+	FastMatchSet->Checked = setting->fast_match;
+	VolMatchBox->Checked = setting->vol_match;
 }
 
 System::Void BDMatch::Settings::Settings_FormClosed(System::Object ^ sender, System::Windows::Forms::FormClosedEventArgs ^ e)
@@ -45,7 +45,7 @@ System::Void BDMatch::Settings::FindSec_ValueChanged(System::Object ^ sender, Sy
 {
 	if (this->Visible) {
 		int findfield = static_cast<int>(FindSec->Value);
-		if (findfield > 180) {
+		if (findfield > 600) {
 			MessageBox::Show(this, "查找范围过大会使匹配速度缓慢，请谨慎选择！", "BDMatch", MessageBoxButtons::OK);
 		}
 		setback->Invoke(FindField, findfield);

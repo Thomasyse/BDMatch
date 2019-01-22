@@ -3,7 +3,7 @@
 #include <string> 
 #include <msclr\marshal_cppstd.h>
 #include <stdlib.h>
-#include "datastruct.h"
+#include "datastruct1.h"
 
 
 namespace BDMatch {
@@ -15,7 +15,7 @@ namespace BDMatch {
 	using namespace System::Data;
 	using namespace System::Drawing;
 	using namespace msclr::interop;
-	using namespace DataStruct;
+	using namespace DataStruct1;
 
 	/// <summary>
 	/// Settings ժҪ

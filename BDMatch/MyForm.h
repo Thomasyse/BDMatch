@@ -1,8 +1,8 @@
 #pragma once
-#include "datastruct.h"
+#include "datastruct1.h"
 #include "Settings.h"
-#include "DecodePara.h"
 #include "user interface.h"
+#include "BDMatchCore.h"
 
 namespace BDMatch {
 
@@ -12,7 +12,7 @@ namespace BDMatch {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
-	using namespace DataStruct;
+	using namespace DataStruct1;
 
 	/// <summary>
 	/// MyForm ժҪ
@@ -44,7 +44,7 @@ namespace BDMatch {
 		int milisec = 0;
 		int linenum = 0;
 		double ttf = 1.0;//Time to Frequency
-		node** data = nullptr;
+		DataStruct::node** data = nullptr;
 		char** spec = nullptr;
 		array<int, 2>^ timelist = nullptr;
 	};
@@ -54,10 +54,14 @@ namespace BDMatch {
 		bool drawstore;
 		Settings ^ setform = nullptr;
 		unsigned int match_num = 0, fin_match_num = 0, matches_num = 0, fin_matches_num = 0;
-		bool debugmode = false;
+		String^ output_path = "";
+		bool debug_mode = false;
 		System::Threading::CancellationTokenSource^ CancelSource;
 		int ISAMode = 0;
 		TaskBar *taskbar;
+		std::atomic_flag *keep_processing = new std::atomic_flag;
+		BDMatchCore *match_core = new BDMatchCore(keep_processing);
+
 	private: System::Windows::Forms::Button^ Match;
 	private: System::Windows::Forms::Button^ TVfind;
 	private: System::Windows::Forms::Button^ BDfind;
@@ -692,12 +696,13 @@ namespace BDMatch {
 		void nullsetform();
 		void progsingle(int type, double val);
 		void progtotal();
+		void feedback(const char *input);
 
 	private:
 		int match(String^ ASSText, String^ TVText, String^ BDText);
-		int writeass(Decode^ tvdecode, Decode^ bddecode, String^ ASSText);
-		int drawpre();
-		int drawpre(Decode^ tvdecode, Decode^ bddecode, int &re);
+		int drawpre(); 
+		int BDMatch::MyForm::writeass(BDMatchCore *match_core, const char* ass_path, const char* output_path);
+		int drawpre(BDMatchCore *match_core, const int &re);
 		int drawchart();
 		String ^ mstotime(int ms);
 		int setrows();
