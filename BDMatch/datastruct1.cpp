@@ -116,28 +116,28 @@ int DataStruct1::SettingVals::setval(const SettingType & type,int val)
 	using namespace std;
 	switch (type) {
 	case FFTNum:
-		val = max(val, 64);
-		val = min(val, 16384);
+		val = val > 64 ? val : 64;
+		val = val < 16384 ? val : 16384;
 		fft_num = val;
 		break;
 	case MinFinddB:
-		val = max(val, -80);
-		val = min(val, 5);
+		val = val > -80 ? val : -80;
+		val = val < 5 ? val : 5;
 		min_find_db = val;
 		break;
 	case FindField:
-		val = max(val, 1);
-		val = min(val, 100000);
+		val = val > 1 ? val : 1;
+		val = val < 1000000 ? val : 1000000;
 		find_field = val;
 		break;
 	case MaxLength:
-		val = max(val, 20);
-		val = min(val, 1000);
+		val = val > 20 ? val : 20;
+		val = val < 1000 ? val : 1000;
 		max_length = val;
 		break;
 	case MinCheckNum:
-		val = max(val, 10);
-		val = min(val, 1000000);
+		val = val > 10 ? val : 10;
+		val = val < 100000000 ? val : 100000000;
 		min_check_num = val;
 		break;
 	case AssOffset:

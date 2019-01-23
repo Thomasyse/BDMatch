@@ -228,15 +228,60 @@ int BDMatchCore::clear_match()
 	return 0;
 }
 
-Decode::Decode * BDMatchCore::get_tv_decode()
+int BDMatchCore::get_nb_timeline()
 {
-	return tv_decode;
+	if (match)return match->get_nb_timeline();
+	else return 0;
 }
-Decode::Decode * BDMatchCore::get_bd_decode()
+int BDMatchCore::get_timeline(const int & index, const int & type)
 {
-	return bd_decode;
+	if (match)return match->get_timeline(index, type);
+	else return -1;
 }
-Matching::Match * BDMatchCore::get_match()
+
+int BDMatchCore::get_decode_info(const Deocde_File & file, const Decode_Info & type)
 {
-	return match;
+	Decode::Decode *decode_ptr;
+	if (file == BD_Decode)decode_ptr = bd_decode;
+	else decode_ptr = tv_decode;
+	if (!decode_ptr)return -1;
+	switch (type) {
+	case Channels:
+		return decode_ptr->get_channels();
+		break;
+	case FFT_Samp_Num:
+		return decode_ptr->get_fft_samp_num();
+		break;
+	case Milisec:
+		return decode_ptr->get_milisec();
+		break;
+	case Samp_Rate:
+		return decode_ptr->get_samp_rate();
+		break;
+	case FFT_Num:
+		return decode_ptr->get_fft_num();
+		break;
+	default:
+		break;
+	}
+	return 0;
 }
+DataStruct::node ** BDMatchCore::get_decode_data(const Deocde_File & file)
+{
+	Decode::Decode *decode_ptr;
+	if (file == TV_Decode)decode_ptr = tv_decode;
+	else decode_ptr = bd_decode;
+	if (!decode_ptr)return nullptr;
+	else return decode_ptr->get_fft_data();
+}
+char ** BDMatchCore::get_decode_spec(const Deocde_File & file)
+{
+	Decode::Decode *decode_ptr;
+	if (file == TV_Decode)decode_ptr = tv_decode;
+	else decode_ptr = bd_decode;
+	if (!decode_ptr)return nullptr;
+	else return decode_ptr->get_fft_spec();
+}
+
+
+

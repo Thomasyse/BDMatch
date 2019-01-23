@@ -2,9 +2,9 @@
 #pragma unmanaged
 #include "instructionset.h"
 #pragma managed
-#include <msclr\marshal.h>
+#include <msclr\marshal_cppstd.h >
 
-#define appversion "1.5.0"
+#define appversion "1.5.1"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -27,6 +27,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	using namespace System::IO;
 	using namespace System::Text;
 	using namespace System::Runtime::InteropServices;
+	using namespace msclr::interop;
 
 	//进度条
 	ProgressCallback^ prog = gcnew ProgressCallback(this, &MyForm::progsingle);
@@ -94,8 +95,7 @@ int BDMatch::MyForm::writeass(BDMatchCore *match_core, const char* ass_path, con
 	int re = 0;
 	re = match_core->match_1(ass_path);
 	if (re < 0) return re;
-	Matching::Match *match = match_core->get_match();
-	int nb_timeline = match->get_nb_timeline();
+	int nb_timeline = match_core->get_nb_timeline();
 	//绘图相关
 	if (Setting->draw) {
 		tvdraw.timelist = gcnew array<int, 2>(nb_timeline, 2);
@@ -104,8 +104,8 @@ int BDMatch::MyForm::writeass(BDMatchCore *match_core, const char* ass_path, con
 		bddraw.linenum = nb_timeline;
 		LineSel->Maximum = nb_timeline;
 		for (int i = 0; i < nb_timeline; i++) {
-			tvdraw.timelist[i, 0] = match->get_timeline(i, Matching::Timeline_Start_Time);
-			tvdraw.timelist[i, 1] = match->get_timeline(i, Matching::Timeline_End_Time);
+			tvdraw.timelist[i, 0] = match_core->get_timeline(i, Matching::Timeline_Start_Time);
+			tvdraw.timelist[i, 1] = match_core->get_timeline(i, Matching::Timeline_End_Time);
 		}
 	}
 	//
@@ -116,8 +116,8 @@ int BDMatch::MyForm::writeass(BDMatchCore *match_core, const char* ass_path, con
 	//绘图相关
 	if (Setting->draw) {
 		for (int i = 0; i < nb_timeline; i++) {
-			bddraw.timelist[i, 0] = match->get_timeline(i, Matching::Timeline_Start_Time);
-			bddraw.timelist[i, 1] = match->get_timeline(i, Matching::Timeline_End_Time);
+			bddraw.timelist[i, 0] = match_core->get_timeline(i, Matching::Timeline_Start_Time);
+			bddraw.timelist[i, 1] = match_core->get_timeline(i, Matching::Timeline_End_Time);
 		}
 	}
 	match_core->clear_match();
@@ -155,21 +155,19 @@ int BDMatch::MyForm::drawpre()
 }
 int BDMatch::MyForm::drawpre(BDMatchCore *match_core, const int &re)
 {
-	Decode::Decode *tvdecode = match_core->get_tv_decode();
-	Decode::Decode *bddecode = match_core->get_bd_decode();
 	if (Setting->draw && !re) {
-		tvdraw.data = tvdecode->get_fft_data();
-		bddraw.data = bddecode->get_fft_data();
-		tvdraw.spec = tvdecode->get_fft_spec();
-		bddraw.spec = bddecode->get_fft_spec();
-		tvdraw.num = tvdecode->get_fft_samp_num();
-		bddraw.num = bddecode->get_fft_samp_num();
-		tvdraw.ch = tvdecode->get_channels();
-		bddraw.ch = bddecode->get_channels();
-		tvdraw.milisec = tvdecode->get_milisec();
-		bddraw.milisec = bddecode->get_milisec();
-		tvdraw.ttf= tvdecode->get_samp_rate() / (static_cast<double>(tvdecode->get_fft_num()) * 100.0);
-		bddraw.ttf = tvdecode->get_samp_rate() / (static_cast<double>(bddecode->get_fft_num()) * 100.0);
+		tvdraw.data = match_core->get_decode_data(TV_Decode);
+		bddraw.data = match_core->get_decode_data(BD_Decode);
+		tvdraw.spec = match_core->get_decode_spec(TV_Decode);
+		bddraw.spec = match_core->get_decode_spec(BD_Decode);
+		tvdraw.num = match_core->get_decode_info(TV_Decode, FFT_Samp_Num);
+		bddraw.num = match_core->get_decode_info(BD_Decode, FFT_Samp_Num);
+		tvdraw.ch = match_core->get_decode_info(TV_Decode, Channels);
+		bddraw.ch = match_core->get_decode_info(BD_Decode, Channels);
+		tvdraw.milisec = match_core->get_decode_info(TV_Decode, Milisec);
+		bddraw.milisec = match_core->get_decode_info(BD_Decode, Milisec);
+		tvdraw.ttf = match_core->get_decode_info(TV_Decode, Samp_Rate) / (static_cast<double>(match_core->get_decode_info(TV_Decode, FFT_Num)) * 100.0);
+		bddraw.ttf = match_core->get_decode_info(TV_Decode, Samp_Rate) / (static_cast<double>(match_core->get_decode_info(BD_Decode, FFT_Num)) * 100.0);
 		ViewSel->SelectedIndex = 0;
 		ChSelect->SelectedIndex = 0;
 		ChSelect->Enabled = true;
@@ -758,6 +756,7 @@ int BDMatch::MyForm::matchinput()
 }
 int BDMatch::MyForm::searchISA()
 {
+	using namespace msclr::interop;
 	Result->Text += marshal_as<String^>(InstructionSet::Brand());
 	ISAMode = 0;
 	if (InstructionSet::AVX2() && InstructionSet::AVX()) {
@@ -856,6 +855,7 @@ void BDMatch::MyForm::progtotal()
 }
 void BDMatch::MyForm::feedback(const char * input)
 {
+	using namespace msclr::interop;
 	Result->Text += marshal_as<String^>(input);
 }
 

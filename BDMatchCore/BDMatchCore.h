@@ -4,10 +4,15 @@
 #include "decoder.h"
 #include "matching.h"
 
+#define BDMatchCoreExport  __declspec( dllexport )
+
 typedef void(__stdcall *prog_func)(int, double);
 typedef void(__stdcall *feedback_func)(const char*);
 
-class BDMatchCore {
+enum Deocde_File { TV_Decode, BD_Decode };
+enum Decode_Info { Channels, FFT_Samp_Num, Milisec, Samp_Rate, FFT_Num };
+
+class BDMatchCoreExport BDMatchCore {
 public:
 	BDMatchCore(std::atomic_flag *keep_processing0 = nullptr);
 	~BDMatchCore();
@@ -21,9 +26,11 @@ public:
 	int match_1(const char* ass_path);
 	int match_2(const char *output_path);
 	int clear_match();
-	Decode::Decode *get_tv_decode();
-	Decode::Decode *get_bd_decode();
-	Matching::Match *get_match();
+	int get_nb_timeline();
+	int get_timeline(const int &index, const int &type);
+	int get_decode_info(const Deocde_File &file, const Decode_Info &type);
+	DataStruct::node **get_decode_data(const Deocde_File &file);
+	char **get_decode_spec(const Deocde_File &file);
 private:
 	Decode::Decode *tv_decode = nullptr;
 	Decode::Decode *bd_decode = nullptr;

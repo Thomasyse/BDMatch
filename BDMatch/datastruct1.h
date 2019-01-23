@@ -1,12 +1,5 @@
 #pragma once
 
-#include <math.h> 
-#include <vector>
-#include <array>
-#include <bitset>  
-#include <string>  
-#include <intrin.h>  
-
 namespace DataStruct1 {
 	
 	using namespace System;

@@ -1,10 +1,5 @@
 #pragma once
-#include <sstream>
-#include <string> 
-#include <msclr\marshal_cppstd.h>
-#include <stdlib.h>
 #include "datastruct1.h"
-
 
 namespace BDMatch {
 
@@ -14,7 +9,6 @@ namespace BDMatch {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
-	using namespace msclr::interop;
 	using namespace DataStruct1;
 
 	/// <summary>

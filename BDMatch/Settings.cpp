@@ -1,4 +1,5 @@
 #include "Settings.h"
+
 using namespace DataStruct1;
 
 BDMatch::Settings::Settings(SettingCallback^ setbackin, NullCallback^ nullbackin, SettingVals ^ settingin)

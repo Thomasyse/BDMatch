@@ -1,10 +1,7 @@
 #pragma once
-#include <stdio.h>
-#include <stdlib.h>
 #include "datastruct.h"
-#include <string>
-#include <vector>
 #include <atomic>
+#include <string>
 extern"C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
@@ -25,6 +22,7 @@ extern"C" {
 #include <libswresample/swresample.h>
 #include <fftw3.h>
 }
+
 
 namespace Decode {
 

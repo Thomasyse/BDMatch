@@ -1,8 +1,10 @@
 #pragma once
 
+#define BDMatchCoreExport  __declspec( dllexport )
+
 namespace DataStruct {
 
-	class node
+	class BDMatchCoreExport node
 	{
 	public:
 		node();

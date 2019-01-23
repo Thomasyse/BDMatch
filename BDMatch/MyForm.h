@@ -1,8 +1,10 @@
 #pragma once
 #include "datastruct1.h"
 #include "Settings.h"
+#pragma unmanaged
 #include "user interface.h"
 #include "BDMatchCore.h"
+#pragma managed
 
 namespace BDMatch {
 
