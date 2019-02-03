@@ -171,11 +171,13 @@
     <ClInclude Include="matching.h" />
     <ClInclude Include="multithreading.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BDMatchCore.cpp" />
     <ClCompile Include="datastruct.cpp" />
     <ClCompile Include="decoder.cpp" />
+    <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="matching.cpp" />
   </ItemGroup>
   <ItemGroup>

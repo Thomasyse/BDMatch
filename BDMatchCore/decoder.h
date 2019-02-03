@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "datastruct.h"
 #include <atomic>
 #include <string>
@@ -22,7 +22,6 @@ extern"C" {
 #include <libswresample/swresample.h>
 #include <fftw3.h>
 }
-
 
 namespace Decode {
 

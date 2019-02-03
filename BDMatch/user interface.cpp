@@ -1,4 +1,4 @@
-#include "user interface.h"
+﻿#include "user interface.h"
 
 BDMatch::TaskBar::TaskBar(void* hwnd0)
 {

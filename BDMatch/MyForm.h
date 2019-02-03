@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "datastruct1.h"
 #include "Settings.h"
 #pragma unmanaged
@@ -17,7 +17,7 @@ namespace BDMatch {
 	using namespace DataStruct1;
 
 	/// <summary>
-	/// MyForm ÕªÒª
+	/// MyForm æ‘˜è¦
 	/// </summary>
 	public ref class MyForm : public System::Windows::Forms::Form
 	{
@@ -26,12 +26,12 @@ namespace BDMatch {
 		{
 			InitializeComponent();
 			//
-			//TODO:  ÔÚ´Ë´¦Ìí¼Ó¹¹Ôìº¯Êı´úÂë
+			//TODO:  åœ¨æ­¤å¤„æ·»åŠ æ„é€ å‡½æ•°ä»£ç 
 			//
 		}
 	protected:
 		/// <summary>
-		/// ÇåÀíËùÓĞÕıÔÚÊ¹ÓÃµÄ×ÊÔ´¡£
+		/// æ¸…ç†æ‰€æœ‰æ­£åœ¨ä½¿ç”¨çš„èµ„æºã€‚
 		/// </summary>
 		~MyForm()
 		{
@@ -45,8 +45,8 @@ namespace BDMatch {
 		int ch = 0;
 		int milisec = 0;
 		int linenum = 0;
+		int fftnum = 0;
 		double ttf = 1.0;//Time to Frequency
-		DataStruct::node** data = nullptr;
 		char** spec = nullptr;
 		array<int, 2>^ timelist = nullptr;
 	};
@@ -114,14 +114,14 @@ namespace BDMatch {
 
 	private:
 		/// <summary>
-		/// ±ØĞèµÄÉè¼ÆÆ÷±äÁ¿¡£
+		/// å¿…éœ€çš„è®¾è®¡å™¨å˜é‡ã€‚
 		/// </summary>
 		System::ComponentModel::Container ^components;
 
 #pragma region Windows Form Designer generated code
 		/// <summary>
-		/// Éè¼ÆÆ÷Ö§³ÖËùĞèµÄ·½·¨ - ²»ÒªĞŞ¸Ä
-		/// Ê¹ÓÃ´úÂë±à¼­Æ÷ĞŞ¸Ä´Ë·½·¨µÄÄÚÈİ¡£
+		/// è®¾è®¡å™¨æ”¯æŒæ‰€éœ€çš„æ–¹æ³• - ä¸è¦ä¿®æ”¹
+		/// ä½¿ç”¨ä»£ç ç¼–è¾‘å™¨ä¿®æ”¹æ­¤æ–¹æ³•çš„å†…å®¹ã€‚
 		/// </summary>
 		void InitializeComponent(void)
 		{
@@ -233,14 +233,14 @@ namespace BDMatch {
 			this->settings->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			this->settings->AutoSize = true;
 			this->settings->BackColor = System::Drawing::Color::Transparent;
-			this->settings->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->settings->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->settings->Location = System::Drawing::Point(3, 209);
 			this->settings->Margin = System::Windows::Forms::Padding(3, 7, 5, 7);
 			this->settings->Name = L"settings";
 			this->settings->Size = System::Drawing::Size(39, 20);
 			this->settings->TabIndex = 16;
-			this->settings->Text = L"ÉèÖÃ";
+			this->settings->Text = L"è®¾ç½®";
 			this->settings->TextAlign = System::Drawing::ContentAlignment::BottomLeft;
 			this->settings->Click += gcnew System::EventHandler(this, &MyForm::settings_Click);
 			this->settings->MouseEnter += gcnew System::EventHandler(this, &MyForm::settings_MouseEnter);
@@ -251,7 +251,7 @@ namespace BDMatch {
 			this->ASStext->AllowDrop = true;
 			this->AllTablePanel->SetColumnSpan(this->ASStext, 2);
 			this->ASStext->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->ASStext->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 10.8F));
+			this->ASStext->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 10.8F));
 			this->ASStext->FormattingEnabled = true;
 			this->ASStext->Location = System::Drawing::Point(103, 25);
 			this->ASStext->Margin = System::Windows::Forms::Padding(3, 5, 0, 0);
@@ -265,28 +265,28 @@ namespace BDMatch {
 			// BDfind
 			// 
 			this->BDfind->Dock = System::Windows::Forms::DockStyle::Left;
-			this->BDfind->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->BDfind->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->BDfind->Location = System::Drawing::Point(1006, 133);
 			this->BDfind->Margin = System::Windows::Forms::Padding(0, 15, 18, 1);
 			this->BDfind->Name = L"BDfind";
 			this->BDfind->Size = System::Drawing::Size(38, 38);
 			this->BDfind->TabIndex = 11;
-			this->BDfind->Text = L"¡­";
+			this->BDfind->Text = L"â€¦";
 			this->BDfind->UseVisualStyleBackColor = true;
 			this->BDfind->Click += gcnew System::EventHandler(this, &MyForm::BDfind_Click);
 			// 
 			// TVfind
 			// 
 			this->TVfind->Dock = System::Windows::Forms::DockStyle::Left;
-			this->TVfind->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->TVfind->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->TVfind->Location = System::Drawing::Point(1006, 79);
 			this->TVfind->Margin = System::Windows::Forms::Padding(0, 15, 18, 1);
 			this->TVfind->Name = L"TVfind";
 			this->TVfind->Size = System::Drawing::Size(38, 38);
 			this->TVfind->TabIndex = 10;
-			this->TVfind->Text = L"¡­";
+			this->TVfind->Text = L"â€¦";
 			this->TVfind->UseVisualStyleBackColor = true;
 			this->TVfind->Click += gcnew System::EventHandler(this, &MyForm::TVfind_Click);
 			// 
@@ -295,7 +295,7 @@ namespace BDMatch {
 			this->About->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Right));
 			this->About->AutoSize = true;
 			this->About->BackColor = System::Drawing::Color::Transparent;
-			this->About->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->About->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->About->Location = System::Drawing::Point(1024, 209);
 			this->About->Margin = System::Windows::Forms::Padding(3, 7, 5, 7);
@@ -312,13 +312,13 @@ namespace BDMatch {
 			// 
 			this->BDLabel->BackColor = System::Drawing::Color::Transparent;
 			this->BDLabel->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->BDLabel->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13));
+			this->BDLabel->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13));
 			this->BDLabel->Location = System::Drawing::Point(8, 125);
 			this->BDLabel->Margin = System::Windows::Forms::Padding(8, 7, 0, 0);
 			this->BDLabel->Name = L"BDLabel";
 			this->BDLabel->Size = System::Drawing::Size(92, 47);
 			this->BDLabel->TabIndex = 5;
-			this->BDLabel->Text = L"BD£º";
+			this->BDLabel->Text = L"BDï¼š";
 			this->BDLabel->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
 			this->BDLabel->MouseDoubleClick += gcnew System::Windows::Forms::MouseEventHandler(this, &MyForm::BDLabel_MouseDoubleClick);
 			// 
@@ -326,13 +326,13 @@ namespace BDMatch {
 			// 
 			this->TVLabel->BackColor = System::Drawing::Color::Transparent;
 			this->TVLabel->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->TVLabel->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13));
+			this->TVLabel->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13));
 			this->TVLabel->Location = System::Drawing::Point(8, 71);
 			this->TVLabel->Margin = System::Windows::Forms::Padding(8, 7, 0, 0);
 			this->TVLabel->Name = L"TVLabel";
 			this->TVLabel->Size = System::Drawing::Size(92, 47);
 			this->TVLabel->TabIndex = 3;
-			this->TVLabel->Text = L"TV£º";
+			this->TVLabel->Text = L"TVï¼š";
 			this->TVLabel->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
 			this->TVLabel->MouseDoubleClick += gcnew System::Windows::Forms::MouseEventHandler(this, &MyForm::TVLabel_MouseDoubleClick);
 			// 
@@ -340,35 +340,35 @@ namespace BDMatch {
 			// 
 			this->ASSLabel->BackColor = System::Drawing::Color::Transparent;
 			this->ASSLabel->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->ASSLabel->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->ASSLabel->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->ASSLabel->Location = System::Drawing::Point(3, 20);
 			this->ASSLabel->Margin = System::Windows::Forms::Padding(3, 0, 0, 0);
 			this->ASSLabel->Name = L"ASSLabel";
 			this->ASSLabel->Size = System::Drawing::Size(97, 44);
 			this->ASSLabel->TabIndex = 0;
-			this->ASSLabel->Text = L"ASS£º";
+			this->ASSLabel->Text = L"ASSï¼š";
 			this->ASSLabel->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
 			this->ASSLabel->MouseDoubleClick += gcnew System::Windows::Forms::MouseEventHandler(this, &MyForm::ASSLabel_MouseDoubleClick);
 			// 
 			// ASSfind
 			// 
 			this->ASSfind->Dock = System::Windows::Forms::DockStyle::Left;
-			this->ASSfind->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->ASSfind->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->ASSfind->Location = System::Drawing::Point(1006, 24);
 			this->ASSfind->Margin = System::Windows::Forms::Padding(0, 4, 18, 2);
 			this->ASSfind->Name = L"ASSfind";
 			this->ASSfind->Size = System::Drawing::Size(38, 38);
 			this->ASSfind->TabIndex = 2;
-			this->ASSfind->Text = L"¡­";
+			this->ASSfind->Text = L"â€¦";
 			this->ASSfind->UseVisualStyleBackColor = true;
 			this->ASSfind->Click += gcnew System::EventHandler(this, &MyForm::ASSfind_Click);
 			// 
 			// Match
 			// 
 			this->Match->Anchor = System::Windows::Forms::AnchorStyles::Top;
-			this->Match->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->Match->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->Match->Location = System::Drawing::Point(493, 182);
 			this->Match->Margin = System::Windows::Forms::Padding(3, 10, 3, 3);
@@ -376,7 +376,7 @@ namespace BDMatch {
 			this->Match->Name = L"Match";
 			this->Match->Size = System::Drawing::Size(155, 45);
 			this->Match->TabIndex = 8;
-			this->Match->Text = L"Æ¥Åä";
+			this->Match->Text = L"åŒ¹é…";
 			this->Match->UseVisualStyleBackColor = true;
 			this->Match->Click += gcnew System::EventHandler(this, &MyForm::Match_Click);
 			// 
@@ -385,7 +385,7 @@ namespace BDMatch {
 			this->TVtext->AllowDrop = true;
 			this->AllTablePanel->SetColumnSpan(this->TVtext, 2);
 			this->TVtext->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->TVtext->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 10.8F));
+			this->TVtext->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 10.8F));
 			this->TVtext->FormattingEnabled = true;
 			this->TVtext->Location = System::Drawing::Point(103, 80);
 			this->TVtext->Margin = System::Windows::Forms::Padding(3, 16, 0, 0);
@@ -401,7 +401,7 @@ namespace BDMatch {
 			this->BDtext->AllowDrop = true;
 			this->AllTablePanel->SetColumnSpan(this->BDtext, 2);
 			this->BDtext->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->BDtext->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 10.8F));
+			this->BDtext->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 10.8F));
 			this->BDtext->FormattingEnabled = true;
 			this->BDtext->Location = System::Drawing::Point(103, 134);
 			this->BDtext->Margin = System::Windows::Forms::Padding(3, 16, 0, 0);
@@ -417,7 +417,7 @@ namespace BDMatch {
 			this->Result->BackColor = System::Drawing::Color::White;
 			this->AllTablePanel->SetColumnSpan(this->Result, 4);
 			this->Result->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->Result->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 10.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->Result->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 10.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->Result->Location = System::Drawing::Point(5, 321);
 			this->Result->Margin = System::Windows::Forms::Padding(5);
@@ -517,9 +517,9 @@ namespace BDMatch {
 			// 
 			this->ViewSel->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->ViewSel->Enabled = false;
-			this->ViewSel->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
+			this->ViewSel->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11.8F));
 			this->ViewSel->FormattingEnabled = true;
-			this->ViewSel->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"°´Ê±¼ä", L"°´ĞĞ" });
+			this->ViewSel->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"æŒ‰æ—¶é—´", L"æŒ‰è¡Œ" });
 			this->ViewSel->Location = System::Drawing::Point(3, 138);
 			this->ViewSel->Name = L"ViewSel";
 			this->ViewSel->Size = System::Drawing::Size(121, 35);
@@ -530,19 +530,19 @@ namespace BDMatch {
 			// 
 			this->label4->BackColor = System::Drawing::Color::Transparent;
 			this->label4->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label4->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
+			this->label4->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F));
 			this->label4->Location = System::Drawing::Point(3, 90);
 			this->label4->Name = L"label4";
 			this->label4->Size = System::Drawing::Size(121, 45);
 			this->label4->TabIndex = 6;
-			this->label4->Text = L"²é¿´£º";
+			this->label4->Text = L"æŸ¥çœ‹ï¼š";
 			this->label4->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			// 
 			// ChartTime
 			// 
 			this->ChartTime->BackColor = System::Drawing::Color::Transparent;
 			this->ChartTime->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->ChartTime->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
+			this->ChartTime->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11.8F));
 			this->ChartTime->Location = System::Drawing::Point(3, 225);
 			this->ChartTime->Name = L"ChartTime";
 			this->ChartTime->Size = System::Drawing::Size(121, 62);
@@ -553,9 +553,9 @@ namespace BDMatch {
 			// 
 			this->ChSelect->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->ChSelect->Enabled = false;
-			this->ChSelect->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
+			this->ChSelect->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11.8F));
 			this->ChSelect->FormattingEnabled = true;
-			this->ChSelect->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"×ó", L"ÓÒ" });
+			this->ChSelect->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"å·¦", L"å³" });
 			this->ChSelect->Location = System::Drawing::Point(3, 48);
 			this->ChSelect->Name = L"ChSelect";
 			this->ChSelect->Size = System::Drawing::Size(121, 35);
@@ -566,18 +566,18 @@ namespace BDMatch {
 			// 
 			this->label5->BackColor = System::Drawing::Color::Transparent;
 			this->label5->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label5->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
+			this->label5->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F));
 			this->label5->Location = System::Drawing::Point(3, 0);
 			this->label5->Name = L"label5";
 			this->label5->Size = System::Drawing::Size(121, 45);
 			this->label5->TabIndex = 2;
-			this->label5->Text = L"ÉùµÀ£º";
+			this->label5->Text = L"å£°é“ï¼š";
 			this->label5->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			// 
 			// LineSel
 			// 
 			this->LineSel->Enabled = false;
-			this->LineSel->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
+			this->LineSel->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F));
 			this->LineSel->Location = System::Drawing::Point(3, 183);
 			this->LineSel->Minimum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1, 0, 0, 0 });
 			this->LineSel->Name = L"LineSel";
@@ -626,26 +626,26 @@ namespace BDMatch {
 			this->EditorLabel->BackColor = System::Drawing::Color::Transparent;
 			this->tableLayoutPanel1->SetColumnSpan(this->EditorLabel, 3);
 			this->EditorLabel->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->EditorLabel->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->EditorLabel->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->EditorLabel->Location = System::Drawing::Point(3, 0);
 			this->EditorLabel->Margin = System::Windows::Forms::Padding(3, 0, 0, 0);
 			this->EditorLabel->Name = L"EditorLabel";
 			this->EditorLabel->Size = System::Drawing::Size(135, 50);
 			this->EditorLabel->TabIndex = 1;
-			this->EditorLabel->Text = L"ÊäÈë±à¼­";
+			this->EditorLabel->Text = L"è¾“å…¥ç¼–è¾‘";
 			this->EditorLabel->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			// 
 			// CompleteEdit
 			// 
 			this->CompleteEdit->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->CompleteEdit->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->CompleteEdit->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->CompleteEdit->Location = System::Drawing::Point(-3, 379);
 			this->CompleteEdit->Name = L"CompleteEdit";
 			this->CompleteEdit->Size = System::Drawing::Size(144, 44);
 			this->CompleteEdit->TabIndex = 2;
-			this->CompleteEdit->Text = L"Íê³É";
+			this->CompleteEdit->Text = L"å®Œæˆ";
 			this->CompleteEdit->UseVisualStyleBackColor = true;
 			this->CompleteEdit->Click += gcnew System::EventHandler(this, &MyForm::CompleteEdit_Click);
 			// 
@@ -653,7 +653,7 @@ namespace BDMatch {
 			// 
 			this->tableLayoutPanel1->SetColumnSpan(this->TextEditor, 3);
 			this->TextEditor->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->TextEditor->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->TextEditor->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->TextEditor->Location = System::Drawing::Point(3, 53);
 			this->TextEditor->Multiline = true;
@@ -703,8 +703,8 @@ namespace BDMatch {
 	private:
 		int match(String^ ASSText, String^ TVText, String^ BDText);
 		int drawpre(); 
-		int BDMatch::MyForm::writeass(BDMatchCore *match_core, const char* ass_path, const char* output_path);
-		int drawpre(BDMatchCore *match_core, const int &re);
+		int BDMatch::MyForm::writeass(const char* ass_path, const char* output_path);
+		int drawpre(const int &re);
 		int drawchart();
 		String ^ mstotime(int ms);
 		int setrows();

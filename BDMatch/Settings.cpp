@@ -1,4 +1,4 @@
-#include "Settings.h"
+ï»¿#include "Settings.h"
 
 using namespace DataStruct1;
 
@@ -6,7 +6,7 @@ BDMatch::Settings::Settings(SettingCallback^ setbackin, NullCallback^ nullbackin
 {
 	InitializeComponent();
 	//
-	//TODO:  ÔÚ´Ë´¦Ìí¼Ó¹¹Ôìº¯Êý´úÂë
+	//TODO:  åœ¨æ­¤å¤„æ·»åŠ æž„é€ å‡½æ•°ä»£ç 
 	//
 	setting = settingin;
 	setback = setbackin;
@@ -47,7 +47,7 @@ System::Void BDMatch::Settings::FindSec_ValueChanged(System::Object ^ sender, Sy
 	if (this->Visible) {
 		int findfield = static_cast<int>(FindSec->Value);
 		if (findfield > 600) {
-			MessageBox::Show(this, "²éÕÒ·¶Î§¹ý´ó»áÊ¹Æ¥ÅäËÙ¶È»ºÂý£¬Çë½÷É÷Ñ¡Ôñ£¡", "BDMatch", MessageBoxButtons::OK);
+			MessageBox::Show(this, "æŸ¥æ‰¾èŒƒå›´è¿‡å¤§ä¼šä½¿åŒ¹é…é€Ÿåº¦ç¼“æ…¢ï¼Œè¯·è°¨æ…Žé€‰æ‹©ï¼", "BDMatch", MessageBoxButtons::OK);
 		}
 		setback->Invoke(FindField, findfield);
 	}
@@ -59,7 +59,7 @@ System::Void BDMatch::Settings::FFTnumList_SelectedIndexChanged(System::Object ^
 	if (this->Visible) {
 		int FFTnum = int::Parse(FFTnumList->GetItemText(FFTnumList->SelectedItem));
 		if (FFTnum > 2048) {
-			MessageBox::Show(this, "FFT¸öÊý¹ý´ó»áÊ¹Æ¥Åä×¼È·¶ÈÏÂ½µ£¬Çë½÷É÷Ñ¡Ôñ£¡", "BDMatch", MessageBoxButtons::OK);
+			MessageBox::Show(this, "FFTä¸ªæ•°è¿‡å¤§ä¼šä½¿åŒ¹é…å‡†ç¡®åº¦ä¸‹é™ï¼Œè¯·è°¨æ…Žé€‰æ‹©ï¼", "BDMatch", MessageBoxButtons::OK);
 		}
 		setback->Invoke(FFTNum, FFTnum);
 	}
@@ -71,7 +71,7 @@ System::Void BDMatch::Settings::MindB_ValueChanged(System::Object ^ sender, Syst
 	if (this->Visible) {
 		int mindb = static_cast<int>(MindB->Value);
 		if (mindb > -5) {
-			MessageBox::Show(this, "×îÐ¡Ïì¶È¹ý´ó»áÊ¹ºÜ¶àÊ±¼äÖá²»»á½øÐÐÆ¥Åä£¬Çë½÷É÷Ñ¡Ôñ£¡", "BDMatch", MessageBoxButtons::OK);
+			MessageBox::Show(this, "æœ€å°å“åº¦è¿‡å¤§ä¼šä½¿å¾ˆå¤šæ—¶é—´è½´ä¸ä¼šè¿›è¡ŒåŒ¹é…ï¼Œè¯·è°¨æ…Žé€‰æ‹©ï¼", "BDMatch", MessageBoxButtons::OK);
 		}
 		setback->Invoke(MinFinddB, mindb);
 	}
@@ -83,7 +83,7 @@ System::Void BDMatch::Settings::MaxLengthSet_ValueChanged(System::Object ^ sende
 	if (this->Visible) {
 		int maxlength = static_cast<int>(MaxLengthSet->Value);
 		if (maxlength > 30) {
-			MessageBox::Show(this, "×î´ó²éÕÒ¾ä³¤¹ý³¤»áÊ¹Æ¥ÅäËÙ¶È»ºÂý£¬Çë½÷É÷Ñ¡Ôñ£¡", "BDMatch", MessageBoxButtons::OK);
+			MessageBox::Show(this, "æœ€å¤§æŸ¥æ‰¾å¥é•¿è¿‡é•¿ä¼šä½¿åŒ¹é…é€Ÿåº¦ç¼“æ…¢ï¼Œè¯·è°¨æ…Žé€‰æ‹©ï¼", "BDMatch", MessageBoxButtons::OK);
 		}
 		setback->Invoke(MaxLength, maxlength);
 	}

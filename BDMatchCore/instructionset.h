@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include <bitset>  
 #include <intrin.h>
 #include <array>
 #include <vector>
 
-class InstructionSet
+class __declspec(dllexport) InstructionSet
 {
 	// forward declarations  
 	class InstructionSet_Internal;

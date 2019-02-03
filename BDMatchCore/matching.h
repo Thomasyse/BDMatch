@@ -1,8 +1,9 @@
-#pragma once
+﻿#pragma once
 #include "datastruct.h"
 #include <atomic>
 #include <array>
 #include <vector>
+#include <string> 
 
 namespace Matching {
 

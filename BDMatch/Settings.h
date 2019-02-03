@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "datastruct1.h"
 
 namespace BDMatch {
@@ -12,7 +12,7 @@ namespace BDMatch {
 	using namespace DataStruct1;
 
 	/// <summary>
-	/// Settings ÕªÒª
+	/// Settings æ‘˜è¦
 	/// </summary>
 	public delegate void SettingCallback(SettingType type, int val);
 	public delegate void NullCallback();
@@ -24,7 +24,7 @@ namespace BDMatch {
 
 	protected:
 		/// <summary>
-		/// ÇåÀíËùÓĞÕıÔÚÊ¹ÓÃµÄ×ÊÔ´¡£
+		/// æ¸…ç†æ‰€æœ‰æ­£åœ¨ä½¿ç”¨çš„èµ„æºã€‚
 		/// </summary>
 		~Settings()
 		{
@@ -114,14 +114,14 @@ namespace BDMatch {
 
 	private:
 		/// <summary>
-		/// ±ØĞèµÄÉè¼ÆÆ÷±äÁ¿¡£
+		/// å¿…éœ€çš„è®¾è®¡å™¨å˜é‡ã€‚
 		/// </summary>
 		System::ComponentModel::Container ^components;
 
 #pragma region Windows Form Designer generated code
 		/// <summary>
-		/// Éè¼ÆÆ÷Ö§³ÖËùĞèµÄ·½·¨ - ²»ÒªĞŞ¸Ä
-		/// Ê¹ÓÃ´úÂë±à¼­Æ÷ĞŞ¸Ä´Ë·½·¨µÄÄÚÈİ¡£
+		/// è®¾è®¡å™¨æ”¯æŒæ‰€éœ€çš„æ–¹æ³• - ä¸è¦ä¿®æ”¹
+		/// ä½¿ç”¨ä»£ç ç¼–è¾‘å™¨ä¿®æ”¹æ­¤æ–¹æ³•çš„å†…å®¹ã€‚
 		/// </summary>
 		void InitializeComponent(void)
 		{
@@ -186,20 +186,20 @@ namespace BDMatch {
 			this->OutPCM->AutoSize = true;
 			this->DecodeLayoutPanel->SetColumnSpan(this->OutPCM, 3);
 			this->OutPCM->Dock = System::Windows::Forms::DockStyle::Left;
-			this->OutPCM->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
+			this->OutPCM->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F));
 			this->OutPCM->Location = System::Drawing::Point(13, 231);
 			this->OutPCM->Margin = System::Windows::Forms::Padding(7, 3, 3, 3);
 			this->OutPCM->Name = L"OutPCM";
 			this->OutPCM->Size = System::Drawing::Size(228, 35);
 			this->OutPCM->TabIndex = 3;
-			this->OutPCM->Text = L"Êä³ö½âÂëºóµÄÒôÆµ";
+			this->OutPCM->Text = L"è¾“å‡ºè§£ç åçš„éŸ³é¢‘";
 			this->OutPCM->UseVisualStyleBackColor = true;
 			this->OutPCM->CheckedChanged += gcnew System::EventHandler(this, &Settings::OutPCM_CheckedChanged);
 			// 
 			// FindSec
 			// 
 			this->FindSec->Dock = System::Windows::Forms::DockStyle::Left;
-			this->FindSec->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
+			this->FindSec->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11.8F));
 			this->FindSec->Location = System::Drawing::Point(213, 94);
 			this->FindSec->Margin = System::Windows::Forms::Padding(3, 7, 3, 3);
 			this->FindSec->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 100000, 0, 0, 0 });
@@ -214,19 +214,19 @@ namespace BDMatch {
 			// 
 			this->label2->BackColor = System::Drawing::Color::Transparent;
 			this->label2->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label2->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->label2->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->label2->Location = System::Drawing::Point(9, 87);
 			this->label2->Name = L"label2";
 			this->label2->Size = System::Drawing::Size(198, 44);
 			this->label2->TabIndex = 5;
-			this->label2->Text = L"²éÕÒ·¶Î§£ºÇ°ºó";
+			this->label2->Text = L"æŸ¥æ‰¾èŒƒå›´ï¼šå‰å";
 			this->label2->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			// 
 			// MindB
 			// 
 			this->MindB->Dock = System::Windows::Forms::DockStyle::Left;
-			this->MindB->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
+			this->MindB->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11.8F));
 			this->MindB->Location = System::Drawing::Point(153, 149);
 			this->MindB->Margin = System::Windows::Forms::Padding(3, 7, 3, 3);
 			this->MindB->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 5, 0, 0, 0 });
@@ -240,19 +240,19 @@ namespace BDMatch {
 			// 
 			this->label1->BackColor = System::Drawing::Color::Transparent;
 			this->label1->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label1->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->label1->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->label1->Location = System::Drawing::Point(9, 142);
 			this->label1->Name = L"label1";
 			this->label1->Size = System::Drawing::Size(138, 44);
 			this->label1->TabIndex = 7;
-			this->label1->Text = L"×îĞ¡Ïì¶È£º";
+			this->label1->Text = L"æœ€å°å“åº¦ï¼š";
 			this->label1->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			// 
 			// MaxLengthSet
 			// 
 			this->MaxLengthSet->Dock = System::Windows::Forms::DockStyle::Left;
-			this->MaxLengthSet->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
+			this->MaxLengthSet->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11.8F));
 			this->MaxLengthSet->Location = System::Drawing::Point(213, 205);
 			this->MaxLengthSet->Margin = System::Windows::Forms::Padding(3, 7, 3, 3);
 			this->MaxLengthSet->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1000, 0, 0, 0 });
@@ -267,33 +267,33 @@ namespace BDMatch {
 			// 
 			this->label3->BackColor = System::Drawing::Color::Transparent;
 			this->label3->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label3->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->label3->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->label3->Location = System::Drawing::Point(9, 198);
 			this->label3->Name = L"label3";
 			this->label3->Size = System::Drawing::Size(198, 44);
 			this->label3->TabIndex = 9;
-			this->label3->Text = L"×î´ó²éÕÒ¾ä³¤£º";
+			this->label3->Text = L"æœ€å¤§æŸ¥æ‰¾å¥é•¿ï¼š";
 			this->label3->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			// 
 			// label4
 			// 
 			this->label4->BackColor = System::Drawing::Color::Transparent;
 			this->label4->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label4->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->label4->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->label4->Location = System::Drawing::Point(9, 6);
 			this->label4->Name = L"label4";
 			this->label4->Size = System::Drawing::Size(138, 44);
 			this->label4->TabIndex = 10;
-			this->label4->Text = L"FFT¸öÊı£º";
+			this->label4->Text = L"FFTä¸ªæ•°ï¼š";
 			this->label4->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			// 
 			// FFTnumList
 			// 
 			this->DecodeLayoutPanel->SetColumnSpan(this->FFTnumList, 2);
 			this->FFTnumList->Dock = System::Windows::Forms::DockStyle::Left;
-			this->FFTnumList->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
+			this->FFTnumList->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11.8F));
 			this->FFTnumList->FormattingEnabled = true;
 			this->FFTnumList->Items->AddRange(gcnew cli::array< System::Object^  >(9) {
 				L"64", L"128", L"256", L"512", L"1024", L"2048",
@@ -311,13 +311,13 @@ namespace BDMatch {
 			this->DrawSet->AutoSize = true;
 			this->SpectrumLayoutPanel->SetColumnSpan(this->DrawSet, 2);
 			this->DrawSet->Dock = System::Windows::Forms::DockStyle::Left;
-			this->DrawSet->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
+			this->DrawSet->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F));
 			this->DrawSet->Location = System::Drawing::Point(16, 9);
 			this->DrawSet->Margin = System::Windows::Forms::Padding(10, 3, 3, 3);
 			this->DrawSet->Name = L"DrawSet";
 			this->DrawSet->Size = System::Drawing::Size(132, 35);
 			this->DrawSet->TabIndex = 12;
-			this->DrawSet->Text = L"×÷ÉùÆ×Í¼";
+			this->DrawSet->Text = L"ä½œå£°è°±å›¾";
 			this->DrawSet->UseVisualStyleBackColor = true;
 			this->DrawSet->CheckedChanged += gcnew System::EventHandler(this, &Settings::DrawSet_CheckedChanged);
 			// 
@@ -326,20 +326,20 @@ namespace BDMatch {
 			this->MatchAssSet->AutoSize = true;
 			this->MatchLayoutPanel->SetColumnSpan(this->MatchAssSet, 3);
 			this->MatchAssSet->Dock = System::Windows::Forms::DockStyle::Left;
-			this->MatchAssSet->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
+			this->MatchAssSet->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F));
 			this->MatchAssSet->Location = System::Drawing::Point(13, 9);
 			this->MatchAssSet->Margin = System::Windows::Forms::Padding(7, 3, 3, 3);
 			this->MatchAssSet->Name = L"MatchAssSet";
 			this->MatchAssSet->Size = System::Drawing::Size(204, 35);
 			this->MatchAssSet->TabIndex = 13;
-			this->MatchAssSet->Text = L"¶Ô×ÖÄ»½øĞĞÆ¥Åä";
+			this->MatchAssSet->Text = L"å¯¹å­—å¹•è¿›è¡ŒåŒ¹é…";
 			this->MatchAssSet->UseVisualStyleBackColor = true;
 			this->MatchAssSet->CheckedChanged += gcnew System::EventHandler(this, &Settings::MatchAssSet_CheckedChanged);
 			// 
 			// MinCheckNumSet
 			// 
 			this->MinCheckNumSet->Dock = System::Windows::Forms::DockStyle::Left;
-			this->MinCheckNumSet->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
+			this->MinCheckNumSet->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11.8F));
 			this->MinCheckNumSet->Location = System::Drawing::Point(213, 291);
 			this->MinCheckNumSet->Margin = System::Windows::Forms::Padding(3, 7, 3, 3);
 			this->MinCheckNumSet->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1000000, 0, 0, 0 });
@@ -354,13 +354,13 @@ namespace BDMatch {
 			// 
 			this->label5->BackColor = System::Drawing::Color::Transparent;
 			this->label5->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label5->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->label5->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->label5->Location = System::Drawing::Point(9, 284);
 			this->label5->Name = L"label5";
 			this->label5->Size = System::Drawing::Size(198, 44);
 			this->label5->TabIndex = 15;
-			this->label5->Text = L"Ñ¡µãÈ·ÈÏ´ÎÊı£º";
+			this->label5->Text = L"é€‰ç‚¹ç¡®è®¤æ¬¡æ•°ï¼š";
 			this->label5->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			// 
 			// ParaDecode
@@ -368,13 +368,13 @@ namespace BDMatch {
 			this->ParaDecode->AutoSize = true;
 			this->DecodeLayoutPanel->SetColumnSpan(this->ParaDecode, 3);
 			this->ParaDecode->Dock = System::Windows::Forms::DockStyle::Left;
-			this->ParaDecode->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
+			this->ParaDecode->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F));
 			this->ParaDecode->Location = System::Drawing::Point(13, 337);
 			this->ParaDecode->Margin = System::Windows::Forms::Padding(7, 3, 3, 3);
 			this->ParaDecode->Name = L"ParaDecode";
 			this->ParaDecode->Size = System::Drawing::Size(132, 35);
 			this->ParaDecode->TabIndex = 16;
-			this->ParaDecode->Text = L"²¢ĞĞ½âÂë";
+			this->ParaDecode->Text = L"å¹¶è¡Œè§£ç ";
 			this->ParaDecode->UseVisualStyleBackColor = true;
 			this->ParaDecode->CheckedChanged += gcnew System::EventHandler(this, &Settings::ParaDecode_CheckedChanged);
 			// 
@@ -384,7 +384,7 @@ namespace BDMatch {
 			this->tabControl1->Controls->Add(this->DecodeTabPage);
 			this->tabControl1->Controls->Add(this->SpectrumTabPage);
 			this->tabControl1->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->tabControl1->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13));
+			this->tabControl1->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13));
 			this->tabControl1->Location = System::Drawing::Point(8, 5);
 			this->tabControl1->Name = L"tabControl1";
 			this->tabControl1->SelectedIndex = 0;
@@ -394,12 +394,12 @@ namespace BDMatch {
 			// MatchTabPage
 			// 
 			this->MatchTabPage->Controls->Add(this->MatchLayoutPanel);
-			this->MatchTabPage->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 12));
+			this->MatchTabPage->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 12));
 			this->MatchTabPage->Location = System::Drawing::Point(4, 39);
 			this->MatchTabPage->Name = L"MatchTabPage";
 			this->MatchTabPage->Size = System::Drawing::Size(864, 519);
 			this->MatchTabPage->TabIndex = 1;
-			this->MatchTabPage->Text = L"Æ¥ÅäÉèÖÃ";
+			this->MatchTabPage->Text = L"åŒ¹é…è®¾ç½®";
 			this->MatchTabPage->UseVisualStyleBackColor = true;
 			// 
 			// MatchLayoutPanel
@@ -460,31 +460,31 @@ namespace BDMatch {
 			this->label21->AutoSize = true;
 			this->MatchLayoutPanel->SetColumnSpan(this->label21, 3);
 			this->label21->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label21->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11));
+			this->label21->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11));
 			this->label21->Location = System::Drawing::Point(51, 446);
 			this->label21->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
 			this->label21->Name = L"label21";
 			this->label21->Size = System::Drawing::Size(759, 25);
 			this->label21->TabIndex = 30;
-			this->label21->Text = L"½«ASSÎÄ¼şÖĞµÄÊ±¼äÖá½øĞĞÒ»¶¨Ê±¼äÆ«ÖÃÖ®ºóÔÙ½øĞĞÆ¥Åä¡£";
+			this->label21->Text = L"å°†ASSæ–‡ä»¶ä¸­çš„æ—¶é—´è½´è¿›è¡Œä¸€å®šæ—¶é—´åç½®ä¹‹åå†è¿›è¡ŒåŒ¹é…ã€‚";
 			// 
 			// label20
 			// 
 			this->label20->BackColor = System::Drawing::Color::Transparent;
 			this->label20->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label20->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->label20->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->label20->Location = System::Drawing::Point(312, 395);
 			this->label20->Name = L"label20";
 			this->label20->Size = System::Drawing::Size(498, 44);
 			this->label20->TabIndex = 29;
-			this->label20->Text = L"ÀåÃë";
+			this->label20->Text = L"å˜ç§’";
 			this->label20->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			// 
 			// AssOffsetSet
 			// 
 			this->AssOffsetSet->Dock = System::Windows::Forms::DockStyle::Left;
-			this->AssOffsetSet->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11.8F));
+			this->AssOffsetSet->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11.8F));
 			this->AssOffsetSet->Location = System::Drawing::Point(213, 402);
 			this->AssOffsetSet->Margin = System::Windows::Forms::Padding(3, 7, 3, 3);
 			this->AssOffsetSet->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 10000000, 0, 0, 0 });
@@ -498,13 +498,13 @@ namespace BDMatch {
 			// 
 			this->label19->BackColor = System::Drawing::Color::Transparent;
 			this->label19->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label19->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->label19->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->label19->Location = System::Drawing::Point(9, 395);
 			this->label19->Name = L"label19";
 			this->label19->Size = System::Drawing::Size(198, 44);
 			this->label19->TabIndex = 27;
-			this->label19->Text = L"ASSÆ«ÖÃ£ºÑÓºó";
+			this->label19->Text = L"ASSåç½®ï¼šå»¶å";
 			this->label19->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			// 
 			// label18
@@ -513,26 +513,26 @@ namespace BDMatch {
 			this->label18->AutoSize = true;
 			this->MatchLayoutPanel->SetColumnSpan(this->label18, 3);
 			this->label18->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label18->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11));
+			this->label18->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11));
 			this->label18->Location = System::Drawing::Point(51, 529);
 			this->label18->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
 			this->label18->Name = L"label18";
 			this->label18->Size = System::Drawing::Size(759, 50);
 			this->label18->TabIndex = 26;
-			this->label18->Text = L"Ö»Æ¥ÅäÉÙĞíÊ±¼äÖá£¬ÆäÓàÊ±¼äÖá¸ù¾İÆ¥Åä½á¹ûÖ±½Ó½øĞĞµ÷Õû¡£ÓÉÓÚBDÎÄ¼ş¿ÉÄÜ»á×ö³öÒ»Ğ©ĞŞ¸Ä£¬Æ¥Åä½á¹û¿ÉÄÜ»á²»×¼È·¡£";
+			this->label18->Text = L"åªåŒ¹é…å°‘è®¸æ—¶é—´è½´ï¼Œå…¶ä½™æ—¶é—´è½´æ ¹æ®åŒ¹é…ç»“æœç›´æ¥è¿›è¡Œè°ƒæ•´ã€‚ç”±äºBDæ–‡ä»¶å¯èƒ½ä¼šåšå‡ºä¸€äº›ä¿®æ”¹ï¼ŒåŒ¹é…ç»“æœå¯èƒ½ä¼šä¸å‡†ç¡®ã€‚";
 			// 
 			// FastMatchSet
 			// 
 			this->FastMatchSet->AutoSize = true;
 			this->MatchLayoutPanel->SetColumnSpan(this->FastMatchSet, 3);
 			this->FastMatchSet->Dock = System::Windows::Forms::DockStyle::Left;
-			this->FastMatchSet->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
+			this->FastMatchSet->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F));
 			this->FastMatchSet->Location = System::Drawing::Point(13, 484);
 			this->FastMatchSet->Margin = System::Windows::Forms::Padding(7, 3, 3, 3);
 			this->FastMatchSet->Name = L"FastMatchSet";
 			this->FastMatchSet->Size = System::Drawing::Size(132, 35);
 			this->FastMatchSet->TabIndex = 25;
-			this->FastMatchSet->Text = L"¿ìËÙÆ¥Åä";
+			this->FastMatchSet->Text = L"å¿«é€ŸåŒ¹é…";
 			this->FastMatchSet->UseVisualStyleBackColor = true;
 			this->FastMatchSet->CheckedChanged += gcnew System::EventHandler(this, &Settings::FastMatchSet_CheckedChanged);
 			// 
@@ -540,13 +540,13 @@ namespace BDMatch {
 			// 
 			this->label17->BackColor = System::Drawing::Color::Transparent;
 			this->label17->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label17->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->label17->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->label17->Location = System::Drawing::Point(312, 198);
 			this->label17->Name = L"label17";
 			this->label17->Size = System::Drawing::Size(498, 44);
 			this->label17->TabIndex = 23;
-			this->label17->Text = L"Ãë";
+			this->label17->Text = L"ç§’";
 			this->label17->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			// 
 			// label14
@@ -555,25 +555,25 @@ namespace BDMatch {
 			this->label14->AutoSize = true;
 			this->MatchLayoutPanel->SetColumnSpan(this->label14, 3);
 			this->label14->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label14->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11));
+			this->label14->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11));
 			this->label14->Location = System::Drawing::Point(51, 335);
 			this->label14->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
 			this->label14->Name = L"label14";
 			this->label14->Size = System::Drawing::Size(759, 50);
 			this->label14->TabIndex = 24;
-			this->label14->Text = L"¶ÔËÑË÷µ½µÄÔİÓÅÑ¡µã½øĞĞÈ·ÈÏ£¬È·ÈÏ×ã¹»´ÎÊıºó¼´»áÈ¡×÷×î¼ÑÑ¡µã¡£¹ıĞ¡µÄÈ·ÈÏ´ÎÊı»áµ¼ÖÂÆ¥Åä²»¾«È·£¬¹ı´óµÄÈ·ÈÏ´ÎÊı»á¼Ó³¤Æ¥ÅäÊ±¼ä¡£";
+			this->label14->Text = L"å¯¹æœç´¢åˆ°çš„æš‚ä¼˜é€‰ç‚¹è¿›è¡Œç¡®è®¤ï¼Œç¡®è®¤è¶³å¤Ÿæ¬¡æ•°åå³ä¼šå–ä½œæœ€ä½³é€‰ç‚¹ã€‚è¿‡å°çš„ç¡®è®¤æ¬¡æ•°ä¼šå¯¼è‡´åŒ¹é…ä¸ç²¾ç¡®ï¼Œè¿‡å¤§çš„ç¡®è®¤æ¬¡æ•°ä¼šåŠ é•¿åŒ¹é…æ—¶é—´ã€‚";
 			// 
 			// label16
 			// 
 			this->label16->BackColor = System::Drawing::Color::Transparent;
 			this->label16->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label16->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->label16->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->label16->Location = System::Drawing::Point(312, 87);
 			this->label16->Name = L"label16";
 			this->label16->Size = System::Drawing::Size(498, 44);
 			this->label16->TabIndex = 22;
-			this->label16->Text = L"Ãë";
+			this->label16->Text = L"ç§’";
 			this->label16->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			// 
 			// label13
@@ -582,13 +582,13 @@ namespace BDMatch {
 			this->label13->AutoSize = true;
 			this->MatchLayoutPanel->SetColumnSpan(this->label13, 3);
 			this->label13->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label13->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11));
+			this->label13->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11));
 			this->label13->Location = System::Drawing::Point(51, 249);
 			this->label13->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
 			this->label13->Name = L"label13";
 			this->label13->Size = System::Drawing::Size(759, 25);
 			this->label13->TabIndex = 23;
-			this->label13->Text = L"³¬¹ı×î´ó²éÕÒ¾ä³¤µÄÊ±¼äÖá½«²»»á½øĞĞÆ¥Åä£¬ÒÔ·ÀÖ¹¹ı³¤µÄ¿ÕĞĞÓ°ÏìÆ¥ÅäËÙ¶È¡£";
+			this->label13->Text = L"è¶…è¿‡æœ€å¤§æŸ¥æ‰¾å¥é•¿çš„æ—¶é—´è½´å°†ä¸ä¼šè¿›è¡ŒåŒ¹é…ï¼Œä»¥é˜²æ­¢è¿‡é•¿çš„ç©ºè¡Œå½±å“åŒ¹é…é€Ÿåº¦ã€‚";
 			// 
 			// label10
 			// 
@@ -596,13 +596,13 @@ namespace BDMatch {
 			this->label10->AutoSize = true;
 			this->MatchLayoutPanel->SetColumnSpan(this->label10, 3);
 			this->label10->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label10->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11));
+			this->label10->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11));
 			this->label10->Location = System::Drawing::Point(51, 52);
 			this->label10->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label10->Name = L"label10";
 			this->label10->Size = System::Drawing::Size(759, 25);
 			this->label10->TabIndex = 21;
-			this->label10->Text = L"È¡Ïû¹´Ñ¡Ôò»áÖ»½øĞĞÒôÆµ½âÂë£¬²»»á½øĞĞÆ¥Åä¡£";
+			this->label10->Text = L"å–æ¶ˆå‹¾é€‰åˆ™ä¼šåªè¿›è¡ŒéŸ³é¢‘è§£ç ï¼Œä¸ä¼šè¿›è¡ŒåŒ¹é…ã€‚";
 			// 
 			// label11
 			// 
@@ -610,23 +610,23 @@ namespace BDMatch {
 			this->label11->AutoSize = true;
 			this->MatchLayoutPanel->SetColumnSpan(this->label11, 3);
 			this->label11->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label11->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11));
+			this->label11->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11));
 			this->label11->Location = System::Drawing::Point(51, 138);
 			this->label11->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
 			this->label11->Name = L"label11";
 			this->label11->Size = System::Drawing::Size(759, 50);
 			this->label11->TabIndex = 22;
-			this->label11->Text = L"¾ö¶¨ÔÚASSÊ±¼äÖá¶à´óÊ±¼ä·¶Î§ÄÚ²éÕÒ×î¼ÑÆ¥ÅäÊ±¼ä¡£²éÕÒ·¶Î§Ôö¼Ó»á¼Ó³¤Æ¥ÅäÊ±¼ä£¬¹ıĞ¡µÄ²éÕÒ·¶Î§»áµ¼ÖÂÎŞ·¨Æ¥Åäµ½ÕıÈ·µÄÊ±¼ä¡£";
+			this->label11->Text = L"å†³å®šåœ¨ASSæ—¶é—´è½´å¤šå¤§æ—¶é—´èŒƒå›´å†…æŸ¥æ‰¾æœ€ä½³åŒ¹é…æ—¶é—´ã€‚æŸ¥æ‰¾èŒƒå›´å¢åŠ ä¼šåŠ é•¿åŒ¹é…æ—¶é—´ï¼Œè¿‡å°çš„æŸ¥æ‰¾èŒƒå›´ä¼šå¯¼è‡´æ— æ³•åŒ¹é…åˆ°æ­£ç¡®çš„æ—¶é—´ã€‚";
 			// 
 			// DecodeTabPage
 			// 
 			this->DecodeTabPage->Controls->Add(this->DecodeLayoutPanel);
-			this->DecodeTabPage->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 12));
+			this->DecodeTabPage->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 12));
 			this->DecodeTabPage->Location = System::Drawing::Point(4, 39);
 			this->DecodeTabPage->Name = L"DecodeTabPage";
 			this->DecodeTabPage->Size = System::Drawing::Size(864, 519);
 			this->DecodeTabPage->TabIndex = 0;
-			this->DecodeTabPage->Text = L"½âÂëÉèÖÃ";
+			this->DecodeTabPage->Text = L"è§£ç è®¾ç½®";
 			this->DecodeTabPage->UseVisualStyleBackColor = true;
 			// 
 			// DecodeLayoutPanel
@@ -678,13 +678,13 @@ namespace BDMatch {
 			this->VolMatchBox->AutoSize = true;
 			this->DecodeLayoutPanel->SetColumnSpan(this->VolMatchBox, 3);
 			this->VolMatchBox->Dock = System::Windows::Forms::DockStyle::Left;
-			this->VolMatchBox->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F));
+			this->VolMatchBox->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F));
 			this->VolMatchBox->Location = System::Drawing::Point(13, 443);
 			this->VolMatchBox->Margin = System::Windows::Forms::Padding(7, 3, 3, 3);
 			this->VolMatchBox->Name = L"VolMatchBox";
 			this->VolMatchBox->Size = System::Drawing::Size(132, 35);
 			this->VolMatchBox->TabIndex = 22;
-			this->VolMatchBox->Text = L"Ïì¶È²¹³¥";
+			this->VolMatchBox->Text = L"å“åº¦è¡¥å¿";
 			this->VolMatchBox->UseVisualStyleBackColor = true;
 			this->VolMatchBox->CheckedChanged += gcnew System::EventHandler(this, &Settings::VolMatchBox_CheckedChanged);
 			// 
@@ -694,19 +694,19 @@ namespace BDMatch {
 			this->label22->AutoSize = true;
 			this->DecodeLayoutPanel->SetColumnSpan(this->label22, 3);
 			this->label22->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label22->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11));
+			this->label22->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11));
 			this->label22->Location = System::Drawing::Point(51, 486);
 			this->label22->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label22->Name = L"label22";
 			this->label22->Size = System::Drawing::Size(780, 25);
 			this->label22->TabIndex = 23;
-			this->label22->Text = L"¶ÔBDÒôÆµÏì¶È½øĞĞ²¹³¥£¬Ê¹BDÒôÆµµÄÏì¶ÈÓëTVÒôÆµÒ»ÖÂ£¬´ËÊ±»á¶ÔBDÒôÆµ½øĞĞÁ½´Î½âÂë¡£";
+			this->label22->Text = L"å¯¹BDéŸ³é¢‘å“åº¦è¿›è¡Œè¡¥å¿ï¼Œä½¿BDéŸ³é¢‘çš„å“åº¦ä¸TVéŸ³é¢‘ä¸€è‡´ï¼Œæ­¤æ—¶ä¼šå¯¹BDéŸ³é¢‘è¿›è¡Œä¸¤æ¬¡è§£ç ã€‚";
 			// 
 			// label15
 			// 
 			this->label15->BackColor = System::Drawing::Color::Transparent;
 			this->label15->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label15->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->label15->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->label15->Location = System::Drawing::Point(252, 142);
 			this->label15->Name = L"label15";
@@ -721,13 +721,13 @@ namespace BDMatch {
 			this->label8->AutoSize = true;
 			this->DecodeLayoutPanel->SetColumnSpan(this->label8, 3);
 			this->label8->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label8->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11));
+			this->label8->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11));
 			this->label8->Location = System::Drawing::Point(51, 274);
 			this->label8->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label8->Name = L"label8";
 			this->label8->Size = System::Drawing::Size(780, 50);
 			this->label8->TabIndex = 19;
-			this->label8->Text = L"Éú³ÉWAV¸ñÊ½ÎÄ¼ş£¬ÓÃÒÔ¼ì²é½âÂëÊÇ·ñÕı³£¹¤×÷¡£ÖØ²ÉÑùÉú³ÉµÄÒôÆµ»áÓĞÔëÉù£¬µ«²»»áÓ°ÏìÆ¥Åä¡£";
+			this->label8->Text = L"ç”ŸæˆWAVæ ¼å¼æ–‡ä»¶ï¼Œç”¨ä»¥æ£€æŸ¥è§£ç æ˜¯å¦æ­£å¸¸å·¥ä½œã€‚é‡é‡‡æ ·ç”Ÿæˆçš„éŸ³é¢‘ä¼šæœ‰å™ªå£°ï¼Œä½†ä¸ä¼šå½±å“åŒ¹é…ã€‚";
 			// 
 			// label7
 			// 
@@ -735,13 +735,13 @@ namespace BDMatch {
 			this->label7->AutoSize = true;
 			this->DecodeLayoutPanel->SetColumnSpan(this->label7, 3);
 			this->label7->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label7->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11));
+			this->label7->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11));
 			this->label7->Location = System::Drawing::Point(51, 193);
 			this->label7->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
 			this->label7->Name = L"label7";
 			this->label7->Size = System::Drawing::Size(780, 25);
 			this->label7->TabIndex = 18;
-			this->label7->Text = L"×îĞ¡Ïì¶ÈÒÔÏÂµÄÔëÉù»á±»¹ıÂË£¬ÒÔ±£Ö¤½âÂëÉú³ÉµÄÉùÆ×²»±»ÔëÉù¸ÉÈÅ¡£";
+			this->label7->Text = L"æœ€å°å“åº¦ä»¥ä¸‹çš„å™ªå£°ä¼šè¢«è¿‡æ»¤ï¼Œä»¥ä¿è¯è§£ç ç”Ÿæˆçš„å£°è°±ä¸è¢«å™ªå£°å¹²æ‰°ã€‚";
 			// 
 			// label6
 			// 
@@ -749,14 +749,14 @@ namespace BDMatch {
 			this->label6->AutoSize = true;
 			this->DecodeLayoutPanel->SetColumnSpan(this->label6, 3);
 			this->label6->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label6->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11));
+			this->label6->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11));
 			this->label6->Location = System::Drawing::Point(51, 57);
 			this->label6->Margin = System::Windows::Forms::Padding(45, 7, 3, 10);
 			this->label6->Name = L"label6";
 			this->label6->Size = System::Drawing::Size(780, 75);
 			this->label6->TabIndex = 17;
-			this->label6->Text = L"½øĞĞÒ»´Î¿ìËÙ¸µÀïÒ¶±ä»»£¨Fast Fourier Transform£©ËùÊäÈëµÄ²ÉÑùµã¸öÊı¡£ÇëÉèÖÃÎª½Ó½ü²ÉÑùÂÊ°Ù·ÖÖ®Ò»µÄÊıÖµ¡£FFT¸öÊı¹ıĞ¡»áµ¼ÖÂ½âÂëºÍÆ¥ÅäËÙ¶È»ºÂı"
-				L"£¬FFT¸öÊı¹ı´ó»áµ¼ÖÂÆ¥Åä¾«¶ÈÏÂ½µ¡£";
+			this->label6->Text = L"è¿›è¡Œä¸€æ¬¡å¿«é€Ÿå‚…é‡Œå¶å˜æ¢ï¼ˆFast Fourier Transformï¼‰æ‰€è¾“å…¥çš„é‡‡æ ·ç‚¹ä¸ªæ•°ã€‚è¯·è®¾ç½®ä¸ºæ¥è¿‘é‡‡æ ·ç‡ç™¾åˆ†ä¹‹ä¸€çš„æ•°å€¼ã€‚FFTä¸ªæ•°è¿‡å°ä¼šå¯¼è‡´è§£ç å’ŒåŒ¹é…é€Ÿåº¦ç¼“æ…¢"
+				L"ï¼ŒFFTä¸ªæ•°è¿‡å¤§ä¼šå¯¼è‡´åŒ¹é…ç²¾åº¦ä¸‹é™ã€‚";
 			// 
 			// label9
 			// 
@@ -764,23 +764,23 @@ namespace BDMatch {
 			this->label9->AutoSize = true;
 			this->DecodeLayoutPanel->SetColumnSpan(this->label9, 3);
 			this->label9->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label9->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11));
+			this->label9->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11));
 			this->label9->Location = System::Drawing::Point(51, 380);
 			this->label9->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label9->Name = L"label9";
 			this->label9->Size = System::Drawing::Size(780, 50);
 			this->label9->TabIndex = 20;
-			this->label9->Text = L"Í¬Ê±½øĞĞTVºÍBDÎÄ¼şµÄ½âÂë£¬ÇëÔÚÓµÓĞ¸ßĞÔÄÜÓ²ÅÌµÄÉè±¸ÉÏ¿ªÆô´ËÑ¡Ïî£¬·ñÔò¿ÉÄÜ»áµ¼ÖÂÔÚÓ²ÅÌ¸ºÔØ½Ï´óÊ±½âÂëËÙ¶È¼±¾çÏÂ½µ¡£";
+			this->label9->Text = L"åŒæ—¶è¿›è¡ŒTVå’ŒBDæ–‡ä»¶çš„è§£ç ï¼Œè¯·åœ¨æ‹¥æœ‰é«˜æ€§èƒ½ç¡¬ç›˜çš„è®¾å¤‡ä¸Šå¼€å¯æ­¤é€‰é¡¹ï¼Œå¦åˆ™å¯èƒ½ä¼šå¯¼è‡´åœ¨ç¡¬ç›˜è´Ÿè½½è¾ƒå¤§æ—¶è§£ç é€Ÿåº¦æ€¥å‰§ä¸‹é™ã€‚";
 			// 
 			// SpectrumTabPage
 			// 
 			this->SpectrumTabPage->Controls->Add(this->SpectrumLayoutPanel);
-			this->SpectrumTabPage->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 12));
+			this->SpectrumTabPage->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 12));
 			this->SpectrumTabPage->Location = System::Drawing::Point(4, 39);
 			this->SpectrumTabPage->Name = L"SpectrumTabPage";
 			this->SpectrumTabPage->Size = System::Drawing::Size(864, 519);
 			this->SpectrumTabPage->TabIndex = 2;
-			this->SpectrumTabPage->Text = L"ÉùÆ×ÉèÖÃ";
+			this->SpectrumTabPage->Text = L"å£°è°±è®¾ç½®";
 			this->SpectrumTabPage->UseVisualStyleBackColor = true;
 			// 
 			// SpectrumLayoutPanel
@@ -811,13 +811,13 @@ namespace BDMatch {
 			this->label12->AutoSize = true;
 			this->SpectrumLayoutPanel->SetColumnSpan(this->label12, 2);
 			this->label12->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->label12->Font = (gcnew System::Drawing::Font(L"Î¢ÈíÑÅºÚ", 11));
+			this->label12->Font = (gcnew System::Drawing::Font(L"å¾®è½¯é›…é»‘", 11));
 			this->label12->Location = System::Drawing::Point(51, 52);
 			this->label12->Margin = System::Windows::Forms::Padding(45, 5, 3, 10);
 			this->label12->Name = L"label12";
 			this->label12->Size = System::Drawing::Size(780, 451);
 			this->label12->TabIndex = 22;
-			this->label12->Text = L"´ò¿ª´ËÑ¡Ïî¿ÉÒÔ²é¿´½âÂëµÃµ½µÄÉùÆ×Í¼£¬²¢¶ÔÔ­×ÖÄ»Ê±¼äÖáºÍÆ¥ÅäÉú³ÉµÄÊ±¼äÖá¶ÔÓ¦µÄÉùÆ×½øĞĞ¶Ô±È¡£";
+			this->label12->Text = L"æ‰“å¼€æ­¤é€‰é¡¹å¯ä»¥æŸ¥çœ‹è§£ç å¾—åˆ°çš„å£°è°±å›¾ï¼Œå¹¶å¯¹åŸå­—å¹•æ—¶é—´è½´å’ŒåŒ¹é…ç”Ÿæˆçš„æ—¶é—´è½´å¯¹åº”çš„å£°è°±è¿›è¡Œå¯¹æ¯”ã€‚";
 			// 
 			// Settings
 			// 

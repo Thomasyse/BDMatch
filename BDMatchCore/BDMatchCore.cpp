@@ -1,4 +1,4 @@
-#include "BDMatchCore.h"
+ï»¿#include "BDMatchCore.h"
 #include "multithreading.h"
 #include <time.h>
 
@@ -55,8 +55,8 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 	std::string tv_path = tv_path0;
 	std::string bd_path = bd_path0;
 	if (prog_back)prog_back(0, 0);
-	long start = clock();//¿ªÊ¼¼ÆÊ±
-	//fftwÉèÖÃ
+	long start = clock();//å¼€å§‹è®¡æ—¶
+	//fftwè®¾ç½®
 	double* in = (double*)fftw_malloc(sizeof(double)*fft_num);
 	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*fft_num);
 	fftw_plan plan = fftw_plan_dft_r2c_1d(fft_num, in, out, FFTW_MEASURE);
@@ -64,7 +64,7 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 	fftw_free(out);
 	//multithreading
 	fixed_thread_pool pool(2, keep_processing);
-	//½âÂëTVÎÄ¼þ
+	//è§£ç TVæ–‡ä»¶
 	if (isa_mode == 3)tv_decode = new Decode::Decode_AVX2(keep_processing);
 	else if(isa_mode == 2)tv_decode = new Decode::Decode_AVX(keep_processing);
 	else if (isa_mode == 1)tv_decode = new Decode::Decode_SSE(keep_processing);
@@ -87,7 +87,7 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 			return re;
 		}
 	}
-	//½âÂëBDÎÄ¼þ
+	//è§£ç BDæ–‡ä»¶
 	if (isa_mode == 3)bd_decode = new Decode::Decode_AVX2(keep_processing);
 	else if (isa_mode == 2)bd_decode = new Decode::Decode_AVX(keep_processing);
 	else if (isa_mode == 1)bd_decode = new Decode::Decode_SSE(keep_processing);
@@ -134,28 +134,28 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 			return re;
 		}
 	}
-	//Êä³ö½âÂëÊ±¼ä
+	//è¾“å‡ºè§£ç æ—¶é—´
 	long end = clock();
 	double spend = double(end - start) / (double)CLOCKS_PER_SEC;
 	std::string feedback = "";
 	if (feed_func) {
-		feedback += "TVÎÄ¼þ£º  " + tv_path.substr(tv_path.find_last_of("\\") + 1) + "\r\n" + tv_decode->get_feedback();
+		feedback += "TVæ–‡ä»¶ï¼š  " + tv_path.substr(tv_path.find_last_of("\\") + 1) + "\r\n" + tv_decode->get_feedback();
 		if (vol_match) {
 			std::string vol = std::to_string(10.0*log10(tv_decode->get_avg_vol()));
 			vol = vol.substr(0, vol.find_last_of('.') + 3);
-			feedback += "   Ïì¶È£º" + vol + " dB";
+			feedback += "   å“åº¦ï¼š" + vol + " dB";
 		}
-		feedback += "\r\nBDÎÄ¼þ£º  " + bd_path.substr(bd_path.find_last_of("\\") + 1) + "\r\n" + bd_decode->get_feedback();
+		feedback += "\r\nBDæ–‡ä»¶ï¼š  " + bd_path.substr(bd_path.find_last_of("\\") + 1) + "\r\n" + bd_decode->get_feedback();
 		if (vol_match) {
 			std::string vol = std::to_string(10.0*log10(bd_pre_avg_vol));
 			vol = vol.substr(0, vol.find_last_of('.') + 3);
 			std::string vol2 = std::to_string(10.0*log10(bd_decode->get_avg_vol()));
 			vol2 = vol2.substr(0, vol2.find_last_of('.') + 3);
-			feedback += "   Ïì¶È£º" + vol + "->" + vol2 + " dB";
+			feedback += "   å“åº¦ï¼š" + vol + "->" + vol2 + " dB";
 		}
 		std::string spend_str = std::to_string(spend);
 		spend_str = spend_str.substr(0, spend_str.find_last_of('.') + 4);
-		feedback += "\r\n½âÂëÊ±¼ä£º" + spend_str + "Ãë";
+		feedback += "\r\nè§£ç æ—¶é—´ï¼š" + spend_str + "ç§’";
 		feed_func(feedback.c_str());
 	}
 	fftw_destroy_plan(plan);
@@ -265,14 +265,6 @@ int BDMatchCore::get_decode_info(const Deocde_File & file, const Decode_Info & t
 		break;
 	}
 	return 0;
-}
-DataStruct::node ** BDMatchCore::get_decode_data(const Deocde_File & file)
-{
-	Decode::Decode *decode_ptr;
-	if (file == TV_Decode)decode_ptr = tv_decode;
-	else decode_ptr = bd_decode;
-	if (!decode_ptr)return nullptr;
-	else return decode_ptr->get_fft_data();
 }
 char ** BDMatchCore::get_decode_spec(const Deocde_File & file)
 {

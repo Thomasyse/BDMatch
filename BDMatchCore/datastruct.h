@@ -1,10 +1,10 @@
-#pragma once
+﻿#pragma once
 
-#define BDMatchCoreExport  __declspec( dllexport )
+#include "targetver.h"
 
 namespace DataStruct {
 
-	class BDMatchCoreExport node
+	class node
 	{
 	public:
 		node();

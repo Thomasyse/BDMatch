@@ -1,4 +1,4 @@
-#include "datastruct.h"
+﻿#include "datastruct.h"
 #include <algorithm>  
 
 DataStruct::node::node()

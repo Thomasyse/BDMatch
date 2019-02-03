@@ -1,4 +1,4 @@
-#include "decoder.h"
+ï»¿#include "decoder.h"
 #include <immintrin.h>
 #include <algorithm>
 #include <fstream>
@@ -59,23 +59,23 @@ int Decode::Decode::initialize(const std::string & file_name0)
 {
 	file_name = file_name0;
 	ffmpeg = new FFmpeg;
-	ffmpeg->filefm = NULL;//ÎÄ¼ş¸ñÊ½;
-	if (avformat_open_input(&ffmpeg->filefm, file_name.c_str(), NULL, NULL) != 0) {//»ñÈ¡ÎÄ¼ş¸ñÊ½
-		feedback = "ÎŞ·¨´ò¿ªÎÄ¼ş£¡";
+	ffmpeg->filefm = NULL;//æ–‡ä»¶æ ¼å¼;
+	if (avformat_open_input(&ffmpeg->filefm, file_name.c_str(), NULL, NULL) != 0) {//è·å–æ–‡ä»¶æ ¼å¼
+		feedback = "æ— æ³•æ‰“å¼€æ–‡ä»¶ï¼";
 		return_val = -1;
 		return return_val;
 	}
-	if (avformat_find_stream_info(ffmpeg->filefm, NULL) < 0) {//»ñÈ¡ÎÄ¼şÄÚÒôÊÓÆµÁ÷µÄĞÅÏ¢
-		feedback = "ÎŞ·¨¶ÁÈ¡ÎÄ¼şÁ÷ĞÅÏ¢£¡";
+	if (avformat_find_stream_info(ffmpeg->filefm, NULL) < 0) {//è·å–æ–‡ä»¶å†…éŸ³è§†é¢‘æµçš„ä¿¡æ¯
+		feedback = "æ— æ³•è¯»å–æ–‡ä»¶æµä¿¡æ¯ï¼";
 		return_val = -1;
 		return return_val;
 	}
-	ffmpeg->codecfm = NULL;//±àÂë¸ñÊ½
-	ffmpeg->codec = NULL;//½âÂëÆ÷
+	ffmpeg->codecfm = NULL;//ç¼–ç æ ¼å¼
+	ffmpeg->codec = NULL;//è§£ç å™¨
 	unsigned int j;
 	// Find the first audio stream
 	audio_stream = -1;
-	for (j = 0; j < ffmpeg->filefm->nb_streams; j++)//ÕÒµ½ÒôÆµ¶ÔÓ¦µÄstream
+	for (j = 0; j < ffmpeg->filefm->nb_streams; j++)//æ‰¾åˆ°éŸ³é¢‘å¯¹åº”çš„stream
 		if (ffmpeg->filefm->streams[j]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
 		{
 			audio_stream = j;
@@ -83,7 +83,7 @@ int Decode::Decode::initialize(const std::string & file_name0)
 		}
 	if (audio_stream == -1)
 	{
-		feedback = "ÎŞÒôÆµÁ÷£¡";
+		feedback = "æ— éŸ³é¢‘æµï¼";
 		return_val = -2;
 		return return_val; // Didn't find a audio stream
 	}
@@ -91,41 +91,41 @@ int Decode::Decode::initialize(const std::string & file_name0)
 		audio_only = true;
 	}
 	milisec = static_cast<int>(ceil(ffmpeg->filefm->duration / 10000));
-	ffmpeg->codec = avcodec_find_decoder(ffmpeg->filefm->streams[audio_stream]->codecpar->codec_id);//Ñ°ÕÒ½âÂëÆ÷
+	ffmpeg->codec = avcodec_find_decoder(ffmpeg->filefm->streams[audio_stream]->codecpar->codec_id);//å¯»æ‰¾è§£ç å™¨
 	if (!ffmpeg->codec)
 	{
-		feedback = "ÎŞ·¨ÕÒµ½ÒôÆµµÄ¶ÔÓ¦½âÂëÆ÷£¡";
+		feedback = "æ— æ³•æ‰¾åˆ°éŸ³é¢‘çš„å¯¹åº”è§£ç å™¨ï¼";
 		return_val = -3;
 		return return_val; // Codec not found codec
 	}
-	ffmpeg->codecfm = avcodec_alloc_context3(ffmpeg->codec);//ÒôÆµµÄ±àÂëĞÅÏ¢
+	ffmpeg->codecfm = avcodec_alloc_context3(ffmpeg->codec);//éŸ³é¢‘çš„ç¼–ç ä¿¡æ¯
 	if (!ffmpeg->codecfm)
 	{
-		feedback = "ÎŞ·¨´´½¨ÒôÆµµÄ½âÂëÆ÷ĞÅÏ¢£¡";
+		feedback = "æ— æ³•åˆ›å»ºéŸ³é¢‘çš„è§£ç å™¨ä¿¡æ¯ï¼";
 		return_val = -3;
 		return return_val; // Failed to allocate the codec context
 	}
 	int getcodecpara = avcodec_parameters_to_context(ffmpeg->codecfm, ffmpeg->filefm->streams[audio_stream]->codecpar);
 	if (getcodecpara < 0) {
-		feedback = "ÎŞ·¨»ñÈ¡ÒôÆµµÄ½âÂëÆ÷ĞÅÏ¢£¡";
+		feedback = "æ— æ³•è·å–éŸ³é¢‘çš„è§£ç å™¨ä¿¡æ¯ï¼";
 		return_val = -3;
 		return return_val; // Failed to allocate the codec context
 	}
 
-	feedback = "Òô¹ì±àºÅ£º" + std::to_string(audio_stream) +
-		"    ÒôÆµ±àÂë£º" + ffmpeg->codec->long_name;
+	feedback = "éŸ³è½¨ç¼–å·ï¼š" + std::to_string(audio_stream) +
+		"    éŸ³é¢‘ç¼–ç ï¼š" + ffmpeg->codec->long_name;
 
-	if (avcodec_open2(ffmpeg->codecfm, ffmpeg->codec, NULL) < 0)//½«Á½Õß½áºÏÒÔ±ãÔÚÏÂÃæµÄ½âÂëº¯ÊıÖĞµ÷ÓÃpInCodecÖĞµÄ¶ÔÓ¦½âÂëº¯Êı
+	if (avcodec_open2(ffmpeg->codecfm, ffmpeg->codec, NULL) < 0)//å°†ä¸¤è€…ç»“åˆä»¥ä¾¿åœ¨ä¸‹é¢çš„è§£ç å‡½æ•°ä¸­è°ƒç”¨pInCodecä¸­çš„å¯¹åº”è§£ç å‡½æ•°
 	{
-		feedback = "ÎŞ·¨´ò¿ªÒôÆµµÄ¶ÔÓ¦½âÂëÆ÷£¡";
+		feedback = "æ— æ³•æ‰“å¼€éŸ³é¢‘çš„å¯¹åº”è§£ç å™¨ï¼";
 		return_val = -3;
 		return return_val; // Could not open codec
 	}
-	//ÑÓ³Ù
+	//å»¶è¿Ÿ
 	start_time = ffmpeg->filefm->streams[audio_stream]->start_time;
-	//²ÉÑùÂÊ
+	//é‡‡æ ·ç‡
 	sample_rate = ffmpeg->codecfm->sample_rate;
-	//ÉùµÀ
+	//å£°é“
 	channels = ffmpeg->codecfm->channels;
 	return 0;
 }
@@ -135,20 +135,20 @@ int Decode::Decode::decodeaudio() {
 	//multithreading
 	int nb_threads = std::thread::hardware_concurrency();
 	fixed_thread_pool pool(nb_threads, keep_processing);
-	//ÖØ²ÉÑù±äÁ¿1
+	//é‡é‡‡æ ·å˜é‡1
 	bool resamp = false;
 	if (resamp_rate > 0 && sample_rate != resamp_rate)resamp = true;
-	//×¼±¸Ğ´ÈëÎÄ¼ş
+	//å‡†å¤‡å†™å…¥æ–‡ä»¶
 	std::fstream pcm;
 	short pcmh = 0;
 	int pcmh32 = 0;
 	std::string filename;
-	if (output_pcm) {//Ğ´ÈëwavÍ·ĞÅÏ¢
+	if (output_pcm) {//å†™å…¥wavå¤´ä¿¡æ¯
 		filename = ffmpeg->filefm->url;
 		filename += ".wav";
 		pcm.open(filename, std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!pcm.is_open()) {
-			feedback = "ÎŞ·¨´ò¿ªÒªĞ´ÈëµÄPCMÎÄ¼ş£¡";
+			feedback = "æ— æ³•æ‰“å¼€è¦å†™å…¥çš„PCMæ–‡ä»¶ï¼";
 			return_val = -4;
 			return return_val;
 		}
@@ -179,7 +179,7 @@ int Decode::Decode::decodeaudio() {
 		pcmh = 0;
 		pcm.write(reinterpret_cast<char*>(&pcmh), 4);//pcm size
 	}
-	//È·¶¨Êä³öÎ»Éî
+	//ç¡®å®šè¾“å‡ºä½æ·±
 	switch (ffmpeg->codecfm->sample_fmt) {
 	case AV_SAMPLE_FMT_U8:
 		sample_type = 8;
@@ -208,22 +208,22 @@ int Decode::Decode::decodeaudio() {
 	}
 	if (ffmpeg->codecfm->sample_fmt == AV_SAMPLE_FMT_FLT || ffmpeg->codecfm->sample_fmt == AV_SAMPLE_FMT_FLTP) sample_type = 1;
 	else if (ffmpeg->codecfm->sample_fmt == AV_SAMPLE_FMT_DBL || ffmpeg->codecfm->sample_fmt == AV_SAMPLE_FMT_DBLP) sample_type = 2;
-	//²ÉÑù±äÁ¿
+	//é‡‡æ ·å˜é‡
 	int samplecount = 0, samplenum = 0;
 	c_min_db = 256.0 / (MaxdB - static_cast<double>(min_db));
-	//ÖØ²ÉÑù±äÁ¿2
+	//é‡é‡‡æ ·å˜é‡2
 	ffmpeg->dst_data = nullptr;
 	int dst_linesize;
-	//¶ÔÒôÆµ½âÂë(¼ÓÖØ²ÉÑù)
+	//å¯¹éŸ³é¢‘è§£ç (åŠ é‡é‡‡æ ·)
 	if (resamp) {
 		samplenum = static_cast<int>(ceil(resamp_rate / 1000.0*ffmpeg->filefm->duration / 1000.0));
 		ffmpeg->swr_ctx = swr_alloc();
 		if (!ffmpeg->swr_ctx) {
-			feedback = "ÎŞ·¨¹¹½¨ÖØ²ÉÑù»·¾³£¡";
+			feedback = "æ— æ³•æ„å»ºé‡é‡‡æ ·ç¯å¢ƒï¼";
 			return_val = -8;
 			return return_val;
 		}
-		//ÖØ²ÉÑùÑ¡Ïî
+		//é‡é‡‡æ ·é€‰é¡¹
 		av_opt_set_int(ffmpeg->swr_ctx, "in_channel_layout", ffmpeg->codecfm->channel_layout, 0);
 		av_opt_set_int(ffmpeg->swr_ctx, "in_sample_rate", sample_rate, 0);
 		av_opt_set_sample_fmt(ffmpeg->swr_ctx, "in_sample_fmt", ffmpeg->codecfm->sample_fmt, 0);
@@ -233,7 +233,7 @@ int Decode::Decode::decodeaudio() {
 		av_opt_set_sample_fmt(ffmpeg->swr_ctx, "out_sample_fmt", ffmpeg->codecfm->sample_fmt, 0);
 		/* initialize the resampling context */
 		if ((swr_init(ffmpeg->swr_ctx)) < 0) {
-			feedback = "ÎŞ·¨³õÊ¼»¯ÖØ²ÉÑù»·¾³£¡";
+			feedback = "æ— æ³•åˆå§‹åŒ–é‡é‡‡æ ·ç¯å¢ƒï¼";
 			return_val = -8;
 			return return_val;
 		}
@@ -242,7 +242,7 @@ int Decode::Decode::decodeaudio() {
 		samplenum = static_cast<int>(ceil(sample_rate / 1000.0*ffmpeg->filefm->duration / 1000.0));
 	}
 	e_fft_num = static_cast<int>(ceil(samplenum / float(fft_num)));//estimated_fft_num
-	//²éÑ¯ÒôÆµ·â×°¸ñÊ½
+	//æŸ¥è¯¢éŸ³é¢‘å°è£…æ ¼å¼
 	ffmpeg->packet = av_packet_alloc();
 	std::string chfmt = "Packed";
 	real_ch = 1;
@@ -251,7 +251,7 @@ int Decode::Decode::decodeaudio() {
 		real_ch = channels;
 		chfmt = "Planar";
 	}
-	//ÎªÆµÆ×Êı¾İ·ÖÅäÄÚ´æ
+	//ä¸ºé¢‘è°±æ•°æ®åˆ†é…å†…å­˜
 	if (vol_mode != 1) {
 		int chs = std::min(channels, 2);
 		int spectrum_size = fft_num / 2;
@@ -273,14 +273,14 @@ int Decode::Decode::decodeaudio() {
 	}
 	int nb_last_seq = 0;
 	ffmpeg->decoded_frame = nullptr;
-	while (av_read_frame(ffmpeg->filefm, ffmpeg->packet) >= 0)//fileÖĞµ÷ÓÃ¶ÔÓ¦¸ñÊ½µÄpacket»ñÈ¡º¯Êı
+	while (av_read_frame(ffmpeg->filefm, ffmpeg->packet) >= 0)//fileä¸­è°ƒç”¨å¯¹åº”æ ¼å¼çš„packetè·å–å‡½æ•°
 	{
-		if (ffmpeg->packet->stream_index == audio_stream)//Èç¹ûÊÇÒôÆµ
+		if (ffmpeg->packet->stream_index == audio_stream)//å¦‚æœæ˜¯éŸ³é¢‘
 		{
 			int data_size = 0;
 			if (!ffmpeg->decoded_frame) {
 				if (!(ffmpeg->decoded_frame = av_frame_alloc())) {
-					feedback = "ÎŞ·¨ÎªÒôÆµÖ¡·ÖÅäÄÚ´æ£¡";
+					feedback = "æ— æ³•ä¸ºéŸ³é¢‘å¸§åˆ†é…å†…å­˜ï¼";
 					return_val = -5;
 					if (output_pcm)pcm.close();
 					return return_val;
@@ -289,7 +289,7 @@ int Decode::Decode::decodeaudio() {
 			int ret = 0;
 			ret = avcodec_send_packet(ffmpeg->codecfm, ffmpeg->packet);
 			if (ret < 0) {
-				feedback = "ÎŞ·¨Ìá½»ÒôÆµÖÁ½âÂëÆ÷£¡";
+				feedback = "æ— æ³•æäº¤éŸ³é¢‘è‡³è§£ç å™¨ï¼";
 				return_val = -5;
 				if (output_pcm)pcm.close();
 				return return_val;
@@ -300,7 +300,7 @@ int Decode::Decode::decodeaudio() {
 				if (len == AVERROR(EAGAIN) || len == AVERROR_EOF)
 					break;
 				else if (len < 0) {
-					feedback = "ÒôÆµ½âÂë³ö´í£¡";
+					feedback = "éŸ³é¢‘è§£ç å‡ºé”™ï¼";
 					return_val = -7;
 					if (output_pcm)pcm.close();
 					return return_val;
@@ -308,25 +308,25 @@ int Decode::Decode::decodeaudio() {
 				data_size = av_get_bytes_per_sample(ffmpeg->codecfm->sample_fmt);
 				if (data_size < 0) {
 					/* This should not occur, checking just for paranoia */
-					feedback = "ÎŞ·¨¼ÆËãÒôÆµÊı¾İ´óĞ¡£¡";
+					feedback = "æ— æ³•è®¡ç®—éŸ³é¢‘æ•°æ®å¤§å°ï¼";
 					return_val = -8;
 					if (output_pcm)pcm.close();
 					return return_val;
 				}
-				//´ÓframeÖĞ»ñÈ¡Êı¾İ
+				//ä»frameä¸­è·å–æ•°æ®
 				if (sample_type == 32) {
 					if (ffmpeg->codecfm->bits_per_raw_sample == 24)sample_type = 24;
 				}
 				int nb_samples;
 				uint8_t **audiodata;
-				//ÖØ²ÉÑù
+				//é‡é‡‡æ ·
 				if (resamp) {
 					nb_samples = static_cast<int>(
 						av_rescale_rnd(ffmpeg->decoded_frame->nb_samples, resamp_rate, sample_rate, AV_ROUND_ZERO));
 					ret = av_samples_alloc_array_and_samples(&ffmpeg->dst_data, &dst_linesize, channels,
 						nb_samples, ffmpeg->codecfm->sample_fmt, 0);
 					if (ret < 0) {
-						feedback = "ÎŞ·¨ÎªÖØ²ÉÑùÊı¾İ·ÖÅäÄÚ´æ£¡";
+						feedback = "æ— æ³•ä¸ºé‡é‡‡æ ·æ•°æ®åˆ†é…å†…å­˜ï¼";
 						if (output_pcm)pcm.close();
 						return_val = -9;
 						return return_val;
@@ -334,7 +334,7 @@ int Decode::Decode::decodeaudio() {
 					ret = swr_convert(ffmpeg->swr_ctx, ffmpeg->dst_data, nb_samples,
 						(const uint8_t **)ffmpeg->decoded_frame->extended_data, ffmpeg->decoded_frame->nb_samples);
 					if (ret < 0) {
-						feedback = "ÖØ²ÉÑù´íÎó£¡";
+						feedback = "é‡é‡‡æ ·é”™è¯¯ï¼";
 						if (output_pcm)pcm.close();
 						return_val = -10;
 						return return_val;
@@ -345,10 +345,10 @@ int Decode::Decode::decodeaudio() {
 					nb_samples = ffmpeg->decoded_frame->nb_samples;
 					audiodata = ffmpeg->decoded_frame->extended_data;
 				}
-				//´¦ÀíÊı¾İ
+				//å¤„ç†æ•°æ®
 				double **normalized_samples = nullptr;
 				int nb_fft_sample = normalize(audiodata, normalized_samples, ffmpeg->sample_seqs, nb_last_seq, nb_samples);
-				if (!keep_processing->test_and_set()) {
+				if (keep_processing && !keep_processing->test_and_set()) {
 					keep_processing->clear();
 					return_val = -6;
 					if (ffmpeg->dst_data)
@@ -367,7 +367,7 @@ int Decode::Decode::decodeaudio() {
 						pool.execute(std::bind(&Decode::Decode::FFT, this, fft_data, normalized_samples, fft_index, nb_fft_sample));
 					}
 				}
-				//Êä³öpcmÊı¾İ
+				//è¾“å‡ºpcmæ•°æ®
 				if (output_pcm) {
 					if (!isplanar) {
 						data_size *= channels;
@@ -387,7 +387,7 @@ int Decode::Decode::decodeaudio() {
 		}
 		av_packet_unref(ffmpeg->packet);
 	}
-	//Êı¾İ´æÈëpcmdata
+	//æ•°æ®å­˜å…¥pcmdata
 	int count = ffmpeg->codecfm->frame_number;
 	int bit_depth_raw = ffmpeg->codecfm->bits_per_raw_sample;
 	out_bit_depth = av_get_bytes_per_sample(ffmpeg->codecfm->sample_fmt) * 8;
@@ -399,11 +399,11 @@ int Decode::Decode::decodeaudio() {
 	else samp_rate_info = std::to_string(sample_rate) + "Hz";
 	std::string samp_format_info = av_get_sample_fmt_name(ffmpeg->codecfm->sample_fmt);
 	//samp_format_info = samp_format_info.replace(samp_format_info.find("AV_SAMPLE_FMT_"), 14, "");
-	feedback += "    ÉùµÀ£º" + std::to_string(channels) + "    ×ÜÖ¡Êı£º" + std::to_string(count) + "    ¸ñÊ½£º" + chfmt +
-		"\r\n²ÉÑùÎ»Êı£º" + std::to_string(bit_depth_raw) + "bit -> " + std::to_string(out_bit_depth) + "bit    ²ÉÑùÂÊ£º" + samp_rate_info
-		+ "    ²ÉÑù¸ñÊ½£º" + samp_format_info;
-	if (start_time != 0 && !audio_only)feedback += "    ÑÓ³Ù£º" + std::to_string(start_time) + "ms";
-	//²¹³äwavÍ·ĞÅÏ¢
+	feedback += "    å£°é“ï¼š" + std::to_string(channels) + "    æ€»å¸§æ•°ï¼š" + std::to_string(count) + "    æ ¼å¼ï¼š" + chfmt +
+		"\r\né‡‡æ ·ä½æ•°ï¼š" + std::to_string(bit_depth_raw) + "bit -> " + std::to_string(out_bit_depth) + "bit    é‡‡æ ·ç‡ï¼š" + samp_rate_info
+		+ "    é‡‡æ ·æ ¼å¼ï¼š" + samp_format_info;
+	if (start_time != 0 && !audio_only)feedback += "    å»¶è¿Ÿï¼š" + std::to_string(start_time) + "ms";
+	//è¡¥å……wavå¤´ä¿¡æ¯
 	if (output_pcm) {
 		long pcmfilesize = static_cast<long>(pcm.tellp()) - 8;
 		pcm.seekp(32);
@@ -418,9 +418,9 @@ int Decode::Decode::decodeaudio() {
 		pcmfilesize -= 36;
 		pcm.write(reinterpret_cast<char*>(&pcmfilesize), 4);//pcm size
 		pcm.close();
-		feedback += "\r\nÊä³ö½âÂëÒôÆµ£º" + file_name;
+		feedback += "\r\nè¾“å‡ºè§£ç éŸ³é¢‘ï¼š" + file_name;
 	}
-	//ÊÍ·ÅÄÚ´æ
+	//é‡Šæ”¾å†…å­˜
 	return_val = 0;
 	clear_ffmpeg();
 	return 0;
@@ -762,7 +762,7 @@ int Decode::Decode::normalize(uint8_t ** const &audiodata, double **&normalized_
 		}
 	}
 	nb_last = nb_last_next;
-	//Ïì¶È¼ÆËãºÍÆ¥Åä
+	//å“åº¦è®¡ç®—å’ŒåŒ¹é…
 	if (vol_mode >= 0 && length > 0) {
 		if (vol_coef != 0.0)
 			for (int ch = 0; ch < channels; ch++)
@@ -1647,7 +1647,7 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 		}
 	}
 	nb_last = nb_last_next;
-	//Ïì¶È¼ÆËãºÍÆ¥Åä
+	//å“åº¦è®¡ç®—å’ŒåŒ¹é…
 	if (vol_mode >= 0 && length > 0) {
 		int avxlength = length / 4;
 		if (vol_coef != 0.0) {

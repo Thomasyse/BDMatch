@@ -1,11 +1,9 @@
-﻿// Matching.cpp : 定义 DLL 应用程序的导出函数。
-//
-#include "Matching.h"
+﻿#include "matching.h"
 #include "multithreading.h"
 #include <fstream>
-#include <regex>
-#include <string>   
+#include <regex> 
 #include <immintrin.h>
+#include <time.h>
 
 constexpr int tvmax_num = 12;
 constexpr int tvmin_num = 12;
@@ -477,7 +475,7 @@ int Matching::Match::match()
 				lastlinetime = tv_time[i];
 			}
 		}
-		if (!keep_processing->test_and_set()) {
+		if (keep_processing && !keep_processing->test_and_set()) {
 			delete[] search_result;
 			search_result = nullptr;
 			return -2;

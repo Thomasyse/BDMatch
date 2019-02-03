@@ -4,7 +4,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h >
 
-#define appversion "1.5.1"
+#define appversion "1.5.2"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -73,12 +73,12 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	re = match_core->decode(tv_path, bd_path);
 	if (re < 0)return re;
 	if (Setting->match_ass) {
-		re = writeass(match_core, ass_path, output_path0);
+		re = writeass(ass_path, output_path0);
 	}
 	else {
 		progsingle(3, 0);
 	}
-	drawpre(match_core, re);
+	drawpre(re);
 	if (re < 0) {
 		if (re == -2)return -6;
 		else return -5;
@@ -89,7 +89,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	return 0;
 }
 
-int BDMatch::MyForm::writeass(BDMatchCore *match_core, const char* ass_path, const char* output_path)
+int BDMatch::MyForm::writeass(const char* ass_path, const char* output_path)
 {
 	//
 	int re = 0;
@@ -128,8 +128,6 @@ int BDMatch::MyForm::writeass(BDMatchCore *match_core, const char* ass_path, con
 int BDMatch::MyForm::drawpre()
 {
 	match_core->clear_data();
-	tvdraw.data = nullptr;
-	bddraw.data = nullptr;
 	tvdraw.spec = nullptr;
 	bddraw.spec = nullptr;
 	ViewSel->Enabled = false;
@@ -147,17 +145,17 @@ int BDMatch::MyForm::drawpre()
 	bddraw.linenum = 0;
 	tvdraw.ttf = 1.0;
 	bddraw.ttf = 1.0;
+	tvdraw.fftnum = 0;
+	bddraw.fftnum = 0;
 	tvdraw.timelist = nullptr;
 	bddraw.timelist = nullptr;
 	ChartTime->Text = "";
 	if (!Setting->draw)setrows();
 	return 0;
 }
-int BDMatch::MyForm::drawpre(BDMatchCore *match_core, const int &re)
+int BDMatch::MyForm::drawpre(const int &re)
 {
 	if (Setting->draw && !re) {
-		tvdraw.data = match_core->get_decode_data(TV_Decode);
-		bddraw.data = match_core->get_decode_data(BD_Decode);
 		tvdraw.spec = match_core->get_decode_spec(TV_Decode);
 		bddraw.spec = match_core->get_decode_spec(BD_Decode);
 		tvdraw.num = match_core->get_decode_info(TV_Decode, FFT_Samp_Num);
@@ -166,8 +164,10 @@ int BDMatch::MyForm::drawpre(BDMatchCore *match_core, const int &re)
 		bddraw.ch = match_core->get_decode_info(BD_Decode, Channels);
 		tvdraw.milisec = match_core->get_decode_info(TV_Decode, Milisec);
 		bddraw.milisec = match_core->get_decode_info(BD_Decode, Milisec);
-		tvdraw.ttf = match_core->get_decode_info(TV_Decode, Samp_Rate) / (static_cast<double>(match_core->get_decode_info(TV_Decode, FFT_Num)) * 100.0);
-		bddraw.ttf = match_core->get_decode_info(TV_Decode, Samp_Rate) / (static_cast<double>(match_core->get_decode_info(BD_Decode, FFT_Num)) * 100.0);
+		tvdraw.fftnum = match_core->get_decode_info(TV_Decode, FFT_Num);
+		bddraw.fftnum = match_core->get_decode_info(BD_Decode, FFT_Num);
+		tvdraw.ttf = match_core->get_decode_info(TV_Decode, Samp_Rate) / (static_cast<double>(tvdraw.fftnum) * 100.0);
+		bddraw.ttf = match_core->get_decode_info(TV_Decode, Samp_Rate) / (static_cast<double>(bddraw.fftnum) * 100.0);
 		ViewSel->SelectedIndex = 0;
 		ChSelect->SelectedIndex = 0;
 		ChSelect->Enabled = true;
@@ -183,8 +183,8 @@ int BDMatch::MyForm::drawpre(BDMatchCore *match_core, const int &re)
 		if (!re) {
 			match_core->clear_data();
 		}
-		tvdraw.data = nullptr;
-		bddraw.data = nullptr;
+		tvdraw.spec = nullptr;
+		bddraw.spec = nullptr;
 		tvdraw.num = 0;
 		bddraw.num = 0;
 	}
@@ -229,7 +229,7 @@ int BDMatch::MyForm::drawchart()
 	}
 	int duration = tvend - tvstart + 1;
 	
-	Bitmap^ spectrum1 = gcnew Bitmap(duration, Setting->fft_num);
+	Bitmap^ spectrum1 = gcnew Bitmap(duration, tvdraw.fftnum);
 	int x;
 	int y;
 	// Loop through the images pixels to reset color.
@@ -266,12 +266,12 @@ int BDMatch::MyForm::drawchart()
 		for (y = 0; y < spectrum1->Height; y++)
 		{
 			int color = -128;
-			if (y >= Setting->fft_num / 2) {
+			if (y >= bddraw.fftnum / 2) {
 				if (0 <= x + bdstart && x + bdstart < bddraw.num)
-					color = bddraw.data[ChSelect->SelectedIndex][x + bdstart].read0(Setting->fft_num - y - 1);
+					color = bddraw.spec[ChSelect->SelectedIndex][(x + bdstart)*bddraw.fftnum / 2 + bddraw.fftnum - y - 1];
 			}
 			else if (0 <= x + tvstart && x + tvstart < tvdraw.num)
-				color = tvdraw.data[ChSelect->SelectedIndex][x + tvstart].read0(Setting->fft_num / 2 - y - 1);
+				color = tvdraw.spec[ChSelect->SelectedIndex][(x + tvstart)*tvdraw.fftnum / 2 + tvdraw.fftnum / 2 - y - 1];
 			color += 128;
 			Color newColor = Color::FromArgb(color / 4, color, color);
 			if (y >= Setting->fft_num / 2) {

@@ -1,10 +1,12 @@
-#pragma once
+﻿#pragma once
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
 #include <functional>
 #include <queue>
 #include <thread>
+
+#include "targetver.h"
 
 class fixed_thread_pool {
 public:
