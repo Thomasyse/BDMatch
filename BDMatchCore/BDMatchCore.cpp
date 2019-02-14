@@ -120,8 +120,8 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 		bd_decode->set_vol_mode(0);
 		bd_pre_avg_vol = bd_decode->get_avg_vol();
 		double vol_coef = sqrt(tv_decode->get_avg_vol() / bd_decode->get_avg_vol());
-		if (vol_coef > 1.00)vol_coef *= 1.49;
-		else vol_coef /= 1.50;
+		if (vol_coef < 1.00)vol_coef *= 1.49;
+		else vol_coef /= 1.49;
 		bd_decode->set_vol_coef(vol_coef);
 		re = bd_decode->initialize(bd_path);
 		if (keep_processing->test_and_set())pool.execute(std::bind(&Decode::Decode::decodeaudio, bd_decode)); 
@@ -139,7 +139,7 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 	double spend = double(end - start) / (double)CLOCKS_PER_SEC;
 	std::string feedback = "";
 	if (feed_func) {
-		feedback += "TV文件：  " + tv_path.substr(tv_path.find_last_of("\\") + 1) + "\r\n" + tv_decode->get_feedback();
+		feedback += "\r\nTV文件：  " + tv_path.substr(tv_path.find_last_of("\\") + 1) + "\r\n" + tv_decode->get_feedback();
 		if (vol_match) {
 			std::string vol = std::to_string(10.0*log10(tv_decode->get_avg_vol()));
 			vol = vol.substr(0, vol.find_last_of('.') + 3);
@@ -162,8 +162,9 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 	return 0;
 }
 
-int BDMatchCore::match_1(const char *ass_path)
+int BDMatchCore::match_1(const char *ass_path0)
 {
+	std::string ass_path = ass_path0;
 	if (match_ass) {
 		if (!keep_processing->test_and_set()) {
 			keep_processing->clear();
@@ -181,6 +182,8 @@ int BDMatchCore::match_1(const char *ass_path)
 			tv_decode->get_milisec(), bd_decode->get_milisec(), tv_decode->get_samp_rate(),
 			tv_decode->get_file_name(), bd_decode->get_file_name(), bd_decode->get_audio_only());
 		re = match->load_ass(ass_path);
+		ass_path = "\r\nASS文件：" + ass_path.substr(ass_path.find_last_of("\\") + 1);
+		if (feed_func)feed_func(ass_path.c_str());
 		if (feed_func) feed_func(match->get_feedback().c_str());
 		if (re < 0) {
 			clear_data();

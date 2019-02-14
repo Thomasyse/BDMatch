@@ -75,7 +75,7 @@ namespace Decode {
 		std::atomic_flag * const keep_processing;//multithreading cancel token
 		//settings
 		int fft_num = 512;
-		int min_db = 0;
+		int min_db = -14;
 		bool output_pcm = false;
 		int vol_mode = -1;
 		int resamp_rate = 0;

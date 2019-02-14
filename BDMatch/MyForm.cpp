@@ -4,7 +4,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h >
 
-#define appversion "1.5.2"
+#define appversion "1.5.3"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -512,7 +512,6 @@ int BDMatch::MyForm::matchinput()
 						re = -1;
 						continue;
 					}
-					Result->Text += "\r\nASS文件：  " + asstext->Substring(asstext->LastIndexOf("\\") + 1) + "\r\n";
 					match_num = 1;
 					output_path = asstext->Substring(0, asstext->LastIndexOf(".")) + " - " +
 						bdtext->Substring(bdtext->LastIndexOf("\\") + 1, bdtext->LastIndexOf(".") - bdtext->LastIndexOf("\\") - 1)
@@ -548,7 +547,6 @@ int BDMatch::MyForm::matchinput()
 					for (int i = 0; i < bdfiles->Count; i++) {
 						re = -10;
 						int re1 = 0;
-						Result->Text += "\r\nASS文件：  " + asstext->Substring(asstext->LastIndexOf("\\") + 1) + "\r\n";
 						String ^star_content = bdfiles[i];
 						for (int j = 0; j < bdmatch->Count; j++)
 							star_content = star_content->Replace(bdmatch[j]->Value->Replace("*", ""), " ");
@@ -611,7 +609,6 @@ int BDMatch::MyForm::matchinput()
 						continue;
 					}
 					match_num = 1;
-					Result->Text += "\r\nASS文件：  " + asstext->Substring(asstext->LastIndexOf("\\") + 1) + "\r\n";
 					re = match(asstext, tvtext, bdtext);
 					if (re < 0) {
 						if (re == -6)	Result->Text += "\r\n\r\n用户中止操作。";
@@ -706,7 +703,6 @@ int BDMatch::MyForm::matchinput()
 								break;
 							}
 						}
-						Result->Text += "\r\nASS文件：  " + assfiles[i]->Substring(assfiles[i]->LastIndexOf("\\") + 1) + "\r\n";
 						re = -10;
 						int re1 = 0;
 						if (tvfileindex >= 0 && bdfileindex >= 0) {

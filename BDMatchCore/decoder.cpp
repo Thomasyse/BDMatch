@@ -127,6 +127,8 @@ int Decode::Decode::initialize(const std::string & file_name0)
 	sample_rate = ffmpeg->codecfm->sample_rate;
 	//声道
 	channels = ffmpeg->codecfm->channels;
+	//vol
+	total_vol = 0.0;
 	return 0;
 }
 int Decode::Decode::decodeaudio() {
