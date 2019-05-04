@@ -1,5 +1,5 @@
 # BDMatch
-An automatic ASS subtitile shifter from a video to another based on audio spectrum.
+An automatic ASS subtitle shifter from a video to another based on audio spectrum.
 ## Purpose
 The shifter can match a subtitle file synced to one video file to another video files. A typical example is TV and BD releases, from which the project name comes.
 
