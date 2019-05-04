@@ -2,23 +2,67 @@
 #include "multithreading.h"
 #include <time.h>
 
+//A Sample of command line Usage
+/*
+int match{
+	std::atomic_flag *keep_processing = new std::atomic_flag;//cancel token
+	BDMatchCore *match_core = new BDMatchCore(keep_processing);
+	prog_func prog_ptr = nullptr;//function pointer to show progress: prog_func(int phase(0-3), double percent);
+	feedback_func feedback_ptr = nullptr;//function pointer to show feedback: feedback_func(const char* feedback_string);
+	match_core->load_interface(prog_ptr, feedback_ptr);
+	//Setteings(default value as below):
+	int isa_mode = 3;//ISA Mode:0 for none, 1 for SSE/SSE2/SSE4.1, 2 for AVX, 3 for AVX2.
+	int fft_num = 512;//FFT data size, larger for speed, smaller for precision
+	int min_db = -14;//volume(db) threshold for ignoring
+	bool output_pcm = false;//whether to output decoded wave
+	bool parallel_decode = false;//whether to decode paralleling, recommended true for Disk with good performance
+	bool vol_match = false;//whether to match the volume of BD to TV, recommended true for large volume difference between TV and BD
+	int min_check_num = 100;//check times for match results, larger for precision, smaller for speed
+	int find_field = 10;//range for searching the results(-xx -> +xx), with the unit of second
+	int ass_offset = 0;//offset of the timeline of the ass file, with the unit of centisecond
+	int max_length = 20;//the max length of the timeline to be matched, with the unit of second
+	bool match_ass = true;//whether to match the ass
+	bool fast_match = false;//whether to match fast but perhaps lose some pecision
+	bool debug_mode = false;//whether to show some debug info
+	match_core->load_settings(isa_mode,fft_num,min_db,output_pcm, parallel_decode, vol_match,
+		min_check_num, find_field, ass_offset, max_length,
+		match_ass, fast_match, debug_mode);
+	//decode
+	const char *tv_path = "TV file path";
+	const char *bd_path = "BD file path";
+	const char *ass_path = "ASS file path";
+	const char *output_path = "output ASS file path";//"" for auto rename.
+	int re = 0;
+	re = match_core->decode(tv_path, bd_path);
+	if (re < 0) return re;
+	if (match_ass) {
+		re = match_core->match_1(ass_path);
+		if (re < 0) return re;
+		re = match_core->match_2(output_path);
+		if (re < 0) return re;
+		match_core->clear_match();
+	}
+	if (re < 0) {
+		if (re == -2)return -6;
+		else return -5;
+	}
+	delete keep_processing;
+	return 0;
+}
+*/
 
 BDMatchCore::BDMatchCore(std::atomic_flag *keep_processing0)
 	:keep_processing(keep_processing0) {
 }
 BDMatchCore::~BDMatchCore()
 {
-	clear_data();
 }
 
 int BDMatchCore::clear_data()
 {
-	if (tv_decode)delete tv_decode;
-	if (bd_decode)delete bd_decode;
-	if (match)delete match;
-	tv_decode = nullptr;
-	bd_decode = nullptr;
-	match = nullptr;
+	tv_decode.reset(nullptr);
+	bd_decode.reset(nullptr);
+	match.reset(nullptr);
 	return 0;
 }
 
@@ -65,54 +109,56 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 	//multithreading
 	fixed_thread_pool pool(2, keep_processing);
 	//解码TV文件
-	if (isa_mode == 3)tv_decode = new Decode::Decode_AVX2(keep_processing);
-	else if(isa_mode == 2)tv_decode = new Decode::Decode_AVX(keep_processing);
-	else if (isa_mode == 1)tv_decode = new Decode::Decode_SSE(keep_processing);
-	else tv_decode = new Decode::Decode(keep_processing);
+	if (isa_mode == 3)tv_decode.reset(new Decode::Decode_AVX2(keep_processing));
+	else if(isa_mode == 2)tv_decode.reset(new Decode::Decode_AVX(keep_processing));
+	else if (isa_mode == 1)tv_decode.reset(new Decode::Decode_SSE(keep_processing));
+	else tv_decode.reset(new Decode::Decode(keep_processing));
 	if (vol_match) tv_decode->set_vol_mode(0);
 	tv_decode->load_settings(fft_num, output_pcm, min_db, 0, 1, plan, prog_back);
 	int re = 0;
 	re = tv_decode->initialize(tv_path);
 	if (re < 0) {
-		clear_data();
-		return re;
+		fftw_destroy_plan(plan);
+		if (feed_func)feed_func(tv_decode->get_feedback().c_str());
+		return re; 
 	}
-	pool.execute(std::bind(&Decode::Decode::decodeaudio, tv_decode));
+	pool.execute(std::bind(&Decode::Decode::decodeaudio, tv_decode.get()));
 	if (!parallel_decode) {
 		pool.wait();
 		re = tv_decode->get_return();
 		if (re < 0) {
-			clear_data();
 			fftw_destroy_plan(plan);
+			if (feed_func)feed_func(tv_decode->get_feedback().c_str());
 			return re;
 		}
 	}
 	//解码BD文件
-	if (isa_mode == 3)bd_decode = new Decode::Decode_AVX2(keep_processing);
-	else if (isa_mode == 2)bd_decode = new Decode::Decode_AVX(keep_processing);
-	else if (isa_mode == 1)bd_decode = new Decode::Decode_SSE(keep_processing);
-	else bd_decode = new Decode::Decode(keep_processing);
+	if (isa_mode == 3)bd_decode.reset(new Decode::Decode_AVX2(keep_processing));
+	else if (isa_mode == 2)bd_decode.reset(new Decode::Decode_AVX(keep_processing));
+	else if (isa_mode == 1)bd_decode.reset(new Decode::Decode_SSE(keep_processing));
+	else bd_decode.reset(new Decode::Decode(keep_processing));
 	if (vol_match) bd_decode->set_vol_mode(1);
 	bd_decode->load_settings(fft_num, output_pcm, min_db, tv_decode->get_samp_rate(), 2, plan, prog_back);
 	re = bd_decode->initialize(bd_path);
 	if (re < 0) {
 		keep_processing->clear();
-		clear_data();
+		fftw_destroy_plan(plan);
+		if (feed_func)feed_func(bd_decode->get_feedback().c_str());
 		return re;
 	}
-	if (keep_processing->test_and_set())pool.execute(std::bind(&Decode::Decode::decodeaudio, bd_decode));
+	if (keep_processing->test_and_set())pool.execute(std::bind(&Decode::Decode::decodeaudio, bd_decode.get()));
 	else keep_processing->clear();
 	pool.wait();
 	if (tv_decode->get_return() < 0) {
 		re = tv_decode->get_return();
-		clear_data();
 		fftw_destroy_plan(plan);
+		if (feed_func)feed_func(tv_decode->get_feedback().c_str());
 		return re;
 	}
 	else if (bd_decode->get_return() < 0) {
 		re = bd_decode->get_return();
-		clear_data();
 		fftw_destroy_plan(plan);
+		if (feed_func)feed_func(bd_decode->get_feedback().c_str());
 		return re;
 	}
 	double bd_pre_avg_vol = 0.0;
@@ -124,13 +170,13 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 		else vol_coef /= 1.49;
 		bd_decode->set_vol_coef(vol_coef);
 		re = bd_decode->initialize(bd_path);
-		if (keep_processing->test_and_set())pool.execute(std::bind(&Decode::Decode::decodeaudio, bd_decode)); 
+		if (keep_processing->test_and_set())pool.execute(std::bind(&Decode::Decode::decodeaudio, bd_decode.get())); 
 		else keep_processing->clear();
 		pool.wait();
 		if (bd_decode->get_return() < 0) {
 			re = bd_decode->get_return();
-			clear_data();
 			fftw_destroy_plan(plan);
+			if (feed_func)feed_func(bd_decode->get_feedback().c_str());
 			return re;
 		}
 	}
@@ -168,12 +214,11 @@ int BDMatchCore::match_1(const char *ass_path0)
 	if (match_ass) {
 		if (!keep_processing->test_and_set()) {
 			keep_processing->clear();
-			clear_data();
 			return -2;
 		}
-		if (isa_mode == 0)match = new Matching::Match(keep_processing);
-		else if (isa_mode <= 2)match = new Matching::Match_SSE(keep_processing);
-		else if (isa_mode == 3)match = new Matching::Match_AVX2(keep_processing);
+		if (isa_mode == 0)match.reset(new Matching::Match(keep_processing));
+		else if (isa_mode <= 2)match.reset(new Matching::Match_SSE(keep_processing));
+		else if (isa_mode == 3)match.reset(new Matching::Match_AVX2(keep_processing));
 		int re = 0;
 		match->load_settings(min_check_num, find_field, ass_offset, max_length,
 			fast_match, debug_mode, prog_back);
@@ -185,10 +230,7 @@ int BDMatchCore::match_1(const char *ass_path0)
 		ass_path = "\r\nASS文件：" + ass_path.substr(ass_path.find_last_of("\\") + 1);
 		if (feed_func)feed_func(ass_path.c_str());
 		if (feed_func) feed_func(match->get_feedback().c_str());
-		if (re < 0) {
-			clear_data();
-			return re;
-		}
+		if (re < 0) return re;
 	}
 	else {
 		prog_back(3, 0);
@@ -204,12 +246,9 @@ int BDMatchCore::match_2(const char *output_path0)
 		if (feed_func) feed_func(match->get_feedback().c_str());
 		if (!keep_processing->test_and_set()) {
 			keep_processing->clear();
-			clear_data();
 			return -2;
 		}
 		else if (re < 0) {
-			keep_processing->clear();
-			clear_data();
 			return re;
 		}
 		if (output_path == "")re = match->output();
@@ -217,17 +256,14 @@ int BDMatchCore::match_2(const char *output_path0)
 			re = match->output(output_path);
 		}
 		if (feed_func) feed_func(match->get_feedback().c_str());
-		if (re < 0) {
-			clear_data();
-			return re;
-		}
+		if (re < 0) return re;
 	}
 	return 0;
 }
+
 int BDMatchCore::clear_match()
 {
-	if (match)delete match;
-	match = nullptr;
+	match.reset(nullptr);
 	return 0;
 }
 
@@ -245,8 +281,8 @@ int BDMatchCore::get_timeline(const int & index, const int & type)
 int BDMatchCore::get_decode_info(const Deocde_File & file, const Decode_Info & type)
 {
 	Decode::Decode *decode_ptr;
-	if (file == BD_Decode)decode_ptr = bd_decode;
-	else decode_ptr = tv_decode;
+	if (file == BD_Decode)decode_ptr = bd_decode.get();
+	else decode_ptr = tv_decode.get();
 	if (!decode_ptr)return -1;
 	switch (type) {
 	case Channels:
@@ -272,8 +308,8 @@ int BDMatchCore::get_decode_info(const Deocde_File & file, const Decode_Info & t
 char ** BDMatchCore::get_decode_spec(const Deocde_File & file)
 {
 	Decode::Decode *decode_ptr;
-	if (file == TV_Decode)decode_ptr = tv_decode;
-	else decode_ptr = bd_decode;
+	if (file == TV_Decode)decode_ptr = tv_decode.get();
+	else decode_ptr = bd_decode.get();
 	if (!decode_ptr)return nullptr;
 	else return decode_ptr->get_fft_spec();
 }

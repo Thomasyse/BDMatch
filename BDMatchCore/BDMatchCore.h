@@ -34,9 +34,9 @@ public:
 	int get_decode_info(const Deocde_File &file, const Decode_Info &type);
 	char **get_decode_spec(const Deocde_File &file);
 private:
-	Decode::Decode *tv_decode = nullptr;
-	Decode::Decode *bd_decode = nullptr;
-	Matching::Match *match = nullptr;
+	std::unique_ptr<Decode::Decode> tv_decode;
+	std::unique_ptr<Decode::Decode> bd_decode;
+	std::unique_ptr<Matching::Match> match;
 	std::atomic_flag * const keep_processing;//multithreading cancel token
 	prog_func prog_back = nullptr;
 	feedback_func feed_func = nullptr;

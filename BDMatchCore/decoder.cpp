@@ -61,13 +61,15 @@ int Decode::Decode::initialize(const std::string & file_name0)
 	ffmpeg = new FFmpeg;
 	ffmpeg->filefm = NULL;//文件格式;
 	if (avformat_open_input(&ffmpeg->filefm, file_name.c_str(), NULL, NULL) != 0) {//获取文件格式
-		feedback = "无法打开文件！";
+		feedback = "\r\n无法打开文件！";
 		return_val = -1;
+		keep_processing->clear();
 		return return_val;
 	}
 	if (avformat_find_stream_info(ffmpeg->filefm, NULL) < 0) {//获取文件内音视频流的信息
-		feedback = "无法读取文件流信息！";
+		feedback = "\r\n无法读取文件流信息！";
 		return_val = -1;
+		keep_processing->clear();
 		return return_val;
 	}
 	ffmpeg->codecfm = NULL;//编码格式
@@ -83,8 +85,9 @@ int Decode::Decode::initialize(const std::string & file_name0)
 		}
 	if (audio_stream == -1)
 	{
-		feedback = "无音频流！";
+		feedback = "\r\n无音频流！";
 		return_val = -2;
+		keep_processing->clear();
 		return return_val; // Didn't find a audio stream
 	}
 	else if (audio_stream == 0) {
@@ -94,21 +97,24 @@ int Decode::Decode::initialize(const std::string & file_name0)
 	ffmpeg->codec = avcodec_find_decoder(ffmpeg->filefm->streams[audio_stream]->codecpar->codec_id);//寻找解码器
 	if (!ffmpeg->codec)
 	{
-		feedback = "无法找到音频的对应解码器！";
+		feedback = "\r\n无法找到音频的对应解码器！";
 		return_val = -3;
+		keep_processing->clear();
 		return return_val; // Codec not found codec
 	}
 	ffmpeg->codecfm = avcodec_alloc_context3(ffmpeg->codec);//音频的编码信息
 	if (!ffmpeg->codecfm)
 	{
-		feedback = "无法创建音频的解码器信息！";
+		feedback = "\r\n无法创建音频的解码器信息！";
 		return_val = -3;
+		keep_processing->clear();
 		return return_val; // Failed to allocate the codec context
 	}
 	int getcodecpara = avcodec_parameters_to_context(ffmpeg->codecfm, ffmpeg->filefm->streams[audio_stream]->codecpar);
 	if (getcodecpara < 0) {
-		feedback = "无法获取音频的解码器信息！";
+		feedback = "\r\n无法获取音频的解码器信息！";
 		return_val = -3;
+		keep_processing->clear();
 		return return_val; // Failed to allocate the codec context
 	}
 
@@ -117,8 +123,9 @@ int Decode::Decode::initialize(const std::string & file_name0)
 
 	if (avcodec_open2(ffmpeg->codecfm, ffmpeg->codec, NULL) < 0)//将两者结合以便在下面的解码函数中调用pInCodec中的对应解码函数
 	{
-		feedback = "无法打开音频的对应解码器！";
+		feedback = "\r\n无法打开音频的对应解码器！";
 		return_val = -3;
+		keep_processing->clear();
 		return return_val; // Could not open codec
 	}
 	//延迟
@@ -150,8 +157,9 @@ int Decode::Decode::decodeaudio() {
 		filename += ".wav";
 		pcm.open(filename, std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!pcm.is_open()) {
-			feedback = "无法打开要写入的PCM文件！";
+			feedback = "\r\n无法打开要写入的PCM文件！";
 			return_val = -4;
+			keep_processing->clear();
 			return return_val;
 		}
 		pcm.write("RIFF", 4);
@@ -221,8 +229,10 @@ int Decode::Decode::decodeaudio() {
 		samplenum = static_cast<int>(ceil(resamp_rate / 1000.0*ffmpeg->filefm->duration / 1000.0));
 		ffmpeg->swr_ctx = swr_alloc();
 		if (!ffmpeg->swr_ctx) {
-			feedback = "无法构建重采样环境！";
+			feedback = "\r\n无法构建重采样环境！";
 			return_val = -8;
+			if (output_pcm)pcm.close();
+			keep_processing->clear();
 			return return_val;
 		}
 		//重采样选项
@@ -235,8 +245,10 @@ int Decode::Decode::decodeaudio() {
 		av_opt_set_sample_fmt(ffmpeg->swr_ctx, "out_sample_fmt", ffmpeg->codecfm->sample_fmt, 0);
 		/* initialize the resampling context */
 		if ((swr_init(ffmpeg->swr_ctx)) < 0) {
-			feedback = "无法初始化重采样环境！";
+			feedback = "\r\n无法初始化重采样环境！";
 			return_val = -8;
+			if (output_pcm)pcm.close();
+			keep_processing->clear();
 			return return_val;
 		}
 	}
@@ -282,18 +294,20 @@ int Decode::Decode::decodeaudio() {
 			int data_size = 0;
 			if (!ffmpeg->decoded_frame) {
 				if (!(ffmpeg->decoded_frame = av_frame_alloc())) {
-					feedback = "无法为音频帧分配内存！";
+					feedback = "\r\n无法为音频帧分配内存！";
 					return_val = -5;
 					if (output_pcm)pcm.close();
+					keep_processing->clear();
 					return return_val;
 				}
 			}
 			int ret = 0;
 			ret = avcodec_send_packet(ffmpeg->codecfm, ffmpeg->packet);
 			if (ret < 0) {
-				feedback = "无法提交音频至解码器！";
+				feedback = "\r\n无法提交音频至解码器！";
 				return_val = -5;
 				if (output_pcm)pcm.close();
+				keep_processing->clear();
 				return return_val;
 			}
 			int len = 0;
@@ -302,17 +316,19 @@ int Decode::Decode::decodeaudio() {
 				if (len == AVERROR(EAGAIN) || len == AVERROR_EOF)
 					break;
 				else if (len < 0) {
-					feedback = "音频解码出错！";
+					feedback = "\r\n音频解码出错！";
 					return_val = -7;
 					if (output_pcm)pcm.close();
+					keep_processing->clear();
 					return return_val;
 				}
 				data_size = av_get_bytes_per_sample(ffmpeg->codecfm->sample_fmt);
 				if (data_size < 0) {
 					/* This should not occur, checking just for paranoia */
-					feedback = "无法计算音频数据大小！";
+					feedback = "\r\n无法计算音频数据大小！";
 					return_val = -8;
 					if (output_pcm)pcm.close();
+					keep_processing->clear();
 					return return_val;
 				}
 				//从frame中获取数据
@@ -328,17 +344,19 @@ int Decode::Decode::decodeaudio() {
 					ret = av_samples_alloc_array_and_samples(&ffmpeg->dst_data, &dst_linesize, channels,
 						nb_samples, ffmpeg->codecfm->sample_fmt, 0);
 					if (ret < 0) {
-						feedback = "无法为重采样数据分配内存！";
+						feedback = "\r\n无法为重采样数据分配内存！";
 						if (output_pcm)pcm.close();
 						return_val = -9;
+						keep_processing->clear();
 						return return_val;
 					}
 					ret = swr_convert(ffmpeg->swr_ctx, ffmpeg->dst_data, nb_samples,
 						(const uint8_t **)ffmpeg->decoded_frame->extended_data, ffmpeg->decoded_frame->nb_samples);
 					if (ret < 0) {
-						feedback = "重采样错误！";
+						feedback = "\r\n重采样错误！";
 						if (output_pcm)pcm.close();
-						return_val = -10;
+						return_val = -10; 
+						keep_processing->clear();
 						return return_val;
 					}
 					audiodata = ffmpeg->dst_data;

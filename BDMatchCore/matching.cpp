@@ -444,18 +444,17 @@ int Matching::Match::match()
 
 			//for debug->
 			/*
-			String^ besttimestr = mstotime(besttime * ftt);
-			int bestfind = bdse.find(besttime, 0);
-			String^ time = "0:11:30.64";
-			int fftindex = static_cast<int>((int::Parse(time[0].ToString()) * 360000 + int::Parse(time->Substring(2, 2)) * 6000 +
-				int::Parse(time->Substring(5, 2)) * 100 + int::Parse(time->Substring(8, 2)) + Setting->assoffset) * ttf);
+			volatile std::string besttimestr = cs2time(besttime * f2t);
+			volatile int bestfind = bd_se.find(besttime, 0);
+			std::string time = "0:03:09.35";
+			int fftindex = static_cast<int>(time2cs(time) * t2f);
 			fftindex += 1;
-			int pos1 = bdse.find(fftindex, 0);
-			long long lsfeedback = -1;
-			int task_id = static_cast<int>(ceil(pos1 / nb_per_task) - 1.0);
+			volatile int pos1 = bd_se.find(fftindex, 0);
+			volatile long long lsfeedback = -1;
+			volatile int task_id = static_cast<int>(ceil(pos1 / double(nb_per_task)) - 1.0);
 			if (pos1 > 0)lsfeedback = search_result[task_id][0];
-			String^ besttimestr2 = mstotime(search_result[task_id][1] * ftt);
-			int pos2 = bdse.find(search_result[task_id][1], 0);
+			volatile std::string besttimestr2 = cs2time(search_result[task_id][1] * f2t);
+			volatile int pos2 = bd_se.find(search_result[task_id][1], 0);
 			*/
 			//cal debug info
 			if (debug_mode) {
@@ -476,6 +475,7 @@ int Matching::Match::match()
 			}
 		}
 		if (keep_processing && !keep_processing->test_and_set()) {
+			keep_processing->clear();
 			delete[] search_result;
 			search_result = nullptr;
 			return -2;

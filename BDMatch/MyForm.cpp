@@ -4,7 +4,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h >
 
-#define appversion "1.5.3"
+#define appversion "1.5.4"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -71,7 +71,10 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	const char *ass_path = convert.marshal_as<const char*>(asstext);
 	const char *output_path0 = convert.marshal_as<const char*>(output_path);
 	re = match_core->decode(tv_path, bd_path);
-	if (re < 0)return re;
+	if (re < 0) {
+		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
+		return re;
+	}
 	if (Setting->match_ass) {
 		re = writeass(ass_path, output_path0);
 	}
@@ -81,7 +84,10 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	drawpre(re);
 	if (re < 0) {
 		if (re == -2)return -6;
-		else return -5;
+		else {
+			return -5;
+			taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
+		}
 	}
 	gch1.Free();
 	gch2.Free();
@@ -94,7 +100,10 @@ int BDMatch::MyForm::writeass(const char* ass_path, const char* output_path)
 	//
 	int re = 0;
 	re = match_core->match_1(ass_path);
-	if (re < 0) return re;
+	if (re < 0) {
+		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
+		return re;
+	}
 	int nb_timeline = match_core->get_nb_timeline();
 	//绘图相关
 	if (Setting->draw) {
@@ -111,6 +120,7 @@ int BDMatch::MyForm::writeass(const char* ass_path, const char* output_path)
 	//
 	re = match_core->match_2(output_path);
 	if (re < 0) {
+		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;
 	}
 	//绘图相关
