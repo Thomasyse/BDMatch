@@ -1,5 +1,5 @@
 # BDMatch
-*.[中文版](/README.CHS.md)
+* [中文版](/README.CHS.md)
 
 An automatic ASS subtitle shifter from a video to another based on audio spectrum.
 ## Purpose
