@@ -1,5 +1,6 @@
 #BDMatch
-[English]()
+[English](https://github.com/Thomasyse/BDMatch/blob/master/README.md)
+
 基于音频频谱的将ASS字幕由一个视频匹配到另一个视频的自动ASS字幕时间轴平移工具。
 ##功能
 移轴器可以将同步到一个视频文件的字幕文件与另一个视频文件相匹配。典型场景如视频的TV和BD版本。这也是项目名称的来源。
