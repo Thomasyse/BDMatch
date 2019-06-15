@@ -1,5 +1,6 @@
 # BDMatch
-[中文版]()
+[中文版](https://github.com/Thomasyse/BDMatch/blob/master/README.CHS.md)
+
 An automatic ASS subtitle shifter from a video to another based on audio spectrum.
 ## Purpose
 The shifter can match a subtitle file synced to one video file to another video files. A typical example is TV and BD releases, from which the project name comes.
