@@ -2,9 +2,9 @@
 #pragma unmanaged
 #include "instructionset.h"
 #pragma managed
-#include <msclr\marshal_cppstd.h >
+#include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.4"
+#define appversion "1.5.5"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -496,7 +496,7 @@ int BDMatch::MyForm::matchinput()
 	MatchCollection^ tvmatch_all = quotationkey->Matches(tvtext_all);
 	MatchCollection^ bdmatch_all = quotationkey->Matches(bdtext_all);
 	matches_num = min(min(assmatch_all->Count, tvmatch_all->Count), bdmatch_all->Count);
-	if (assmatch_all->Count == 1 && tvmatch_all->Count == 1 && (bdmatch_all->Count > 1 || bdtext_all->Contains("*"))) {
+	if (!bdtext_all->Contains("*") && assmatch_all->Count == 1 && tvmatch_all->Count == 1 && (bdmatch_all->Count > 1 || bdtext_all->Contains("*"))) {
 		Result->Text += "\r\n批量处理将不作声谱图。";
 		Setting->draw = false;
 		asstext = assmatch_all[0]->Value->Replace("\"", "");
