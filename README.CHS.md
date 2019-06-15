@@ -1,5 +1,5 @@
 # BDMatch
-* [English Version](https://github.com/Thomasyse/BDMatch/blob/master/README.md)
+* [English Version](/README.md)
 
 基于音频频谱的将ASS字幕由一个视频匹配到另一个视频的自动ASS字幕时间轴平移工具。
 
@@ -19,7 +19,7 @@
 ## 用法
 对于Windows用户，[Releases](https://github.com/Thomasyse/BDMatch/releases)中的可执行文件提供图形界面。
 
-对于其他平台的用户，可以修改[BDMatchCore](https://github.com/Thomasyse/BDMatch/tree/master/BDMatchCore)（包括项目的核心功能）并将其编译为命令行可执行文件。
+对于其他平台的用户，可以修改[BDMatchCore](/BDMatchCore)（包括项目的核心功能）并将其编译为命令行可执行文件。
 
 ## 要求
 
