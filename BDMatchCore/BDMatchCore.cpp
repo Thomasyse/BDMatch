@@ -2,7 +2,7 @@
 #include "multithreading.h"
 #include <time.h>
 
-//A Sample of command line Usage
+//A sample of command line usage
 /*
 int match{
 	std::atomic_flag *keep_processing = new std::atomic_flag;//cancel token
@@ -109,17 +109,17 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 	//multithreading
 	fixed_thread_pool pool(2, keep_processing);
 	//解码TV文件
-	if (isa_mode == 3)tv_decode.reset(new Decode::Decode_AVX2(keep_processing));
-	else if(isa_mode == 2)tv_decode.reset(new Decode::Decode_AVX(keep_processing));
-	else if (isa_mode == 1)tv_decode.reset(new Decode::Decode_SSE(keep_processing));
-	else tv_decode.reset(new Decode::Decode(keep_processing));
+	if (isa_mode == 3)tv_decode.reset(new Decode::Decode_AVX2(lang_pack, keep_processing));
+	else if (isa_mode == 2)tv_decode.reset(new Decode::Decode_AVX(lang_pack, keep_processing));
+	else if (isa_mode == 1)tv_decode.reset(new Decode::Decode_SSE(lang_pack, keep_processing));
+	else tv_decode.reset(new Decode::Decode(lang_pack, keep_processing));
 	if (vol_match) tv_decode->set_vol_mode(0);
 	tv_decode->load_settings(fft_num, output_pcm, min_db, 0, 1, plan, prog_back);
 	int re = 0;
 	re = tv_decode->initialize(tv_path);
 	if (re < 0) {
 		fftw_destroy_plan(plan);
-		if (feed_func)feed_func(tv_decode->get_feedback().c_str());
+		feedback_tv(tv_path);
 		return re; 
 	}
 	pool.execute(std::bind(&Decode::Decode::decodeaudio, tv_decode.get()));
@@ -128,22 +128,23 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 		re = tv_decode->get_return();
 		if (re < 0) {
 			fftw_destroy_plan(plan);
-			if (feed_func)feed_func(tv_decode->get_feedback().c_str());
+			feedback_tv(tv_path);
 			return re;
 		}
 	}
 	//解码BD文件
-	if (isa_mode == 3)bd_decode.reset(new Decode::Decode_AVX2(keep_processing));
-	else if (isa_mode == 2)bd_decode.reset(new Decode::Decode_AVX(keep_processing));
-	else if (isa_mode == 1)bd_decode.reset(new Decode::Decode_SSE(keep_processing));
-	else bd_decode.reset(new Decode::Decode(keep_processing));
+	double bd_pre_avg_vol = 0.0;
+	if (isa_mode == 3)bd_decode.reset(new Decode::Decode_AVX2(lang_pack, keep_processing));
+	else if (isa_mode == 2)bd_decode.reset(new Decode::Decode_AVX(lang_pack, keep_processing));
+	else if (isa_mode == 1)bd_decode.reset(new Decode::Decode_SSE(lang_pack, keep_processing));
+	else bd_decode.reset(new Decode::Decode(lang_pack, keep_processing));
 	if (vol_match) bd_decode->set_vol_mode(1);
 	bd_decode->load_settings(fft_num, output_pcm, min_db, tv_decode->get_samp_rate(), 2, plan, prog_back);
 	re = bd_decode->initialize(bd_path);
 	if (re < 0) {
 		keep_processing->clear();
 		fftw_destroy_plan(plan);
-		if (feed_func)feed_func(bd_decode->get_feedback().c_str());
+		feedback_bd(bd_path, bd_pre_avg_vol);
 		return re;
 	}
 	if (keep_processing->test_and_set())pool.execute(std::bind(&Decode::Decode::decodeaudio, bd_decode.get()));
@@ -152,16 +153,15 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 	if (tv_decode->get_return() < 0) {
 		re = tv_decode->get_return();
 		fftw_destroy_plan(plan);
-		if (feed_func)feed_func(tv_decode->get_feedback().c_str());
+		feedback_tv(tv_path);
 		return re;
 	}
 	else if (bd_decode->get_return() < 0) {
 		re = bd_decode->get_return();
 		fftw_destroy_plan(plan);
-		if (feed_func)feed_func(bd_decode->get_feedback().c_str());
+		feedback_bd(bd_path, bd_pre_avg_vol);
 		return re;
 	}
-	double bd_pre_avg_vol = 0.0;
 	if (vol_match) {
 		bd_decode->set_vol_mode(0);
 		bd_pre_avg_vol = bd_decode->get_avg_vol();
@@ -176,34 +176,16 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 		if (bd_decode->get_return() < 0) {
 			re = bd_decode->get_return();
 			fftw_destroy_plan(plan);
-			if (feed_func)feed_func(bd_decode->get_feedback().c_str());
+			feedback_bd(bd_path, bd_pre_avg_vol);
 			return re;
 		}
 	}
 	//输出解码时间
 	long end = clock();
-	double spend = double(end - start) / (double)CLOCKS_PER_SEC;
-	std::string feedback = "";
-	if (feed_func) {
-		feedback += "\r\nTV文件：  " + tv_path.substr(tv_path.find_last_of("\\") + 1) + "\r\n" + tv_decode->get_feedback();
-		if (vol_match) {
-			std::string vol = std::to_string(10.0*log10(tv_decode->get_avg_vol()));
-			vol = vol.substr(0, vol.find_last_of('.') + 3);
-			feedback += "   响度：" + vol + " dB";
-		}
-		feedback += "\r\nBD文件：  " + bd_path.substr(bd_path.find_last_of("\\") + 1) + "\r\n" + bd_decode->get_feedback();
-		if (vol_match) {
-			std::string vol = std::to_string(10.0*log10(bd_pre_avg_vol));
-			vol = vol.substr(0, vol.find_last_of('.') + 3);
-			std::string vol2 = std::to_string(10.0*log10(bd_decode->get_avg_vol()));
-			vol2 = vol2.substr(0, vol2.find_last_of('.') + 3);
-			feedback += "   响度：" + vol + "->" + vol2 + " dB";
-		}
-		std::string spend_str = std::to_string(spend);
-		spend_str = spend_str.substr(0, spend_str.find_last_of('.') + 4);
-		feedback += "\r\n解码时间：" + spend_str + "秒";
-		feed_func(feedback.c_str());
-	}
+	double spend = (double(end) - double(start)) / (double)CLOCKS_PER_SEC;
+	feedback_tv(tv_path);
+	feedback_bd(bd_path, bd_pre_avg_vol);
+	feedback_time(spend);
 	fftw_destroy_plan(plan);
 	return 0;
 }
@@ -216,9 +198,9 @@ int BDMatchCore::match_1(const char *ass_path0)
 			keep_processing->clear();
 			return -2;
 		}
-		if (isa_mode == 0)match.reset(new Matching::Match(keep_processing));
-		else if (isa_mode <= 2)match.reset(new Matching::Match_SSE(keep_processing));
-		else if (isa_mode == 3)match.reset(new Matching::Match_AVX2(keep_processing));
+		if (isa_mode == 0)match.reset(new Matching::Match(lang_pack, keep_processing));
+		else if (isa_mode <= 2)match.reset(new Matching::Match_SSE(lang_pack, keep_processing));
+		else if (isa_mode == 3)match.reset(new Matching::Match_AVX2(lang_pack, keep_processing));
 		int re = 0;
 		match->load_settings(min_check_num, find_field, ass_offset, max_length,
 			fast_match, debug_mode, prog_back);
@@ -227,9 +209,12 @@ int BDMatchCore::match_1(const char *ass_path0)
 			tv_decode->get_milisec(), bd_decode->get_milisec(), tv_decode->get_samp_rate(),
 			tv_decode->get_file_name(), bd_decode->get_file_name(), bd_decode->get_audio_only());
 		re = match->load_ass(ass_path);
-		ass_path = "\r\nASS文件：" + ass_path.substr(ass_path.find_last_of("\\") + 1);
-		if (feed_func)feed_func(ass_path.c_str());
-		if (feed_func) feed_func(match->get_feedback().c_str());
+		if (feed_func) {
+			std::string tmp = lang_pack.get_text(Core, 5);
+			feed_func(tmp.c_str(), tmp.length());//"\r\nASS文件："
+			feed_func(ass_path.substr(ass_path.find_last_of("\\") + 1).c_str(), -1);
+		}
+		feedback_match();
 		if (re < 0) return re;
 	}
 	else {
@@ -243,7 +228,7 @@ int BDMatchCore::match_2(const char *output_path0)
 	int re = 0;
 	if (match_ass) {
 		re = match->match();
-		if (feed_func) feed_func(match->get_feedback().c_str());
+		feedback_match();
 		if (!keep_processing->test_and_set()) {
 			keep_processing->clear();
 			return -2;
@@ -255,7 +240,7 @@ int BDMatchCore::match_2(const char *output_path0)
 		else {
 			re = match->output(output_path);
 		}
-		if (feed_func) feed_func(match->get_feedback().c_str());
+		feedback_match();
 		if (re < 0) return re;
 	}
 	return 0;
@@ -312,6 +297,60 @@ char ** BDMatchCore::get_decode_spec(const Deocde_File & file)
 	else decode_ptr = bd_decode.get();
 	if (!decode_ptr)return nullptr;
 	else return decode_ptr->get_fft_spec();
+}
+
+int BDMatchCore::feedback_tv(const std::string& tv_path)
+{
+	if (feed_func) {
+		std::string feedback = "";
+		feedback = lang_pack.get_text(General, 0) + lang_pack.get_text(Core, 0) + lang_pack.get_text(General, 1);//"\r\nTV文件：  "
+		feed_func(feedback.c_str(), feedback.length());
+		feed_func(tv_path.substr(tv_path.find_last_of("\\") + 1).c_str(), -1);
+		feedback = lang_pack.get_text(General, 0) + tv_decode->get_feedback();//"\r\n tv_feedback"
+		if (vol_match) {
+			std::string vol = lang_pack.to_u16string(10.0 * log10(tv_decode->get_avg_vol()));
+			vol = vol.substr(0, vol.find_last_of('.') + 6);
+			feedback += lang_pack.get_text(Core, 2) + vol + lang_pack.get_text(Core, 3);//"   响度：**.*dB"
+		}
+		feed_func(feedback.c_str(), feedback.length());
+	}
+	return 0;
+}
+int BDMatchCore::feedback_bd(const std::string& bd_path, const double& bd_pre_avg_vol)
+{
+	if (feed_func) {
+		std::string feedback = "";
+		feedback = lang_pack.get_text(General, 0) + lang_pack.get_text(Core, 1) + lang_pack.get_text(General, 1);//"\r\nBD文件：  "
+		feed_func(feedback.c_str(), feedback.length());
+		feed_func(bd_path.substr(bd_path.find_last_of("\\") + 1).c_str(), -1);
+		feedback = lang_pack.get_text(General, 0) + bd_decode->get_feedback();//"\r\n bd_feedback"
+		if (vol_match) {
+			std::string vol = lang_pack.to_u16string(10.0 * log10(bd_pre_avg_vol));
+			vol = vol.substr(0, vol.find_last_of('.') + 6);
+			std::string vol2 = lang_pack.to_u16string(10.0 * log10(bd_decode->get_avg_vol()));
+			vol2 = vol2.substr(0, vol2.find_last_of('.') + 6);
+			feedback += lang_pack.get_text(Core, 2) + vol + lang_pack.get_text(General, 2) + vol2 + lang_pack.get_text(Core, 3);//"   响度：**.*->**.*dB"
+		}
+		feed_func(feedback.c_str(), feedback.length());
+	}
+	return 0;
+}
+int BDMatchCore::feedback_time(const double& spend)
+{
+	if (feed_func) {
+		std::string feedback = "";
+		std::string spend_str = lang_pack.to_u16string(spend);
+		spend_str = spend_str.substr(0, spend_str.find_last_of('.') + 8);
+		feedback += lang_pack.get_text(General, 0) + lang_pack.get_text(Core, 4) + spend_str + lang_pack.get_text(General, 3);//"\r\n解码时间：**.***秒"
+		feed_func(feedback.c_str(), feedback.length());
+	}
+	return 0;
+}
+int BDMatchCore::feedback_match()
+{
+	std::string feedback = match->get_feedback();
+	if (feed_func)feed_func(feedback.c_str(), feedback.length());
+	return 0;
 }
 
 

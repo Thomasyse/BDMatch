@@ -698,7 +698,7 @@ namespace BDMatch {
 		void nullsetform();
 		void progsingle(int type, double val);
 		void progtotal();
-		void feedback(const char *input);
+		void feedback(const char* input, const int len);
 
 	private:
 		int match(String^ ASSText, String^ TVText, String^ BDText);

@@ -5,7 +5,7 @@ namespace DataStruct1 {
 	using namespace System;
 
 	public delegate void ProgressCallback(int type, double val = 0);
-	public delegate void FeedbackCallback(const char *input);
+	public delegate void FeedbackCallback(const char* input, const int len);
 
 	enum SettingType { FFTNum, MinCheckNum, FindField, MinFinddB, MaxLength, AssOffset, OutputPCM, Draw, MatchAss, ParallelDecode, FastMatch, VolMatch };
 

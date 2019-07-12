@@ -4,7 +4,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.5"
+#define appversion "1.5.6"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -66,10 +66,10 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		match_ass, fast_match, debug_mode0);
 	//decode
 	marshal_context convert;
-	const char *tv_path = convert.marshal_as<const char*>(tvtext);
-	const char *bd_path = convert.marshal_as<const char*>(bdtext);
-	const char *ass_path = convert.marshal_as<const char*>(asstext);
-	const char *output_path0 = convert.marshal_as<const char*>(output_path);
+	const char* tv_path = convert.marshal_as<const char*>(tvtext);
+	const char* bd_path = convert.marshal_as<const char*>(bdtext);
+	const char* ass_path = convert.marshal_as<const char*>(asstext);
+	const char* output_path0 = convert.marshal_as<const char*>(output_path);
 	re = match_core->decode(tv_path, bd_path);
 	if (re < 0) {
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
@@ -859,10 +859,18 @@ void BDMatch::MyForm::progtotal()
 		static_cast<unsigned long long>(TotalProgress->Maximum));
 	return System::Void();
 }
-void BDMatch::MyForm::feedback(const char * input)
+void BDMatch::MyForm::feedback(const char* input, const int len)
 {
 	using namespace msclr::interop;
-	Result->Text += marshal_as<String^>(input);
+	using namespace System::Text;
+	using namespace Runtime::InteropServices;
+	if (len > 0) {
+		array<Byte>^ bytes = gcnew array<Byte>(len);
+		Marshal::Copy(IntPtr((void*)input), bytes, 0, len);
+		Encoding^ encoder = Encoding::Unicode;
+		Result->Text += encoder->GetString(bytes);
+	}
+	else if (len == -1) Result->Text += marshal_as<String^>(input);
 }
 
 
@@ -1108,7 +1116,7 @@ System::Void BDMatch::MyForm::ASStext_DragDrop(System::Object ^ sender, System::
 
 System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nCopyright (c) 2019, Thomasys\n\nReference:\nFFmpeg 4.1\nFFTW 3.3.7\n" +
+	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nThis binary distribution is under the GPLv3 license.\n\nBDMatch Project:\nCopyright (c) 2019, Thomasys\n\nDependencies:\nFFmpeg 4.1\nFFTW 3.3.7: " +
 		"Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005). ", "关于", MessageBoxButtons::OK);
 	return System::Void();
 }

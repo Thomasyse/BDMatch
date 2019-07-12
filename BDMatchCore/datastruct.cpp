@@ -4,14 +4,6 @@
 DataStruct::node::node()
 {
 }
-
-DataStruct::node::node(node &&a)
-{
-	count = a.size();
-	data = new char[count];
-	for (int i = 0; i < count; i++)
-		*(data + i) = *(a.data + i);
-}
 int DataStruct::node::init_data(const int &num, char*& data_ptr)
 {
 	count = num;
