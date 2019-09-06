@@ -1,4 +1,4 @@
-﻿#include "dataStruct1.h"
+﻿#include "headers/datastruct1.h"
 
 using namespace DataStruct1;
 

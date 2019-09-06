@@ -96,7 +96,7 @@ private:
 		std::mutex mtx_;
 		std::condition_variable cond_;
 		std::condition_variable fin_;
-		std::atomic<int> task_num_ = 0;
+		std::atomic<size_t> task_num_ = 0;
 		std::atomic_flag *keep_processing = nullptr;
 		bool is_shutdown_ = false;
 		std::queue<std::function<void()>> tasks_;

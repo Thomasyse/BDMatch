@@ -1,9 +1,9 @@
 ﻿#pragma once
-#include "datastruct1.h"
+#include "headers/datastruct1.h"
 #include "Settings.h"
 #pragma unmanaged
-#include "user interface.h"
-#include "BDMatchCore.h"
+#include "headers/user interface.h"
+#include <atomic>
 #pragma managed
 
 namespace BDMatch {
@@ -44,25 +44,24 @@ namespace BDMatch {
 		int num = 0;
 		int ch = 0;
 		int milisec = 0;
-		int linenum = 0;
-		int fftnum = 0;
+		int line_num = 0;
+		int fft_num = 0;
 		double ttf = 1.0;//Time to Frequency
 		char** spec = nullptr;
-		array<int, 2>^ timelist = nullptr;
+		array<int, 2>^ time_list = nullptr;
 	};
 	private:
-		SettingVals ^ Setting = gcnew SettingVals;
-		drawpara tvdraw, bddraw;
-		bool drawstore;
-		Settings ^ setform = nullptr;
+		SettingVals ^ setting = gcnew SettingVals;
+		drawpara tv_draw, bd_draw;
+		bool draw_store;
+		Settings ^ set_form = nullptr;
 		unsigned int match_num = 0, fin_match_num = 0, matches_num = 0, fin_matches_num = 0;
 		String^ output_path = "";
 		bool debug_mode = false;
-		System::Threading::CancellationTokenSource^ CancelSource;
-		int ISAMode = 0;
+		System::Threading::CancellationTokenSource^ cancel_source;
+		int ISA_mode = 0;
 		TaskBar *taskbar;
 		std::atomic_flag *keep_processing = new std::atomic_flag;
-		BDMatchCore *match_core = new BDMatchCore(keep_processing);
 
 	private: System::Windows::Forms::Button^ Match;
 	private: System::Windows::Forms::Button^ TVfind;
@@ -125,7 +124,7 @@ namespace BDMatch {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(MyForm::typeid));
+			System::ComponentModel::ComponentResourceManager^ resources = (gcnew System::ComponentModel::ComponentResourceManager(MyForm::typeid));
 			this->AllTablePanel = (gcnew System::Windows::Forms::TableLayoutPanel());
 			this->TotalProgress = (gcnew System::Windows::Forms::ProgressBar());
 			this->settings = (gcnew System::Windows::Forms::Label());
@@ -694,28 +693,28 @@ namespace BDMatch {
 #pragma endregion
 
 	public:
-		void SetVals(SettingType type, int val);
-		void nullsetform();
-		void progsingle(int type, double val);
-		void progtotal();
-		void feedback(const char* input, const int len);
+		void set_vals(SettingType type, int val);
+		void null_set_form();
+		void prog_single(int type, double val);
+		void prog_total();
+		void feedback(const char* input, const long long len);
 
 	private:
 		int match(String^ ASSText, String^ TVText, String^ BDText);
-		int drawpre(); 
-		int BDMatch::MyForm::writeass(const char* ass_path, const char* output_path);
-		int drawpre(const int &re);
-		int drawchart();
-		String ^ mstotime(int ms);
-		int setrows();
-		int adddropdown(ComboBox^ combo, String^ text);
-		int loadsettings(String^ path, SettingVals^ settingvals);
-		int savesettings(String^ path, SettingVals^ settingvals);
-		int matchinput();
-		int searchISA();
+		int draw_pre(); 
+		int BDMatch::MyForm::write_ass(const char* ass_path, const char* output_path);
+		int draw_pre(const int &re);
+		int draw_chart();
+		String ^ ms2time(int ms);
+		int set_rows();
+		int add_dropdown(ComboBox^ combo, String^ text);
+		int load_settings(String^ path, SettingVals^ settingvals);
+		int save_settings(String^ path, SettingVals^ settingvals);
+		int match_input();
+		int search_ISA();
 
-		String ^ returnregt(String ^ search);
-		int matchcontrol(bool val);
+		String ^ return_regt(String ^ search);
+		int match_control(bool val);
 
 	private: System::Void MyForm_Load(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void MyForm_FormClosing(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e);

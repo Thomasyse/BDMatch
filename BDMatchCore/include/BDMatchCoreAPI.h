@@ -1,0 +1,29 @@
+#pragma once
+#include <atomic>
+#include "headers/datastruct.h"
+#ifdef BDMATCHCORE_EXPORTS
+#define BDMatchCore_API  __declspec( dllexport )
+#else
+#define BDMatchCore_API  __declspec( dllimport )
+#endif
+
+typedef void(__stdcall* prog_func)(int, double);
+typedef void(__stdcall* feedback_func)(const char*, const long long len);
+
+namespace BDMatchCoreAPI {
+	BDMatchCore_API int new_BDMatchCore(std::atomic_flag* keep_processing = nullptr);
+	BDMatchCore_API int clear_data();
+	BDMatchCore_API int load_interface(const prog_func& prog_back = nullptr, const feedback_func& feed_func = nullptr);
+	BDMatchCore_API int load_settings(const int& isa_mode = 0, const int& fft_num = 512, const int& min_db = -14,
+		const bool& output_pcm = false, const bool& parallel_decode = false, const bool& vol_match = false,
+		const int& min_check_num = 100, const int& find_field = 10, const int& ass_offset = 0, const int& max_length = 20,
+		const bool& match_ass = true, const bool& fast_match = false, const bool& debug_mode = false);
+	BDMatchCore_API int decode(const char* tv_path, const char* bd_path);
+	BDMatchCore_API int match_1(const char* ass_path);
+	BDMatchCore_API int match_2(const char* output_path);
+	BDMatchCore_API int clear_match();
+	BDMatchCore_API size_t get_nb_timeline();
+	BDMatchCore_API int get_timeline(const int& index, const int& type);
+	BDMatchCore_API int get_decode_info(const Deocde_File& file, const Decode_Info& type);
+	BDMatchCore_API char** get_decode_spec(const Deocde_File& file);
+}

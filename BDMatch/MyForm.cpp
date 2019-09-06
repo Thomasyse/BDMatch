@@ -1,10 +1,12 @@
 ﻿#include "MyForm.h"
 #pragma unmanaged
-#include "instructionset.h"
+#include "include/instructionset.h"
+#include "include/BDMatchCoreAPI.h"
+#include <ctime>
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.6"
+#define appversion "1.5.7"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -30,7 +32,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	using namespace msclr::interop;
 
 	//进度条
-	ProgressCallback^ prog = gcnew ProgressCallback(this, &MyForm::progsingle);
+	ProgressCallback^ prog = gcnew ProgressCallback(this, &MyForm::prog_single);
 	GCHandle gch1 = GCHandle::Alloc(prog);
 	IntPtr prog_ip = Marshal::GetFunctionPointerForDelegate(prog);
 	prog_func prog_ptr = static_cast<prog_func>(prog_ip.ToPointer());
@@ -41,27 +43,27 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	feedback_func feedback_ptr = static_cast<feedback_func>(feedback_ip.ToPointer());
 	GC::Collect();
 
-	drawpre();
+	draw_pre();
 		
-	progsingle(0, 0);
+	prog_single(0, 0);
 	
 	int re = 0;
-	match_core->load_interface(prog_ptr, feedback_ptr);
+	BDMatchCoreAPI::load_interface(prog_ptr, feedback_ptr);
 	//settings
-	int isa_mode = ISAMode;
-	int fft_num = Setting->fft_num;
-	int min_db = Setting->min_find_db;
-	bool output_pcm = Setting->output_pcm;
-	bool parallel_decode = Setting->parallel_decode;
-	bool vol_match = Setting->vol_match;
-	int min_check_num = Setting->min_check_num;
-	int find_field = Setting->find_field;
-	int ass_offset = Setting->ass_offset;
-	int max_length = Setting->max_length;
-	bool match_ass = Setting->match_ass;
-	bool fast_match = Setting->fast_match;
+	int isa_mode = ISA_mode;
+	int fft_num = setting->fft_num;
+	int min_db = setting->min_find_db;
+	bool output_pcm = setting->output_pcm;
+	bool parallel_decode = setting->parallel_decode;
+	bool vol_match = setting->vol_match;
+	int min_check_num = setting->min_check_num;
+	int find_field = setting->find_field;
+	int ass_offset = setting->ass_offset;
+	int max_length = setting->max_length;
+	bool match_ass = setting->match_ass;
+	bool fast_match = setting->fast_match;
 	bool debug_mode0 = debug_mode;
-	match_core->load_settings(isa_mode,fft_num,min_db,output_pcm, parallel_decode, vol_match,
+	BDMatchCoreAPI::load_settings(isa_mode,fft_num,min_db,output_pcm, parallel_decode, vol_match,
 		min_check_num, find_field, ass_offset, max_length,
 		match_ass, fast_match, debug_mode0);
 	//decode
@@ -70,18 +72,18 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	const char* bd_path = convert.marshal_as<const char*>(bdtext);
 	const char* ass_path = convert.marshal_as<const char*>(asstext);
 	const char* output_path0 = convert.marshal_as<const char*>(output_path);
-	re = match_core->decode(tv_path, bd_path);
+	re = BDMatchCoreAPI::decode(tv_path, bd_path);
 	if (re < 0) {
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;
 	}
-	if (Setting->match_ass) {
-		re = writeass(ass_path, output_path0);
+	if (setting->match_ass) {
+		re = write_ass(ass_path, output_path0);
 	}
 	else {
-		progsingle(3, 0);
+		prog_single(3, 0);
 	}
-	drawpre(re);
+	draw_pre(re);
 	if (re < 0) {
 		if (re == -2)return -6;
 		else {
@@ -91,55 +93,55 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	}
 	gch1.Free();
 	gch2.Free();
-	progsingle(0, 0);
+	prog_single(0, 0);
 	return 0;
 }
 
-int BDMatch::MyForm::writeass(const char* ass_path, const char* output_path)
+int BDMatch::MyForm::write_ass(const char* ass_path, const char* output_path)
 {
 	//
 	int re = 0;
-	re = match_core->match_1(ass_path);
+	re = BDMatchCoreAPI::match_1(ass_path);
 	if (re < 0) {
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;
 	}
-	int nb_timeline = match_core->get_nb_timeline();
+	int nb_timeline = BDMatchCoreAPI::get_nb_timeline();
 	//绘图相关
-	if (Setting->draw) {
-		tvdraw.timelist = gcnew array<int, 2>(nb_timeline, 2);
-		bddraw.timelist = gcnew array<int, 2>(nb_timeline, 2);
-		tvdraw.linenum = nb_timeline;
-		bddraw.linenum = nb_timeline;
+	if (setting->draw) {
+		tv_draw.time_list = gcnew array<int, 2>(nb_timeline, 2);
+		bd_draw.time_list = gcnew array<int, 2>(nb_timeline, 2);
+		tv_draw.line_num = nb_timeline;
+		bd_draw.line_num = nb_timeline;
 		LineSel->Maximum = nb_timeline;
 		for (int i = 0; i < nb_timeline; i++) {
-			tvdraw.timelist[i, 0] = match_core->get_timeline(i, Matching::Timeline_Start_Time);
-			tvdraw.timelist[i, 1] = match_core->get_timeline(i, Matching::Timeline_End_Time);
+			tv_draw.time_list[i, 0] = BDMatchCoreAPI::get_timeline(i, Matching::Timeline_Start_Time);
+			tv_draw.time_list[i, 1] = BDMatchCoreAPI::get_timeline(i, Matching::Timeline_End_Time);
 		}
 	}
 	//
-	re = match_core->match_2(output_path);
+	re = BDMatchCoreAPI::match_2(output_path);
 	if (re < 0) {
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;
 	}
 	//绘图相关
-	if (Setting->draw) {
+	if (setting->draw) {
 		for (int i = 0; i < nb_timeline; i++) {
-			bddraw.timelist[i, 0] = match_core->get_timeline(i, Matching::Timeline_Start_Time);
-			bddraw.timelist[i, 1] = match_core->get_timeline(i, Matching::Timeline_End_Time);
+			bd_draw.time_list[i, 0] = BDMatchCoreAPI::get_timeline(i, Matching::Timeline_Start_Time);
+			bd_draw.time_list[i, 1] = BDMatchCoreAPI::get_timeline(i, Matching::Timeline_End_Time);
 		}
 	}
-	match_core->clear_match();
-	progsingle(3, 1);
+	BDMatchCoreAPI::clear_match();
+	prog_single(3, 1);
 	return 0;
 }
 
-int BDMatch::MyForm::drawpre()
+int BDMatch::MyForm::draw_pre()
 {
-	match_core->clear_data();
-	tvdraw.spec = nullptr;
-	bddraw.spec = nullptr;
+	BDMatchCoreAPI::clear_data();
+	tv_draw.spec = nullptr;
+	bd_draw.spec = nullptr;
 	ViewSel->Enabled = false;
 	LineSel->Enabled = false;
 	ChSelect->Enabled = false;
@@ -147,64 +149,64 @@ int BDMatch::MyForm::drawpre()
 	ViewSel->SelectedIndex = 0;
 	ChSelect->SelectedIndex = 0;
 	LineSel->Value = 1;
-	tvdraw.ch = 0;
-	bddraw.ch = 0;
-	tvdraw.milisec = 0;
-	bddraw.milisec = 0;
-	tvdraw.linenum = 0;
-	bddraw.linenum = 0;
-	tvdraw.ttf = 1.0;
-	bddraw.ttf = 1.0;
-	tvdraw.fftnum = 0;
-	bddraw.fftnum = 0;
-	tvdraw.timelist = nullptr;
-	bddraw.timelist = nullptr;
+	tv_draw.ch = 0;
+	bd_draw.ch = 0;
+	tv_draw.milisec = 0;
+	bd_draw.milisec = 0;
+	tv_draw.line_num = 0;
+	bd_draw.line_num = 0;
+	tv_draw.ttf = 1.0;
+	bd_draw.ttf = 1.0;
+	tv_draw.fft_num = 0;
+	bd_draw.fft_num = 0;
+	tv_draw.time_list = nullptr;
+	bd_draw.time_list = nullptr;
 	ChartTime->Text = "";
-	if (!Setting->draw)setrows();
+	if (!setting->draw)set_rows();
 	return 0;
 }
-int BDMatch::MyForm::drawpre(const int &re)
+int BDMatch::MyForm::draw_pre(const int &re)
 {
-	if (Setting->draw && !re) {
-		tvdraw.spec = match_core->get_decode_spec(TV_Decode);
-		bddraw.spec = match_core->get_decode_spec(BD_Decode);
-		tvdraw.num = match_core->get_decode_info(TV_Decode, FFT_Samp_Num);
-		bddraw.num = match_core->get_decode_info(BD_Decode, FFT_Samp_Num);
-		tvdraw.ch = match_core->get_decode_info(TV_Decode, Channels);
-		bddraw.ch = match_core->get_decode_info(BD_Decode, Channels);
-		tvdraw.milisec = match_core->get_decode_info(TV_Decode, Milisec);
-		bddraw.milisec = match_core->get_decode_info(BD_Decode, Milisec);
-		tvdraw.fftnum = match_core->get_decode_info(TV_Decode, FFT_Num);
-		bddraw.fftnum = match_core->get_decode_info(BD_Decode, FFT_Num);
-		tvdraw.ttf = match_core->get_decode_info(TV_Decode, Samp_Rate) / (static_cast<double>(tvdraw.fftnum) * 100.0);
-		bddraw.ttf = match_core->get_decode_info(TV_Decode, Samp_Rate) / (static_cast<double>(bddraw.fftnum) * 100.0);
+	if (setting->draw && !re) {
+		tv_draw.spec = BDMatchCoreAPI::get_decode_spec(TV_Decode);
+		bd_draw.spec = BDMatchCoreAPI::get_decode_spec(BD_Decode);
+		tv_draw.num = BDMatchCoreAPI::get_decode_info(TV_Decode, FFT_Samp_Num);
+		bd_draw.num = BDMatchCoreAPI::get_decode_info(BD_Decode, FFT_Samp_Num);
+		tv_draw.ch = BDMatchCoreAPI::get_decode_info(TV_Decode, Channels);
+		bd_draw.ch = BDMatchCoreAPI::get_decode_info(BD_Decode, Channels);
+		tv_draw.milisec = BDMatchCoreAPI::get_decode_info(TV_Decode, Milisec);
+		bd_draw.milisec = BDMatchCoreAPI::get_decode_info(BD_Decode, Milisec);
+		tv_draw.fft_num = BDMatchCoreAPI::get_decode_info(TV_Decode, FFT_Num);
+		bd_draw.fft_num = BDMatchCoreAPI::get_decode_info(BD_Decode, FFT_Num);
+		tv_draw.ttf = BDMatchCoreAPI::get_decode_info(TV_Decode, Samp_Rate) / (static_cast<double>(tv_draw.fft_num) * 100.0);
+		bd_draw.ttf = BDMatchCoreAPI::get_decode_info(TV_Decode, Samp_Rate) / (static_cast<double>(bd_draw.fft_num) * 100.0);
 		ViewSel->SelectedIndex = 0;
 		ChSelect->SelectedIndex = 0;
 		ChSelect->Enabled = true;
-		TimeRoll->Maximum = max(tvdraw.milisec, bddraw.milisec);
+		TimeRoll->Maximum = max(tv_draw.milisec, bd_draw.milisec);
 		TimeRoll->Value = 0;
 		TimeRoll->Enabled = true;
-		if (Setting->match_ass)ViewSel->Enabled = true;
-		setrows();
-		drawchart();
+		if (setting->match_ass)ViewSel->Enabled = true;
+		set_rows();
+		draw_chart();
 	}
 	else
 	{
 		if (!re) {
-			match_core->clear_data();
+			BDMatchCoreAPI::clear_data();
 		}
-		tvdraw.spec = nullptr;
-		bddraw.spec = nullptr;
-		tvdraw.num = 0;
-		bddraw.num = 0;
+		tv_draw.spec = nullptr;
+		bd_draw.spec = nullptr;
+		tv_draw.num = 0;
+		bd_draw.num = 0;
 	}
 	return 0;
 }
-int BDMatch::MyForm::drawchart()
+int BDMatch::MyForm::draw_chart()
 {
 	Match->Enabled = false;
-	int maxsampnum = max(tvdraw.num, bddraw.num);
-	int milisec = max(tvdraw.milisec, bddraw.milisec);
+	int maxsampnum = max(tv_draw.num, bd_draw.num);
+	int milisec = max(tv_draw.milisec, bd_draw.milisec);
 	int offset = 0;
 	if (milisec < 10000) offset = 150;
 	else if (milisec < 100000)offset = 250;
@@ -214,32 +216,32 @@ int BDMatch::MyForm::drawchart()
 	TimeRoll->SmallChange = offset / 4;
 	int tvstart = 0, tvend = 0, bdstart = 0;
 	if (ViewSel->SelectedIndex == 0) {
-		tvstart = static_cast<int>(round((TimeRoll->Value - offset)* tvdraw.ttf));
-		tvend = static_cast<int>(round((TimeRoll->Value + offset)* tvdraw.ttf));
-		bdstart = static_cast<int>(round((TimeRoll->Value - offset)* bddraw.ttf));
-		ChartTime->Text = mstotime(TimeRoll->Value);
+		tvstart = static_cast<int>(round((TimeRoll->Value - offset)* tv_draw.ttf));
+		tvend = static_cast<int>(round((TimeRoll->Value + offset)* tv_draw.ttf));
+		bdstart = static_cast<int>(round((TimeRoll->Value - offset)* bd_draw.ttf));
+		ChartTime->Text = ms2time(TimeRoll->Value);
 	}
 	else {
-		if (tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 1] - tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0]
+		if (tv_draw.time_list[static_cast<int>(LineSel->Value) - 1, 1] - tv_draw.time_list[static_cast<int>(LineSel->Value) - 1, 0]
 	> 2 * offset) {
-			tvstart = tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0];
-			tvend = tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 1];
-			bdstart = bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0];
+			tvstart = tv_draw.time_list[static_cast<int>(LineSel->Value) - 1, 0];
+			tvend = tv_draw.time_list[static_cast<int>(LineSel->Value) - 1, 1];
+			bdstart = bd_draw.time_list[static_cast<int>(LineSel->Value) - 1, 0];
 		}
 		else {
-			tvstart = (tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0]
-				+ tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 1]) / 2 - offset;
+			tvstart = (tv_draw.time_list[static_cast<int>(LineSel->Value) - 1, 0]
+				+ tv_draw.time_list[static_cast<int>(LineSel->Value) - 1, 1]) / 2 - offset;
 			tvend = tvstart + 2 * offset;
-			bdstart = (bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0]
-				+ bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 1]) / 2 - offset;
+			bdstart = (bd_draw.time_list[static_cast<int>(LineSel->Value) - 1, 0]
+				+ bd_draw.time_list[static_cast<int>(LineSel->Value) - 1, 1]) / 2 - offset;
 		}
-		if (bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] == -1) ChartTime->Text = "未匹配！";
-		else ChartTime->Text = mstotime(static_cast<int>(round(tvdraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / tvdraw.ttf)) + 1)
-			+ "\n" + mstotime(static_cast<int>(round(bddraw.timelist[static_cast<int>(LineSel->Value) - 1, 0] / bddraw.ttf)));
+		if (bd_draw.time_list[static_cast<int>(LineSel->Value) - 1, 0] == -1) ChartTime->Text = "未匹配！";
+		else ChartTime->Text = ms2time(static_cast<int>(round(tv_draw.time_list[static_cast<int>(LineSel->Value) - 1, 0] / tv_draw.ttf)) + 1)
+			+ "\n" + ms2time(static_cast<int>(round(bd_draw.time_list[static_cast<int>(LineSel->Value) - 1, 0] / bd_draw.ttf)));
 	}
 	int duration = tvend - tvstart + 1;
 	
-	Bitmap^ spectrum1 = gcnew Bitmap(duration, tvdraw.fftnum);
+	Bitmap^ spectrum1 = gcnew Bitmap(duration, tv_draw.fft_num);
 	int x;
 	int y;
 	// Loop through the images pixels to reset color.
@@ -247,25 +249,25 @@ int BDMatch::MyForm::drawchart()
 	{
 		int tvinline = 0, bdinline = 0;
 		int tvedge = 0, bdedge = 0;
-		for (int i = 0; i < tvdraw.linenum; i++) {
-			if (tvdraw.timelist[i, 0] >= 0) {
-				if (tvdraw.timelist[i, 0] <= x + tvstart && tvdraw.timelist[i, 1] >= x + tvstart) {
+		for (int i = 0; i < tv_draw.line_num; i++) {
+			if (tv_draw.time_list[i, 0] >= 0) {
+				if (tv_draw.time_list[i, 0] <= x + tvstart && tv_draw.time_list[i, 1] >= x + tvstart) {
 					if (i == static_cast<int>(LineSel->Value) - 1 || ViewSel->SelectedIndex == 0) tvinline = 1;
 					else if (!tvinline) tvinline = 2;
-					if (tvdraw.timelist[i, 0] == x + tvstart || tvdraw.timelist[i, 1] == x + tvstart) {
+					if (tv_draw.time_list[i, 0] == x + tvstart || tv_draw.time_list[i, 1] == x + tvstart) {
 						if (i == static_cast<int>(LineSel->Value) - 1 || ViewSel->SelectedIndex == 0) {
-							if (tvdraw.timelist[i, 0] == x + tvstart)tvedge = 1;
+							if (tv_draw.time_list[i, 0] == x + tvstart)tvedge = 1;
 							else if (tvedge != 1)tvedge = 2;
 						}
 						else if (tvedge != 1 && tvedge != 2)tvedge = 3;
 					}
 				}
-				if (bddraw.timelist[i, 0] <= x + bdstart && bddraw.timelist[i, 1] >= x + bdstart) {
+				if (bd_draw.time_list[i, 0] <= x + bdstart && bd_draw.time_list[i, 1] >= x + bdstart) {
 					if (i == static_cast<int>(LineSel->Value) - 1 || ViewSel->SelectedIndex == 0) bdinline = 1;
 					else if (!bdinline) bdinline = 2;
-					if (bddraw.timelist[i, 0] == x + bdstart || bddraw.timelist[i, 1] == x + bdstart) {
+					if (bd_draw.time_list[i, 0] == x + bdstart || bd_draw.time_list[i, 1] == x + bdstart) {
 						if (i == static_cast<int>(LineSel->Value) - 1 || ViewSel->SelectedIndex == 0) {
-							if (bddraw.timelist[i, 0] == x + bdstart)bdedge = 1;
+							if (bd_draw.time_list[i, 0] == x + bdstart)bdedge = 1;
 							else if (bdedge != 1)bdedge = 2;
 						}
 						else if (bdedge != 1 && bdedge != 2)bdedge = 3;
@@ -276,15 +278,15 @@ int BDMatch::MyForm::drawchart()
 		for (y = 0; y < spectrum1->Height; y++)
 		{
 			int color = -128;
-			if (y >= bddraw.fftnum / 2) {
-				if (0 <= x + bdstart && x + bdstart < bddraw.num)
-					color = bddraw.spec[ChSelect->SelectedIndex][(x + bdstart)*bddraw.fftnum / 2 + bddraw.fftnum - y - 1];
+			if (y >= bd_draw.fft_num / 2) {
+				if (0 <= x + bdstart && x + bdstart < bd_draw.num)
+					color = bd_draw.spec[ChSelect->SelectedIndex][(x + bdstart)*bd_draw.fft_num / 2 + bd_draw.fft_num - y - 1];
 			}
-			else if (0 <= x + tvstart && x + tvstart < tvdraw.num)
-				color = tvdraw.spec[ChSelect->SelectedIndex][(x + tvstart)*tvdraw.fftnum / 2 + tvdraw.fftnum / 2 - y - 1];
+			else if (0 <= x + tvstart && x + tvstart < tv_draw.num)
+				color = tv_draw.spec[ChSelect->SelectedIndex][(x + tvstart)*tv_draw.fft_num / 2 + tv_draw.fft_num / 2 - y - 1];
 			color += 128;
 			Color newColor = Color::FromArgb(color / 4, color, color);
-			if (y >= Setting->fft_num / 2) {
+			if (y >= setting->fft_num / 2) {
 				if (bdinline)
 					switch (bdedge) {
 					case 1:
@@ -346,7 +348,7 @@ int BDMatch::MyForm::drawchart()
 	Match->Enabled = true;
 	return 0;
 }
-String ^ BDMatch::MyForm::mstotime(int ms)
+String ^ BDMatch::MyForm::ms2time(int ms)
 {
 	int hh, mm, ss;
 	hh = ms / 360000;
@@ -366,9 +368,9 @@ String ^ BDMatch::MyForm::mstotime(int ms)
 	return timeout;
 }
 
-int BDMatch::MyForm::setrows()
+int BDMatch::MyForm::set_rows()
 {
-	if (Setting->draw) {
+	if (setting->draw) {
 		AllTablePanel->RowStyles[7]->Height = static_cast<float>(0.4);
 		AllTablePanel->RowStyles[8]->Height = static_cast<float>(0.6);
 	}
@@ -380,7 +382,7 @@ int BDMatch::MyForm::setrows()
 	return 0;
 }
 
-int BDMatch::MyForm::adddropdown(ComboBox ^ combo, String ^ text)
+int BDMatch::MyForm::add_dropdown(ComboBox ^ combo, String ^ text)
 {
 	bool repeat = false;
 	for (int i = 0; i < combo->Items->Count; i++) {
@@ -398,32 +400,32 @@ int BDMatch::MyForm::adddropdown(ComboBox ^ combo, String ^ text)
 	return 0;
 }
 
-int BDMatch::MyForm::loadsettings(String^ path, SettingVals^ settingvals)
+int BDMatch::MyForm::load_settings(String^ path, SettingVals^ setting_vals)
 {
 	using namespace System::IO;
 	using namespace System::Text::RegularExpressions;
-	setrows();
+	set_rows();
 	if (File::Exists(path)) {
-		String^ settext;
+		String^ set_text;
 		try {
-			settext = File::ReadAllText(path);
+			set_text = File::ReadAllText(path);
 		}
 		finally{
 			Regex^ numkey = gcnew Regex("[\\+-]?[0-9]+");
 			for (int i = 0; i < 12; i++) {
 				SettingType type = static_cast<SettingType>(i);
-				Regex^ setkey = gcnew Regex(settingvals->getname(type) + ":[\\+-]?[0-9]+\\r\\n");
-				String^ setting = setkey->Match(settext)->Value;
-				if (setting != "") {
-					int val = int::Parse(numkey->Match(setting)->Value);
-					settingvals->setval(type, val);
+				Regex^ setkey = gcnew Regex(setting_vals->getname(type) + ":[\\+-]?[0-9]+\\r\\n");
+				String^ setting_str = setkey->Match(set_text)->Value;
+				if (setting_str != "") {
+					int val = int::Parse(numkey->Match(setting_str)->Value);
+					setting_vals->setval(type, val);
 				}
 			}
 		}
 	}
 	return 0;
 }
-int BDMatch::MyForm::savesettings(String^ path, SettingVals^ settingvals)
+int BDMatch::MyForm::save_settings(String^ path, SettingVals^ setting_vals)
 {
 	using namespace System::IO;
 	using namespace System::Text;
@@ -432,9 +434,9 @@ int BDMatch::MyForm::savesettings(String^ path, SettingVals^ settingvals)
 	try {
 		for (int i = 0; i < 12; i++) {
 			SettingType type = static_cast<SettingType>(i);
-			String^ outstr = settingvals->getname(type) + ":" + settingvals->getval(type).ToString() + "\r\n";
+			String^ out_str = setting_vals->getname(type) + ":" + setting_vals->getval(type).ToString() + "\r\n";
 			array<Byte>^info = (gcnew UTF8Encoding(true))->
-				GetBytes(outstr);
+				GetBytes(out_str);
 			fs->Write(info, 0, info->Length);
 		}
 	}
@@ -445,7 +447,7 @@ int BDMatch::MyForm::savesettings(String^ path, SettingVals^ settingvals)
 	return 0;
 }
 
-int BDMatch::MyForm::matchinput()
+int BDMatch::MyForm::match_input()
 {
 	using namespace System::IO;
 	using namespace System::Text::RegularExpressions;
@@ -453,8 +455,8 @@ int BDMatch::MyForm::matchinput()
 	using namespace System::Collections::Generic;
 
 	Result->Text = "";
-	searchISA();
-	if (Setting->ass_offset != 0)Result->Text += "\r\nASS时间偏置：延后 " + Setting->ass_offset.ToString() + " 厘秒" + cut_off;
+	search_ISA();
+	if (setting->ass_offset != 0)Result->Text += "\r\nASS时间偏置：延后 " + setting->ass_offset.ToString() + " 厘秒" + cut_off;
 	/*
 	ASStext->Text = "\"G:\\Movie\\[SFEO-Raws] Haruchika Haruta & Chika (BD 1080P x264 FLAC)\\\
 [SFEO-Raws] Haruchika Haruta & Chika - 03 (BD 1080P x264 FLAC).ass\"\
@@ -478,7 +480,7 @@ int BDMatch::MyForm::matchinput()
 	match_num = fin_match_num = 0;
 	matches_num = fin_matches_num = 0;
 	if (asstext_all == "" || tvtext_all == "" || bdtext_all == "") {
-		matchcontrol(true);
+		match_control(true);
 		MessageBox::Show(this, "文件名为空！", "BDMatch", MessageBoxButtons::OK);
 		return -1;
 	}
@@ -498,7 +500,7 @@ int BDMatch::MyForm::matchinput()
 	matches_num = min(min(assmatch_all->Count, tvmatch_all->Count), bdmatch_all->Count);
 	if (!bdtext_all->Contains("*") && assmatch_all->Count == 1 && tvmatch_all->Count == 1 && (bdmatch_all->Count > 1 || bdtext_all->Contains("*"))) {
 		Result->Text += "\r\n批量处理将不作声谱图。";
-		Setting->draw = false;
+		setting->draw = false;
 		asstext = assmatch_all[0]->Value->Replace("\"", "");
 		tvtext = tvmatch_all[0]->Value->Replace("\"", "");
 		if (!File::Exists(asstext)) {
@@ -529,7 +531,7 @@ int BDMatch::MyForm::matchinput()
 					re = match(asstext, tvtext, bdtext);
 					if (re < 0) {
 						if (re == -6)	Result->Text += "\r\n\r\n用户中止操作。";
-						matchcontrol(true);
+						match_control(true);
 						return re;
 					}
 					fin_match_num = 1;
@@ -550,7 +552,7 @@ int BDMatch::MyForm::matchinput()
 						re = -2;
 						continue;
 					}
-					Regex^ bdfilekey = gcnew Regex(returnregt(bdtext));
+					Regex^ bdfilekey = gcnew Regex(return_regt(bdtext));
 					for (int i = 0; i < files->Length; i++)
 						if (bdfilekey->IsMatch(files[i])) bdfiles->Add(files[i]);
 					match_num = bdfiles->Count;
@@ -568,7 +570,7 @@ int BDMatch::MyForm::matchinput()
 						if (re < 0)re = re1;
 						if (re1 == -6) {
 							Result->Text += "\r\n\r\n用户中止操作。";
-							matchcontrol(true);
+							match_control(true);
 							return -6;
 						}
 						Result->Text += cut_off;
@@ -583,7 +585,7 @@ int BDMatch::MyForm::matchinput()
 		output_path = "";
 		if (matches_num > 1) {
 			Result->Text += "\r\n批量处理将不作声谱图。";
-			Setting->draw = false;
+			setting->draw = false;
 		}
 		for (int index = 0; index < static_cast<int>(matches_num); index++) {
 			asstext = assmatch_all[index]->Value->Replace("\"", "");
@@ -622,7 +624,7 @@ int BDMatch::MyForm::matchinput()
 					re = match(asstext, tvtext, bdtext);
 					if (re < 0) {
 						if (re == -6)	Result->Text += "\r\n\r\n用户中止操作。";
-						matchcontrol(true);
+						match_control(true);
 						return re;
 					}
 					fin_match_num = 1;
@@ -657,7 +659,7 @@ int BDMatch::MyForm::matchinput()
 						re = -2;
 						continue;
 					}
-					Regex^ assfilekey = gcnew Regex(returnregt(asstext));
+					Regex^ assfilekey = gcnew Regex(return_regt(asstext));
 					for (int i = 0; i < files->Length; i++)
 						if (assfilekey->IsMatch(files[i])) assfiles->Add(files[i]);
 					path = tvtext->Substring(0, tvtext->LastIndexOf("\\"));
@@ -668,7 +670,7 @@ int BDMatch::MyForm::matchinput()
 						re = -2;
 						continue;
 					}
-					Regex^ tvfilekey = gcnew Regex(returnregt(tvtext));
+					Regex^ tvfilekey = gcnew Regex(return_regt(tvtext));
 					for (int i = 0; i < files->Length; i++)
 						if (tvfilekey->IsMatch(files[i])) tvfiles->Add(files[i]);
 					path = bdtext->Substring(0, bdtext->LastIndexOf("\\"));
@@ -679,12 +681,12 @@ int BDMatch::MyForm::matchinput()
 						re = -2;
 						continue;
 					}
-					Regex^ bdfilekey = gcnew Regex(returnregt(bdtext));
+					Regex^ bdfilekey = gcnew Regex(return_regt(bdtext));
 					for (int i = 0; i < files->Length; i++)
 						if (bdfilekey->IsMatch(files[i])) bdfiles->Add(files[i]);
-					if (Setting->draw == true && matches_num == 1) {
+					if (setting->draw == true && matches_num == 1) {
 						Result->Text += "\r\n批量处理将不作声谱图。";
-						Setting->draw = false;
+						setting->draw = false;
 					}
 					match_num = assfiles->Count;
 					for (int i = 0; i < assfiles->Count; i++) {
@@ -720,7 +722,7 @@ int BDMatch::MyForm::matchinput()
 							if (re < 0)re = re1;
 							if (re1 == -6) {
 								Result->Text += "\r\n\r\n用户中止操作。";
-								matchcontrol(true);
+								match_control(true);
 								return -6;
 							}
 							Result->Text += cut_off;
@@ -743,7 +745,7 @@ int BDMatch::MyForm::matchinput()
 			fin_matches_num++;
 		}
 	}
-	Setting->draw = drawstore;
+	setting->draw = draw_store;
 	//结束计时
 	if (fin_matches_num > 0) {
 		long end = clock();
@@ -751,30 +753,30 @@ int BDMatch::MyForm::matchinput()
 		Result->Text += "\r\n总时间：" + spend.ToString() + "秒";
 	}
 	if (re >= 0) {
-		adddropdown(ASStext, ASStext->Text);
-		adddropdown(TVtext, TVtext->Text);
-		adddropdown(BDtext, BDtext->Text);
+		add_dropdown(ASStext, ASStext->Text);
+		add_dropdown(TVtext, TVtext->Text);
+		add_dropdown(BDtext, BDtext->Text);
 		taskbar->ProgressState(TBPFLAG::TBPF_NOPROGRESS);
 	}
 	else taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
-	matchcontrol(true);
+	match_control(true);
 	return 0;
 }
-int BDMatch::MyForm::searchISA()
+int BDMatch::MyForm::search_ISA()
 {
 	using namespace msclr::interop;
 	Result->Text += marshal_as<String^>(InstructionSet::Brand());
-	ISAMode = 0;
+	ISA_mode = 0;
 	if (InstructionSet::AVX2() && InstructionSet::AVX()) {
-		ISAMode = 3;
+		ISA_mode = 3;
 		Result->Text += "：使用AVX、AVX2指令集加速。";
 	}
 	else if (InstructionSet::AVX()) {
-		ISAMode = 2;
+		ISA_mode = 2;
 		Result->Text += "：使用SSE2、SSSE3、SSE4.1、AVX指令集加速。";
 	}
 	else if (InstructionSet::SSE41() && InstructionSet::SSE2() && InstructionSet::SSSE3()) {
-		ISAMode = 1;
+		ISA_mode = 1;
 		Result->Text += "：使用SSE2、SSSE3、SSE4.1指令集加速。";
 	}
 	else {
@@ -783,7 +785,7 @@ int BDMatch::MyForm::searchISA()
 	Result->Text += cut_off;
 	return 0;
 }
-String ^ BDMatch::MyForm::returnregt(String ^ search)
+String ^ BDMatch::MyForm::return_regt(String ^ search)
 {
 	String^ searchregs = search->Replace("\\", "\\\\");
 	searchregs = searchregs->Replace("[", "\\[");
@@ -799,7 +801,7 @@ String ^ BDMatch::MyForm::returnregt(String ^ search)
 	searchregs = searchregs->Replace("*", "(.+?)");
 	return searchregs;
 }
-int BDMatch::MyForm::matchcontrol(bool val)
+int BDMatch::MyForm::match_control(bool val)
 {
 	ASStext->Enabled = val; TVtext->Enabled = val; BDtext->Enabled = val;
 	ASSfind->Enabled = val; TVfind->Enabled = val; BDfind->Enabled = val;
@@ -809,47 +811,49 @@ int BDMatch::MyForm::matchcontrol(bool val)
 	return 0;
 }
 
-void BDMatch::MyForm::nullsetform() {
-	setform = nullptr;
+void BDMatch::MyForm::null_set_form() {
+	set_form = nullptr;
 }
-void BDMatch::MyForm::SetVals(SettingType type,int val)
+void BDMatch::MyForm::set_vals(SettingType type,int val)
 {
-	Setting->setval(type, val);
+	setting->setval(type, val);
 	return System::Void();
 }
-void BDMatch::MyForm::progsingle(int type, double val)
+void BDMatch::MyForm::prog_single(int type, double val)
 {
-	static double progval[3] = { 0,0,0 };
-	static double findfieldpartion = Setting->match_ass ? Setting->find_field * 0.06
-		* log10(min(Setting->find_field * 100, Setting->min_check_num)) * 2.0 : 0.0;
+	static double prog_val[3] = { 0,0,0 };
+	static double find_field_ratio = setting->match_ass ? setting->find_field * 0.06
+		* log10(min(setting->find_field * 100, setting->min_check_num)) * 2.0 : 0.0;
 	switch (type) {
 	case 1:
-		progval[0] = val;
+		prog_val[0] = val;
 		break;
 	case 2:
-		progval[1] = val;
+		prog_val[1] = val;
 		break;
 	case 3:
-		if (val > 0.0 && val < 1.0 && val < progval[2] + 0.02)return System::Void();
-		progval[2] = val;
-		progval[0] = 1;
-		progval[1] = 1;
+		if (val > 0.0 && val < 1.0 && val < prog_val[2] + 0.02)return System::Void();
+		prog_val[2] = val;
+		prog_val[0] = 1;
+		prog_val[1] = 1;
 		break;
 	default:
-		progval[0] = val;
-		progval[1] = val;
-		progval[2] = val;
-		findfieldpartion = Setting->match_ass ? Setting->find_field * 0.06
-			* log10(min(Setting->find_field * 100, Setting->min_check_num)) * 2.0 : 0.0;
+		prog_val[0] = val;
+		prog_val[1] = val;
+		prog_val[2] = val;
+		find_field_ratio = setting->match_ass ? setting->find_field * 0.06
+			* log10(min(setting->find_field * 100, setting->min_check_num)) * 2.0 : 0.0;
 		return System::Void();
 		break;
 	}
-	SingleProgress->Value = static_cast<int>(round(SingleProgress->Maximum * ((progval[0] + progval[1]) * 20 + progval[2] * findfieldpartion)
-		/ (40 + findfieldpartion)));
-	progtotal();
+	double line_ratio = BDMatchCoreAPI::get_nb_timeline() / 400.0;
+	if (line_ratio == 0.0)line_ratio = 1.0;
+	SingleProgress->Value = static_cast<int>(round(SingleProgress->Maximum * ((prog_val[0] + prog_val[1]) * 20 + prog_val[2] * find_field_ratio * line_ratio)
+		/ (40 + find_field_ratio * line_ratio)));
+	prog_total();
 	return System::Void();
 }
-void BDMatch::MyForm::progtotal()
+void BDMatch::MyForm::prog_total()
 {
 	double val = TotalProgress->Maximum * (fin_matches_num + (fin_match_num
 		+ SingleProgress->Value / static_cast<double>(SingleProgress->Maximum)) / static_cast<double>(match_num))
@@ -859,7 +863,7 @@ void BDMatch::MyForm::progtotal()
 		static_cast<unsigned long long>(TotalProgress->Maximum));
 	return System::Void();
 }
-void BDMatch::MyForm::feedback(const char* input, const int len)
+void BDMatch::MyForm::feedback(const char* input, const long long len)
 {
 	using namespace msclr::interop;
 	using namespace System::Text;
@@ -883,20 +887,20 @@ System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::Event
 			Result->Text = debug_mode ? "调试模式打开。" : "调试模式关闭";
 			return System::Void();
 		}
-		matchcontrol(false);
-		drawstore = Setting->draw;
-		CancelSource = gcnew System::Threading::CancellationTokenSource();
+		match_control(false);
+		draw_store = setting->draw;
+		cancel_source = gcnew System::Threading::CancellationTokenSource();
 		keep_processing->test_and_set();
-		Task<int>^matchtask = gcnew Task<int>(gcnew Func<int>(this, &MyForm::matchinput), TaskCreationOptions::LongRunning);
+		Task<int>^matchtask = gcnew Task<int>(gcnew Func<int>(this, &MyForm::match_input), TaskCreationOptions::LongRunning);
 		taskbar->ProgressState(TBPFLAG::TBPF_NORMAL);
 		matchtask->Start();
 	}
 	else {
-		CancelSource->Cancel();
+		cancel_source->Cancel();
 		keep_processing->clear();
-		Setting->draw = drawstore;
+		setting->draw = draw_store;
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
-		matchcontrol(true);
+		match_control(true);
 	}
 	return System::Void();
 }
@@ -906,16 +910,17 @@ System::Void BDMatch::MyForm::MyForm_Load(System::Object ^ sender, System::Event
 	SingleProgress->CheckForIllegalCrossThreadCalls = false;
 	TotalProgress->CheckForIllegalCrossThreadCalls = false;
 	About->Text = "v" + appversion;
-	loadsettings("settings.ini", Setting);
+	load_settings("settings.ini", setting);
 	TextEditorPanel->Visible = false;
 	TextEditorPanel->Dock = System::Windows::Forms::DockStyle::Fill;
 	taskbar = new TaskBar(this->Handle.ToPointer());
+	BDMatchCoreAPI::new_BDMatchCore(keep_processing);
 	return System::Void();
 }
 
 System::Void BDMatch::MyForm::MyForm_FormClosing(System::Object ^ sender, System::Windows::Forms::FormClosingEventArgs ^ e)
 {
-	savesettings("settings.ini", Setting);
+	save_settings("settings.ini", setting);
 	delete taskbar;
 	delete keep_processing;
 	return System::Void();
@@ -1132,11 +1137,11 @@ System::Void BDMatch::MyForm::About_MouseLeave(System::Object ^ sender, System::
 }
 System::Void BDMatch::MyForm::settings_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	if (!setform) {
-		setform = gcnew Settings(gcnew SettingCallback(this, &MyForm::SetVals),gcnew NullCallback(this, &MyForm::nullsetform), Setting);
+	if (!set_form) {
+		set_form = gcnew Settings(gcnew SettingCallback(this, &MyForm::set_vals),gcnew NullCallback(this, &MyForm::null_set_form), setting);
 	}
-	setform->Show();
-	if (!setform->Focused)setform->Focus();
+	set_form->Show();
+	if (!set_form->Focused)set_form->Focus();
 	return System::Void();
 }
 System::Void BDMatch::MyForm::settings_MouseEnter(System::Object ^ sender, System::EventArgs ^ e)
@@ -1152,7 +1157,7 @@ System::Void BDMatch::MyForm::settings_MouseLeave(System::Object ^ sender, Syste
 
 System::Void BDMatch::MyForm::ChSelect_SelectedIndexChanged(System::Object ^ sender, System::EventArgs ^ e)
 {
-	if (ChSelect->Enabled)drawchart();
+	if (ChSelect->Enabled)draw_chart();
 	return System::Void();
 }
 System::Void BDMatch::MyForm::ViewSel_SelectedIndexChanged(System::Object ^ sender, System::EventArgs ^ e)
@@ -1166,18 +1171,18 @@ System::Void BDMatch::MyForm::ViewSel_SelectedIndexChanged(System::Object ^ send
 			TimeRoll->Enabled = false;
 			LineSel->Enabled = true;
 		}
-		drawchart();
+		draw_chart();
 	}
 	return System::Void();
 }
 System::Void BDMatch::MyForm::TimeRoll_Scroll(System::Object ^ sender, System::EventArgs ^ e)
 {
-	if (TimeRoll->Enabled)drawchart();
+	if (TimeRoll->Enabled)draw_chart();
 	return System::Void();
 }
 System::Void BDMatch::MyForm::LineSel_ValueChanged(System::Object ^ sender, System::EventArgs ^ e)
 {
-	if (LineSel->Enabled)drawchart();
+	if (LineSel->Enabled)draw_chart();
 	return System::Void();
 }
 

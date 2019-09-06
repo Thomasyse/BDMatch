@@ -1,0 +1,72 @@
+#include "include/BDMatchCoreAPI.h"
+#include "headers/BDMatchCore.h"
+
+std::unique_ptr<BDMatchCore> match_core;
+
+BDMatchCore_API int BDMatchCoreAPI::new_BDMatchCore(std::atomic_flag* keep_processing)
+{
+	match_core.reset(new BDMatchCore(keep_processing));
+	return 0;
+}
+
+BDMatchCore_API int BDMatchCoreAPI::clear_data()
+{
+	return match_core->clear_data();
+}
+
+BDMatchCore_API int BDMatchCoreAPI::load_interface(const prog_func& prog_back, const feedback_func& feed_func)
+{
+	return match_core->load_interface(prog_back, feed_func);
+}
+
+BDMatchCore_API int BDMatchCoreAPI::load_settings(const int& isa_mode, const int& fft_num, const int& min_db,
+	const bool& output_pcm, const bool& parallel_decode, const bool& vol_match, 
+	const int& min_check_num, const int& find_field, const int& ass_offset, const int& max_length, 
+	const bool& match_ass, const bool& fast_match, const bool& debug_mode)
+{
+	return match_core->load_settings(isa_mode, fft_num, min_db, 
+		output_pcm, parallel_decode, vol_match, 
+		min_check_num, find_field, ass_offset, max_length, 
+		match_ass, fast_match, debug_mode);
+}
+
+BDMatchCore_API int BDMatchCoreAPI::decode(const char* tv_path, const char* bd_path)
+{
+	return match_core->decode(tv_path, bd_path);
+}
+
+BDMatchCore_API int BDMatchCoreAPI::match_1(const char* ass_path)
+{
+	return match_core->match_1(ass_path);
+}
+
+BDMatchCore_API int BDMatchCoreAPI::match_2(const char* output_path)
+{
+	return match_core->match_2(output_path);
+}
+
+BDMatchCore_API int BDMatchCoreAPI::clear_match()
+{
+	return match_core->clear_match();
+}
+
+BDMatchCore_API size_t BDMatchCoreAPI::get_nb_timeline()
+{
+	return match_core->get_nb_timeline();
+}
+
+BDMatchCore_API int BDMatchCoreAPI::get_timeline(const int& index, const int& type)
+{
+	return match_core->get_timeline(index, type);
+}
+
+BDMatchCore_API int BDMatchCoreAPI::get_decode_info(const Deocde_File& file, const Decode_Info& type)
+{
+	return match_core->get_decode_info(file, type);
+}
+
+BDMatchCore_API char** BDMatchCoreAPI::get_decode_spec(const Deocde_File& file)
+{
+	return match_core->get_decode_spec(file);
+}
+

@@ -8,9 +8,6 @@
 
 namespace Matching {
 
-	constexpr int Timeline_Start_Time = 0;
-	constexpr int Timeline_End_Time = 1;
-
 	using namespace DataStruct;
 
 	typedef void (__stdcall *prog_func)(int, double);
@@ -47,7 +44,7 @@ namespace Matching {
 		int read(const int &pos);
 		int find(const int &searchnum, const int &retype);
 		int sort();
-		int size();
+		size_t size();
 		int clear();
 	private:
 		std::vector<std::array<int, 2>>bditem;
@@ -66,7 +63,7 @@ namespace Matching {
 
 	struct debug_info {//debug info in matching
 		double aveindex = 0, maxindex = 0;
-		int maxdelta = 0, maxline = 0;
+		long long maxdelta = 0, maxline = 0;
 	};
 
 	class Match {
@@ -85,7 +82,7 @@ namespace Matching {
 		int match();//match ass lines
 		int output(const std::string &output_path);//write and check results at specific address
 		int output();//write and check results at auto address
-		int get_nb_timeline();//return num of timeline
+		long long get_nb_timeline();//return num of timeline
 		int get_timeline(const int &line, const int &type);//return timeline info
 		std::string get_feedback();//return timeline info
 	protected:
@@ -122,7 +119,7 @@ namespace Matching {
 		int	overlap_interval = 1; //interval to judge overlap
 		int find_range = 10;
 		int fft_size = 256;//size of single fft data
-		int nb_threads = 0, nb_per_task = 0, nb_tasks = 0;//parameters of multithreading
+		size_t nb_threads = 0, nb_per_task = 0, nb_tasks = 0;//parameters of multithreading
 		int rightshift = 0;
 		int duration = 0;
 		double t2f = 1.0;//Time to Frequency

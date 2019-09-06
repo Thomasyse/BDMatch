@@ -1,5 +1,5 @@
-﻿#include "matching.h"
-#include "multithreading.h"
+﻿#include "headers/matching.h"
+#include "headers/multithreading.h"
 #include <fstream>
 #include <regex> 
 #include <immintrin.h>
@@ -106,7 +106,7 @@ int Matching::bdsearch::sort()
 	});
 	return 0;
 }
-int Matching::bdsearch::size()
+size_t Matching::bdsearch::size()
 {
 	return bditem.size();
 }
@@ -201,7 +201,7 @@ int Matching::Match::load_decode_info(node ** const & tv_fft_data0, node ** cons
 	find_range = static_cast<int>(round(static_cast<double>(find_field) * 100.0 * t2f));
 	//multithreading parameters
 	nb_threads = std::thread::hardware_concurrency();
-	nb_per_task = min(25, 2 * find_range / nb_threads / interval);
+	nb_per_task = min(25ULL, 2ULL * find_range / nb_threads / interval);
 	nb_tasks = static_cast<int>(ceil(static_cast<double>(2 * find_range / interval) / static_cast<double>(nb_per_task)));
 	//other info
 	bd_audio_only = bd_audio_only0;
@@ -223,7 +223,7 @@ int Matching::Match::load_ass(const std::string &ass_path0)
 	tv_ass_file.seekg(0);
 	tv_ass_file.read(&tv_ass_text[0], ass_file_size);
 	tv_ass_file.close();
-	int event_pos = tv_ass_text.find("\r\n[Events]\r\n");
+	size_t event_pos = tv_ass_text.find("\r\n[Events]\r\n");
 	if (event_pos == -1) {
 		tv_ass_text = "";
 		feedback += lang_pack.get_text(Match_ASS, 1);//"\r\n输入字幕文件无效！"
@@ -422,7 +422,7 @@ int Matching::Match::match()
 			diffa[2] = min_check_num_cal;
 			se_re *se_re_ptr = search_result;
 			for (int j = 0; j < nb_tasks; j++) {
-				int se_start = j * nb_per_task;
+				size_t se_start = j * nb_per_task;
 				se_re_ptr->init();
 				tasks.emplace_back(std::bind(&Match::caldiff, this, tv_time[i], se_start, min(se_start + nb_per_task, bd_se.size()),
 					min_check_num_cal, check_field, se_re_ptr));
@@ -609,7 +609,7 @@ int Matching::Match::output()
 	return 0;
 }
 
-int Matching::Match::get_nb_timeline()
+long long Matching::Match::get_nb_timeline()
 {
 	return nb_timeline;
 }

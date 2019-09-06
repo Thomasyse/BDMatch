@@ -50,7 +50,7 @@ namespace Decode {
 		int load_settings(const int &fft_num0, const bool &output_pcm0, const int &min_db0, 
 			const int &resamp_rate0, const int &prog_type0,	fftw_plan plan0, const prog_func &prog_single0 = nullptr);
 		int initialize(const std::string &file_name0);
-		int decodeaudio();
+		int decode_audio();
 		std::string get_feedback();
 		std::string get_file_name();
 		int get_return();

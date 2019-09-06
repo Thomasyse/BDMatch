@@ -95,7 +95,7 @@
       <PreprocessorDefinitions>NDEBUG;BDMATCHCORE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)fftw\include;$(SolutionDir)ffmpeg-4.1-win64-dev\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)fftw\include;$(SolutionDir)ffmpeg-4.2-win64-dev\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -103,7 +103,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;postproc.lib;swresample.lib;swscale.lib;fftw3.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)ffmpeg-4.1-win64-dev\lib;$(SolutionDir)fftw\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)ffmpeg-4.2-win64-dev\lib;$(SolutionDir)fftw\lib</AdditionalLibraryDirectories>
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)ffmpeg-4.1-win64-dev\lib;$(SolutionDir)fftw\lib</AdditionalLibraryDirectories>
@@ -132,13 +132,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;BDMATCHCORE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)fftw\include;$(SolutionDir)ffmpeg-4.1-win64-dev\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)fftw\include;$(SolutionDir)ffmpeg-4.2-win64-dev\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;postproc.lib;swresample.lib;swscale.lib;fftw3.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)ffmpeg-4.1-win64-dev\lib;$(SolutionDir)fftw\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)ffmpeg-4.2-win64-dev\lib;$(SolutionDir)fftw\lib</AdditionalLibraryDirectories>
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)ffmpeg-4.1-win64-dev\lib;$(SolutionDir)fftw\lib</AdditionalLibraryDirectories>
@@ -164,18 +164,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="BDMatchCore.h" />
-    <ClInclude Include="datastruct.h" />
-    <ClInclude Include="decoder.h" />
-    <ClInclude Include="instructionset.h" />
-    <ClInclude Include="language_pack.h" />
-    <ClInclude Include="matching.h" />
-    <ClInclude Include="multithreading.h" />
+    <ClInclude Include="headers\BDMatchCore.h" />
+    <ClInclude Include="headers\datastruct.h" />
+    <ClInclude Include="headers\decoder.h" />
+    <ClInclude Include="headers\language_pack.h" />
+    <ClInclude Include="headers\matching.h" />
+    <ClInclude Include="headers\multithreading.h" />
+    <ClInclude Include="headers\targetver.h" />
+    <ClInclude Include="include\BDMatchCoreAPI.h" />
+    <ClInclude Include="include\instructionset.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BDMatchCore.cpp" />
+    <ClCompile Include="BDMatchCoreAPI.cpp" />
     <ClCompile Include="datastruct.cpp" />
     <ClCompile Include="decoder.cpp" />
     <ClCompile Include="dllmain.cpp" />

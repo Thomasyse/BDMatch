@@ -15,31 +15,34 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="datastruct.h">
+    <ClInclude Include="include\BDMatchCoreAPI.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="matching.h">
+    <ClInclude Include="include\instructionset.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="multithreading.h">
+    <ClInclude Include="headers\BDMatchCore.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\datastruct.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\decoder.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\language_pack.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\matching.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\multithreading.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="instructionset.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="decoder.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="BDMatchCore.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="language_pack.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -60,6 +63,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="language_pack.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BDMatchCoreAPI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

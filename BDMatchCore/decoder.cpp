@@ -1,8 +1,8 @@
-﻿#include "decoder.h"
+﻿#include "headers/decoder.h"
 #include <immintrin.h>
 #include <algorithm>
 #include <fstream>
-#include "multithreading.h"
+#include "headers/multithreading.h"
 
 constexpr double MaxdB = 20.0;
 
@@ -138,7 +138,7 @@ int Decode::Decode::initialize(const std::string & file_name0)
 	total_vol = 0.0;
 	return 0;
 }
-int Decode::Decode::decodeaudio() {
+int Decode::Decode::decode_audio() {
 	using namespace DataStruct;
 
 	//multithreading
@@ -893,12 +893,9 @@ int Decode::Decode_SSE::FD8(double * inseq, DataStruct::node * outseq)
 		seq1 = _mm_mul_pd(seq1, seq1);
 		seq2 = _mm_mul_pd(seq2, seq2);
 		__m128d temp = _mm_hadd_pd(seq1, seq2);
-		temp.m128d_f64[0] = log10(temp.m128d_f64[0]);
-		temp.m128d_f64[1] = log10(temp.m128d_f64[1]);
-		temp = _mm_mul_pd(temp, const10);
-		temp = _mm_sub_pd(temp, const_maxdb);
-		temp = _mm_mul_pd(temp, const_mindb);
-		temp = _mm_add_pd(temp, const127);
+		temp = _mm_log10_pd(temp);
+		temp = _mm_fmsub_pd(temp, const10, const_maxdb);
+		temp = _mm_fmadd_pd(temp, const_mindb, const127);
 		temp = _mm_min_pd(temp, const127);
 		temp = _mm_max_pd(temp, constm128);
 		temp = _mm_round_pd(temp, _MM_FROUND_TO_NEAREST_INT);
@@ -948,14 +945,9 @@ int Decode::Decode_AVX::FD8(double * inseq, DataStruct::node * outseq)
 		seq1 = _mm256_mul_pd(seq1, seq1);
 		seq2 = _mm256_mul_pd(seq2, seq2);
 		__m256d temp = _mm256_hadd_pd(seq1, seq2);
-		temp.m256d_f64[0] = log10(temp.m256d_f64[0]);
-		temp.m256d_f64[1] = log10(temp.m256d_f64[1]);
-		temp.m256d_f64[2] = log10(temp.m256d_f64[2]);
-		temp.m256d_f64[3] = log10(temp.m256d_f64[3]);
-		temp = _mm256_mul_pd(temp, const10);
-		temp = _mm256_sub_pd(temp, const_maxdb);
-		temp = _mm256_mul_pd(temp, const_mindb);
-		temp = _mm256_add_pd(temp, const127);
+		temp = _mm256_log10_pd(temp);
+		temp = _mm256_fmsub_pd(temp, const10, const_maxdb);
+		temp = _mm256_fmadd_pd(temp, const_mindb, const127);
 		temp = _mm256_max_pd(temp, constm128);
 		temp = _mm256_min_pd(temp, const127);
 		temp = _mm256_round_pd(temp, _MM_FROUND_TO_NEAREST_INT);
@@ -1288,7 +1280,7 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 			int ch = 0;
 			__m128i *temp128 = reinterpret_cast<__m128i *>(audiodata[0]);
 			short *temps = reinterpret_cast<short *>(audiodata[0]);
-			__m256d const16 = _mm256_set1_pd(32767.0);
+			__m256d const16 = _mm256_set1_pd(1.0 / 32767.0);
 			int avxlength = nb_samples * channels / 8;
 			int avx_last = (nb_samples * channels) % 8;
 			int nb_to_norm = std::max(length - nb_last, 0);
@@ -1301,8 +1293,8 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 				__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
 				__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
 				__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-				tempd_1 = _mm256_div_pd(tempd_1, const16);
-				tempd_2 = _mm256_div_pd(tempd_2, const16);
+				tempd_1 = _mm256_mul_pd(tempd_1, const16);
+				tempd_2 = _mm256_mul_pd(tempd_2, const16);
 				double out;
 				for (int j = 0; j < 4; j++) {
 					out = tempd_1.m256d_f64[j];
@@ -1331,8 +1323,8 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 					__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
 					__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
 					__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-					tempd_1 = _mm256_div_pd(tempd_1, const16);
-					tempd_2 = _mm256_div_pd(tempd_2, const16);
+					tempd_1 = _mm256_mul_pd(tempd_1, const16);
+					tempd_2 = _mm256_mul_pd(tempd_2, const16);
 					for (int j = 0; j < 8; j++) {
 						double out;
 						if (j < 4)out = tempd_1.m256d_f64[j];
@@ -1363,8 +1355,8 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 					__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
 					__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
 					__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-					tempd_1 = _mm256_div_pd(tempd_1, const16);
-					tempd_2 = _mm256_div_pd(tempd_2, const16);
+					tempd_1 = _mm256_mul_pd(tempd_1, const16);
+					tempd_2 = _mm256_mul_pd(tempd_2, const16);
 					double out;
 					for (int j = 0; j < 4; j++) {
 						out = tempd_1.m256d_f64[j];
@@ -1414,7 +1406,7 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 			int ch = 0;
 			int *tempi = reinterpret_cast<int *>(audiodata[0]);
 			__m256i *temp256 = reinterpret_cast<__m256i *>(audiodata[0]);
-			__m256d const24 = _mm256_set1_pd(8388607.0);
+			__m256d const24 = _mm256_set1_pd(1.0 / 8388607.0);
 			int avxlength = nb_samples * channels / 8;
 			int avx_last = (nb_samples * channels) % 8;
 			int nb_to_norm = std::max(length - nb_last, 0);
@@ -1427,8 +1419,8 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 				__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
 				__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
 				__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-				tempd_1 = _mm256_div_pd(tempd_1, const24);
-				tempd_2 = _mm256_div_pd(tempd_2, const24);
+				tempd_1 = _mm256_mul_pd(tempd_1, const24);
+				tempd_2 = _mm256_mul_pd(tempd_2, const24);
 				double out;
 				for (int j = 0; j < 4; j++) {
 					out = tempd_1.m256d_f64[j];
@@ -1457,8 +1449,8 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 					__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
 					__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
 					__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-					tempd_1 = _mm256_div_pd(tempd_1, const24);
-					tempd_2 = _mm256_div_pd(tempd_2, const24);
+					tempd_1 = _mm256_mul_pd(tempd_1, const24);
+					tempd_2 = _mm256_mul_pd(tempd_2, const24);
 					for (int j = 0; j < 8; j++) {
 						double out;
 						if (j < 4)out = tempd_1.m256d_f64[j];
@@ -1489,8 +1481,8 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 					__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
 					__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
 					__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-					tempd_1 = _mm256_div_pd(tempd_1, const24);
-					tempd_2 = _mm256_div_pd(tempd_2, const24);
+					tempd_1 = _mm256_mul_pd(tempd_1, const24);
+					tempd_2 = _mm256_mul_pd(tempd_2, const24);
 					double out;
 					for (int j = 0; j < 4; j++) {
 						out = tempd_1.m256d_f64[j];
@@ -1540,7 +1532,7 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 			int ch = 0;
 			int *tempi32 = reinterpret_cast<int *>(audiodata[0]);
 			__m256i *temp256 = reinterpret_cast<__m256i *>(audiodata[0]);
-			__m256d const32 = _mm256_set1_pd(2147483647.0);
+			__m256d const32 = _mm256_set1_pd(1.0 / 2147483647.0);
 			int avxlength = nb_samples * channels / 8;
 			int avx_last = (nb_samples * channels) % 8;
 			int nb_to_norm = std::max(length - nb_last, 0);
@@ -1552,8 +1544,8 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 				__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
 				__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
 				__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-				tempd_1 = _mm256_div_pd(tempd_1, const32);
-				tempd_2 = _mm256_div_pd(tempd_2, const32);
+				tempd_1 = _mm256_mul_pd(tempd_1, const32);
+				tempd_2 = _mm256_mul_pd(tempd_2, const32);
 				double out;
 				for (int j = 0; j < 4; j++) {
 					out = tempd_1.m256d_f64[j];
@@ -1581,8 +1573,8 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 					__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
 					__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
 					__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-					tempd_1 = _mm256_div_pd(tempd_1, const32);
-					tempd_2 = _mm256_div_pd(tempd_2, const32);
+					tempd_1 = _mm256_mul_pd(tempd_1, const32);
+					tempd_2 = _mm256_mul_pd(tempd_2, const32);
 					for (int j = 0; j < 8; j++) {
 						double out;
 						if (j < 4)out = tempd_1.m256d_f64[j];
@@ -1612,8 +1604,8 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 					__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
 					__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
 					__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-					tempd_1 = _mm256_div_pd(tempd_1, const32);
-					tempd_2 = _mm256_div_pd(tempd_2, const32);
+					tempd_1 = _mm256_mul_pd(tempd_1, const32);
+					tempd_2 = _mm256_mul_pd(tempd_2, const32);
 					double out;
 					for (int j = 0; j < 4; j++) {
 						out = tempd_1.m256d_f64[j];
@@ -1691,8 +1683,7 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 			double *tempd = normalized_samples[ch];
 			for (int i = 0; i < avxlength; i++) {
 				__m256d temp256 = _mm256_load_pd(tempd);
-				temp256 = _mm256_mul_pd(temp256, temp256);
-				sum256 = _mm256_add_pd(sum256, temp256);
+				sum256 = _mm256_fmadd_pd(temp256, temp256, sum256);
 				tempd += 4;
 			}
 		}
@@ -1743,14 +1734,9 @@ int Decode::Decode_AVX2::FD8(double * inseq, DataStruct::node * outseq)
 		seq1 = _mm256_mul_pd(seq1, seq1);
 		seq2 = _mm256_mul_pd(seq2, seq2);
 		__m256d temp = _mm256_hadd_pd(seq1, seq2);
-		temp.m256d_f64[0] = log10(temp.m256d_f64[0]);
-		temp.m256d_f64[1] = log10(temp.m256d_f64[1]);
-		temp.m256d_f64[2] = log10(temp.m256d_f64[2]);
-		temp.m256d_f64[3] = log10(temp.m256d_f64[3]);
-		temp = _mm256_mul_pd(temp, const10);
-		temp = _mm256_sub_pd(temp, const_maxdb);
-		temp = _mm256_mul_pd(temp, const_mindb);
-		temp = _mm256_add_pd(temp, const127);
+		temp = _mm256_log10_pd(temp);
+		temp = _mm256_fmsub_pd(temp, const10, const_maxdb);
+		temp = _mm256_fmadd_pd(temp, const_mindb, const127);
 		temp = _mm256_max_pd(temp, constm128);
 		temp = _mm256_min_pd(temp, const127);
 		temp = _mm256_round_pd(temp, _MM_FROUND_TO_NEAREST_INT);

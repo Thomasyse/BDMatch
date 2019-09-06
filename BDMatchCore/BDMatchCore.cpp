@@ -1,5 +1,5 @@
-﻿#include "BDMatchCore.h"
-#include "multithreading.h"
+﻿#include "headers/BDMatchCore.h"
+#include "headers/multithreading.h"
 #include <time.h>
 
 //A sample of command line usage
@@ -122,7 +122,7 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 		feedback_tv(tv_path);
 		return re; 
 	}
-	pool.execute(std::bind(&Decode::Decode::decodeaudio, tv_decode.get()));
+	pool.execute(std::bind(&Decode::Decode::decode_audio, tv_decode.get()));
 	if (!parallel_decode) {
 		pool.wait();
 		re = tv_decode->get_return();
@@ -147,7 +147,7 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 		feedback_bd(bd_path, bd_pre_avg_vol);
 		return re;
 	}
-	if (keep_processing->test_and_set())pool.execute(std::bind(&Decode::Decode::decodeaudio, bd_decode.get()));
+	if (keep_processing->test_and_set())pool.execute(std::bind(&Decode::Decode::decode_audio, bd_decode.get()));
 	else keep_processing->clear();
 	pool.wait();
 	if (tv_decode->get_return() < 0) {
@@ -170,7 +170,7 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 		else vol_coef /= 1.49;
 		bd_decode->set_vol_coef(vol_coef);
 		re = bd_decode->initialize(bd_path);
-		if (keep_processing->test_and_set())pool.execute(std::bind(&Decode::Decode::decodeaudio, bd_decode.get())); 
+		if (keep_processing->test_and_set())pool.execute(std::bind(&Decode::Decode::decode_audio, bd_decode.get())); 
 		else keep_processing->clear();
 		pool.wait();
 		if (bd_decode->get_return() < 0) {
@@ -252,7 +252,7 @@ int BDMatchCore::clear_match()
 	return 0;
 }
 
-int BDMatchCore::get_nb_timeline()
+size_t BDMatchCore::get_nb_timeline()
 {
 	if (match)return match->get_nb_timeline();
 	else return 0;
