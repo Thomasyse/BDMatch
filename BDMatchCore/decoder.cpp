@@ -29,7 +29,7 @@ Decode::FFmpeg::~FFmpeg()
 	if (swr_ctx)swr_close(swr_ctx);
 }
 
-Decode::Decode::Decode(language_pack& lang_pack0, std::atomic_flag * keep_processing0)
+Decode::Decode::Decode(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0)
 	:lang_pack(lang_pack0), keep_processing(keep_processing0) {
 }
 Decode::Decode::~Decode()
@@ -61,13 +61,13 @@ int Decode::Decode::initialize(const std::string & file_name0)
 	ffmpeg = new FFmpeg;
 	ffmpeg->filefm = NULL;//文件格式;
 	if (avformat_open_input(&ffmpeg->filefm, file_name.c_str(), NULL, NULL) != 0) {//获取文件格式
-		feedback = lang_pack.get_text(Decoder, 0);//"\r\n无法打开文件！"
+		feedback = lang_pack.get_text(Lang_Type::Decoder, 0);//"\r\n无法打开文件！"
 		return_val = -1;
 		keep_processing->clear();
 		return return_val;
 	}
 	if (avformat_find_stream_info(ffmpeg->filefm, NULL) < 0) {//获取文件内音视频流的信息
-		feedback = lang_pack.get_text(Decoder, 1);//"\r\n无法读取文件流信息！"
+		feedback = lang_pack.get_text(Lang_Type::Decoder, 1);//"\r\n无法读取文件流信息！"
 		return_val = -1;
 		keep_processing->clear();
 		return return_val;
@@ -85,7 +85,7 @@ int Decode::Decode::initialize(const std::string & file_name0)
 		}
 	if (audio_stream == -1)
 	{
-		feedback = lang_pack.get_text(Decoder, 2);// "\r\n无音频流！"
+		feedback = lang_pack.get_text(Lang_Type::Decoder, 2);// "\r\n无音频流！"
 		return_val = -2;
 		keep_processing->clear();
 		return return_val; // Didn't find a audio stream
@@ -97,7 +97,7 @@ int Decode::Decode::initialize(const std::string & file_name0)
 	ffmpeg->codec = avcodec_find_decoder(ffmpeg->filefm->streams[audio_stream]->codecpar->codec_id);//寻找解码器
 	if (!ffmpeg->codec)
 	{
-		feedback = lang_pack.get_text(Decoder, 3);//"\r\n无法找到音频的对应解码器！"
+		feedback = lang_pack.get_text(Lang_Type::Decoder, 3);//"\r\n无法找到音频的对应解码器！"
 		return_val = -3;
 		keep_processing->clear();
 		return return_val; // Codec not found codec
@@ -105,25 +105,25 @@ int Decode::Decode::initialize(const std::string & file_name0)
 	ffmpeg->codecfm = avcodec_alloc_context3(ffmpeg->codec);//音频的编码信息
 	if (!ffmpeg->codecfm)
 	{
-		feedback = lang_pack.get_text(Decoder, 4);//"\r\n无法创建音频的解码器信息！";
+		feedback = lang_pack.get_text(Lang_Type::Decoder, 4);//"\r\n无法创建音频的解码器信息！";
 		return_val = -3;
 		keep_processing->clear();
 		return return_val; // Failed to allocate the codec context
 	}
 	int getcodecpara = avcodec_parameters_to_context(ffmpeg->codecfm, ffmpeg->filefm->streams[audio_stream]->codecpar);
 	if (getcodecpara < 0) {
-		feedback = lang_pack.get_text(Decoder, 5);//"\r\n无法获取音频的解码器信息！"
+		feedback = lang_pack.get_text(Lang_Type::Decoder, 5);//"\r\n无法获取音频的解码器信息！"
 		return_val = -3;
 		keep_processing->clear();
 		return return_val; // Failed to allocate the codec context
 	}
 
-	feedback = lang_pack.get_text(Decoder, 28) + lang_pack.to_u16string(audio_stream) +//"音轨编号：**"
-		lang_pack.get_text(Decoder, 29) + lang_pack.to_u16string(std::move(ffmpeg->codec->long_name));//"    音频编码：****"
+	feedback = lang_pack.get_text(Lang_Type::Decoder, 28) + lang_pack.to_u16string(audio_stream) +//"音轨编号：**"
+		lang_pack.get_text(Lang_Type::Decoder, 29) + lang_pack.to_u16string(std::move(ffmpeg->codec->long_name));//"    音频编码：****"
 
 	if (avcodec_open2(ffmpeg->codecfm, ffmpeg->codec, NULL) < 0)//将两者结合以便在下面的解码函数中调用pInCodec中的对应解码函数
 	{
-		feedback = lang_pack.get_text(Decoder, 6);//"\r\n无法打开音频的对应解码器！"
+		feedback = lang_pack.get_text(Lang_Type::Decoder, 6);//"\r\n无法打开音频的对应解码器！"
 		return_val = -3;
 		keep_processing->clear();
 		return return_val; // Could not open codec
@@ -157,7 +157,7 @@ int Decode::Decode::decode_audio() {
 		filename += ".wav";
 		pcm.open(filename, std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!pcm.is_open()) {
-			feedback = lang_pack.get_text(Decoder, 7);//"\r\n无法打开要写入的PCM文件！"
+			feedback = lang_pack.get_text(Lang_Type::Decoder, 7);//"\r\n无法打开要写入的PCM文件！"
 			return_val = -4;
 			keep_processing->clear();
 			return return_val;
@@ -229,7 +229,7 @@ int Decode::Decode::decode_audio() {
 		samplenum = static_cast<int>(ceil(resamp_rate / 1000.0*ffmpeg->filefm->duration / 1000.0));
 		ffmpeg->swr_ctx = swr_alloc();
 		if (!ffmpeg->swr_ctx) {
-			feedback = lang_pack.get_text(Decoder, 8);//"\r\n无法构建重采样环境！"
+			feedback = lang_pack.get_text(Lang_Type::Decoder, 8);//"\r\n无法构建重采样环境！"
 			return_val = -8;
 			if (output_pcm)pcm.close();
 			keep_processing->clear();
@@ -245,7 +245,7 @@ int Decode::Decode::decode_audio() {
 		av_opt_set_sample_fmt(ffmpeg->swr_ctx, "out_sample_fmt", ffmpeg->codecfm->sample_fmt, 0);
 		/* initialize the resampling context */
 		if ((swr_init(ffmpeg->swr_ctx)) < 0) {
-			feedback = lang_pack.get_text(Decoder, 9);//"\r\n无法初始化重采样环境！"
+			feedback = lang_pack.get_text(Lang_Type::Decoder, 9);//"\r\n无法初始化重采样环境！"
 			return_val = -8;
 			if (output_pcm)pcm.close();
 			keep_processing->clear();
@@ -294,7 +294,7 @@ int Decode::Decode::decode_audio() {
 			int data_size = 0;
 			if (!ffmpeg->decoded_frame) {
 				if (!(ffmpeg->decoded_frame = av_frame_alloc())) {
-					feedback = lang_pack.get_text(Decoder, 10);//"\r\n无法为音频帧分配内存！"
+					feedback = lang_pack.get_text(Lang_Type::Decoder, 10);//"\r\n无法为音频帧分配内存！"
 					return_val = -5;
 					if (output_pcm)pcm.close();
 					keep_processing->clear();
@@ -304,7 +304,7 @@ int Decode::Decode::decode_audio() {
 			int ret = 0;
 			ret = avcodec_send_packet(ffmpeg->codecfm, ffmpeg->packet);
 			if (ret < 0) {
-				feedback = lang_pack.get_text(Decoder, 11);//"\r\n无法提交音频至解码器！"
+				feedback = lang_pack.get_text(Lang_Type::Decoder, 11);//"\r\n无法提交音频至解码器！"
 				return_val = -5;
 				if (output_pcm)pcm.close();
 				keep_processing->clear();
@@ -316,7 +316,7 @@ int Decode::Decode::decode_audio() {
 				if (len == AVERROR(EAGAIN) || len == AVERROR_EOF)
 					break;
 				else if (len < 0) {
-					feedback = lang_pack.get_text(Decoder, 12);//"\r\n音频解码出错！"
+					feedback = lang_pack.get_text(Lang_Type::Decoder, 12);//"\r\n音频解码出错！"
 					return_val = -7;
 					if (output_pcm)pcm.close();
 					keep_processing->clear();
@@ -325,7 +325,7 @@ int Decode::Decode::decode_audio() {
 				data_size = av_get_bytes_per_sample(ffmpeg->codecfm->sample_fmt);
 				if (data_size < 0) {
 					/* This should not occur, checking just for paranoia */
-					feedback = lang_pack.get_text(Decoder, 13);//"\r\n无法计算音频数据大小！"
+					feedback = lang_pack.get_text(Lang_Type::Decoder, 13);//"\r\n无法计算音频数据大小！"
 					return_val = -8;
 					if (output_pcm)pcm.close();
 					keep_processing->clear();
@@ -344,7 +344,7 @@ int Decode::Decode::decode_audio() {
 					ret = av_samples_alloc_array_and_samples(&ffmpeg->dst_data, &dst_linesize, channels,
 						nb_samples, ffmpeg->codecfm->sample_fmt, 0);
 					if (ret < 0) {
-						feedback = lang_pack.get_text(Decoder, 14);//"\r\n无法为重采样数据分配内存！"
+						feedback = lang_pack.get_text(Lang_Type::Decoder, 14);//"\r\n无法为重采样数据分配内存！"
 						if (output_pcm)pcm.close();
 						return_val = -9;
 						keep_processing->clear();
@@ -353,7 +353,7 @@ int Decode::Decode::decode_audio() {
 					ret = swr_convert(ffmpeg->swr_ctx, ffmpeg->dst_data, nb_samples,
 						(const uint8_t **)ffmpeg->decoded_frame->extended_data, ffmpeg->decoded_frame->nb_samples);
 					if (ret < 0) {
-						feedback = lang_pack.get_text(Decoder, 15);//"\r\n重采样错误！"
+						feedback = lang_pack.get_text(Lang_Type::Decoder, 15);//"\r\n重采样错误！"
 						if (output_pcm)pcm.close();
 						return_val = -10; 
 						keep_processing->clear();
@@ -415,18 +415,18 @@ int Decode::Decode::decode_audio() {
 	pool.wait();
 	//
 	std::string samp_rate_info = "";
-	if (resamp)samp_rate_info = lang_pack.to_u16string(sample_rate) + lang_pack.get_text(Decoder, 16)
-		+ lang_pack.to_u16string(resamp_rate) + lang_pack.get_text(Decoder, 17);//"***Hz -> ***Hz"
-	else samp_rate_info = lang_pack.to_u16string(sample_rate) + lang_pack.get_text(Decoder, 17);//"***Hz"
+	if (resamp)samp_rate_info = lang_pack.to_u16string(sample_rate) + lang_pack.get_text(Lang_Type::Decoder, 16)
+		+ lang_pack.to_u16string(resamp_rate) + lang_pack.get_text(Lang_Type::Decoder, 17);//"***Hz -> ***Hz"
+	else samp_rate_info = lang_pack.to_u16string(sample_rate) + lang_pack.get_text(Lang_Type::Decoder, 17);//"***Hz"
 	std::string samp_format_info = lang_pack.to_u16string(std::move(av_get_sample_fmt_name(ffmpeg->codecfm->sample_fmt)));
 	//samp_format_info = samp_format_info.replace(samp_format_info.find("AV_SAMPLE_FMT_"), 14, "");
-	feedback += lang_pack.get_text(Decoder, 18) + lang_pack.to_u16string(channels) + lang_pack.get_text(Decoder, 19) + lang_pack.to_u16string(count)
-		+ lang_pack.get_text(Decoder, 20) + lang_pack.to_u16string(std::move(chfmt)) +    //"    声道：**    总帧数：***    格式：****"
-		lang_pack.get_text(Decoder, 21) + lang_pack.to_u16string(bit_depth_raw) + lang_pack.get_text(Decoder, 22) +
-		lang_pack.to_u16string(out_bit_depth) + lang_pack.get_text(Decoder, 23) + samp_rate_info
-		+ lang_pack.get_text(Decoder, 24) + samp_format_info;//"\r\n采样位数：**bit -> **bit    采样率：***   采样格式：****"
-	if (start_time != 0 && !audio_only)feedback += lang_pack.get_text(Decoder, 25) +
-		lang_pack.to_u16string(start_time) + lang_pack.get_text(Decoder, 26);//"    延迟：***ms"
+	feedback += lang_pack.get_text(Lang_Type::Decoder, 18) + lang_pack.to_u16string(channels) + lang_pack.get_text(Lang_Type::Decoder, 19) + lang_pack.to_u16string(count)
+		+ lang_pack.get_text(Lang_Type::Decoder, 20) + lang_pack.to_u16string(std::move(chfmt)) +    //"    声道：**    总帧数：***    格式：****"
+		lang_pack.get_text(Lang_Type::Decoder, 21) + lang_pack.to_u16string(bit_depth_raw) + lang_pack.get_text(Lang_Type::Decoder, 22) +
+		lang_pack.to_u16string(out_bit_depth) + lang_pack.get_text(Lang_Type::Decoder, 23) + samp_rate_info
+		+ lang_pack.get_text(Lang_Type::Decoder, 24) + samp_format_info;//"\r\n采样位数：**bit -> **bit    采样率：***   采样格式：****"
+	if (start_time != 0 && !audio_only)feedback += lang_pack.get_text(Lang_Type::Decoder, 25) +
+		lang_pack.to_u16string(start_time) + lang_pack.get_text(Lang_Type::Decoder, 26);//"    延迟：***ms"
 	//补充wav头信息
 	if (output_pcm) {
 		long pcmfilesize = static_cast<long>(pcm.tellp()) - 8;
@@ -442,7 +442,7 @@ int Decode::Decode::decode_audio() {
 		pcmfilesize -= 36;
 		pcm.write(reinterpret_cast<char*>(&pcmfilesize), 4);//pcm size
 		pcm.close();
-		feedback += lang_pack.get_text(Decoder, 27) + lang_pack.to_u16string(std::move(file_name));//"\r\n输出解码音频：****"
+		feedback += lang_pack.get_text(Lang_Type::Decoder, 27) + lang_pack.to_u16string(std::move(file_name));//"\r\n输出解码音频：****"
 	}
 	//释放内存
 	return_val = 0;

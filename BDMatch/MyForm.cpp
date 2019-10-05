@@ -1,19 +1,17 @@
 ﻿#include "MyForm.h"
 #pragma unmanaged
-#include "include/instructionset.h"
 #include "include/BDMatchCoreAPI.h"
 #include <ctime>
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.7"
+#define appversion "1.5.8"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
 
 #define cut_off "\r\n----------------------------------------------------------------------------------------------"
 
-const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
 using namespace BDMatch;
 [STAThreadAttribute]
 int main(array<System::String^>^args)
@@ -50,7 +48,6 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	int re = 0;
 	BDMatchCoreAPI::load_interface(prog_ptr, feedback_ptr);
 	//settings
-	int isa_mode = ISA_mode;
 	int fft_num = setting->fft_num;
 	int min_db = setting->min_find_db;
 	bool output_pcm = setting->output_pcm;
@@ -63,7 +60,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	bool match_ass = setting->match_ass;
 	bool fast_match = setting->fast_match;
 	bool debug_mode0 = debug_mode;
-	BDMatchCoreAPI::load_settings(isa_mode,fft_num,min_db,output_pcm, parallel_decode, vol_match,
+	BDMatchCoreAPI::load_settings(-1, fft_num, min_db, output_pcm, parallel_decode, vol_match,
 		min_check_num, find_field, ass_offset, max_length,
 		match_ass, fast_match, debug_mode0);
 	//decode
@@ -168,18 +165,18 @@ int BDMatch::MyForm::draw_pre()
 int BDMatch::MyForm::draw_pre(const int &re)
 {
 	if (setting->draw && !re) {
-		tv_draw.spec = BDMatchCoreAPI::get_decode_spec(TV_Decode);
-		bd_draw.spec = BDMatchCoreAPI::get_decode_spec(BD_Decode);
-		tv_draw.num = BDMatchCoreAPI::get_decode_info(TV_Decode, FFT_Samp_Num);
-		bd_draw.num = BDMatchCoreAPI::get_decode_info(BD_Decode, FFT_Samp_Num);
-		tv_draw.ch = BDMatchCoreAPI::get_decode_info(TV_Decode, Channels);
-		bd_draw.ch = BDMatchCoreAPI::get_decode_info(BD_Decode, Channels);
-		tv_draw.milisec = BDMatchCoreAPI::get_decode_info(TV_Decode, Milisec);
-		bd_draw.milisec = BDMatchCoreAPI::get_decode_info(BD_Decode, Milisec);
-		tv_draw.fft_num = BDMatchCoreAPI::get_decode_info(TV_Decode, FFT_Num);
-		bd_draw.fft_num = BDMatchCoreAPI::get_decode_info(BD_Decode, FFT_Num);
-		tv_draw.ttf = BDMatchCoreAPI::get_decode_info(TV_Decode, Samp_Rate) / (static_cast<double>(tv_draw.fft_num) * 100.0);
-		bd_draw.ttf = BDMatchCoreAPI::get_decode_info(TV_Decode, Samp_Rate) / (static_cast<double>(bd_draw.fft_num) * 100.0);
+		tv_draw.spec = BDMatchCoreAPI::get_decode_spec(Decode_File::TV_Decode);
+		bd_draw.spec = BDMatchCoreAPI::get_decode_spec(Decode_File::BD_Decode);
+		tv_draw.num = BDMatchCoreAPI::get_decode_info(Decode_File::TV_Decode, Decode_Info::FFT_Samp_Num);
+		bd_draw.num = BDMatchCoreAPI::get_decode_info(Decode_File::BD_Decode, Decode_Info::FFT_Samp_Num);
+		tv_draw.ch = BDMatchCoreAPI::get_decode_info(Decode_File::TV_Decode, Decode_Info::Channels);
+		bd_draw.ch = BDMatchCoreAPI::get_decode_info(Decode_File::BD_Decode, Decode_Info::Channels);
+		tv_draw.milisec = BDMatchCoreAPI::get_decode_info(Decode_File::TV_Decode, Decode_Info::Milisec);
+		bd_draw.milisec = BDMatchCoreAPI::get_decode_info(Decode_File::BD_Decode, Decode_Info::Milisec);
+		tv_draw.fft_num = BDMatchCoreAPI::get_decode_info(Decode_File::TV_Decode, Decode_Info::FFT_Num);
+		bd_draw.fft_num = BDMatchCoreAPI::get_decode_info(Decode_File::BD_Decode, Decode_Info::FFT_Num);
+		tv_draw.ttf = BDMatchCoreAPI::get_decode_info(Decode_File::TV_Decode, Decode_Info::Samp_Rate) / (static_cast<double>(tv_draw.fft_num) * 100.0);
+		bd_draw.ttf = BDMatchCoreAPI::get_decode_info(Decode_File::TV_Decode, Decode_Info::Samp_Rate) / (static_cast<double>(bd_draw.fft_num) * 100.0);
 		ViewSel->SelectedIndex = 0;
 		ChSelect->SelectedIndex = 0;
 		ChSelect->Enabled = true;
@@ -204,6 +201,7 @@ int BDMatch::MyForm::draw_pre(const int &re)
 }
 int BDMatch::MyForm::draw_chart()
 {
+	using namespace System::Drawing;
 	Match->Enabled = false;
 	int maxsampnum = max(tv_draw.num, bd_draw.num);
 	int milisec = max(tv_draw.milisec, bd_draw.milisec);
@@ -240,12 +238,21 @@ int BDMatch::MyForm::draw_chart()
 			+ "\n" + ms2time(static_cast<int>(round(bd_draw.time_list[static_cast<int>(LineSel->Value) - 1, 0] / bd_draw.ttf)));
 	}
 	int duration = tvend - tvstart + 1;
-	
+
+	char* bd_spec_ch = bd_draw.spec[ChSelect->SelectedIndex];
+	char* tv_spec_ch = tv_draw.spec[ChSelect->SelectedIndex];
+	//create bitmap and set memory for data, fetch the pointer for future use
 	Bitmap^ spectrum1 = gcnew Bitmap(duration, tv_draw.fft_num);
+	Drawing::Rectangle rect(0, 0, duration, tv_draw.fft_num);
+	Imaging::BitmapData^ bmpData = spectrum1->LockBits(rect,
+		Imaging::ImageLockMode::WriteOnly, Imaging::PixelFormat::Format24bppRgb);
+	IntPtr bmp_ptr = bmpData->Scan0;
+	unsigned char* rgb_values = static_cast<unsigned char*>(bmp_ptr.ToPointer());
+
 	int x;
 	int y;
 	// Loop through the images pixels to reset color.
-	for (x = 0; x < spectrum1->Width; x++)
+	for (x = 0; x < duration; x++)
 	{
 		int tvinline = 0, bdinline = 0;
 		int tvedge = 0, bdedge = 0;
@@ -275,15 +282,17 @@ int BDMatch::MyForm::draw_chart()
 				}
 			}
 		}
-		for (y = 0; y < spectrum1->Height; y++)
-		{
+		int bd_spec_offset = (x + bdstart) * bd_draw.fft_num / 2 + bd_draw.fft_num - 1;
+		int tv_spec_offset = (x + tvstart) * tv_draw.fft_num / 2 + tv_draw.fft_num / 2 - 1;
+		int pos_offset = 0;
+		for (y = 0; y < tv_draw.fft_num; y++) {
 			int color = -128;
 			if (y >= bd_draw.fft_num / 2) {
 				if (0 <= x + bdstart && x + bdstart < bd_draw.num)
-					color = bd_draw.spec[ChSelect->SelectedIndex][(x + bdstart)*bd_draw.fft_num / 2 + bd_draw.fft_num - y - 1];
+					color = bd_spec_ch[bd_spec_offset - y];
 			}
 			else if (0 <= x + tvstart && x + tvstart < tv_draw.num)
-				color = tv_draw.spec[ChSelect->SelectedIndex][(x + tvstart)*tv_draw.fft_num / 2 + tv_draw.fft_num / 2 - y - 1];
+				color = tv_spec_ch[tv_spec_offset - y];
 			color += 128;
 			Color newColor = Color::FromArgb(color / 4, color, color);
 			if (y >= setting->fft_num / 2) {
@@ -340,11 +349,17 @@ int BDMatch::MyForm::draw_chart()
 						break;
 					}
 			}
-			spectrum1->SetPixel(x, y, newColor);
+			rgb_values[pos_offset] = newColor.B;
+			rgb_values[pos_offset + 1] = newColor.G;
+			rgb_values[pos_offset + 2] = newColor.R;
+			pos_offset += bmpData->Stride;
 		}
+		rgb_values += 3;
 	}
-	// Set the PictureBox to display the image.
-	Spectrum->Image = spectrum1;
+	spectrum1->UnlockBits(bmpData);
+	// use GDI to draw the image.
+	Graphics^ DrawSprctrum = splitContainer1->Panel2->CreateGraphics();
+	DrawSprctrum->DrawImage(spectrum1, 0, 0, splitContainer1->Panel2->Width, splitContainer1->Panel2->Height);
 	Match->Enabled = true;
 	return 0;
 }
@@ -765,22 +780,21 @@ int BDMatch::MyForm::match_input()
 int BDMatch::MyForm::search_ISA()
 {
 	using namespace msclr::interop;
-	Result->Text += marshal_as<String^>(InstructionSet::Brand());
-	ISA_mode = 0;
-	if (InstructionSet::AVX2() && InstructionSet::AVX()) {
-		ISA_mode = 3;
+	Result->Text += marshal_as<String^>(BDMatchCoreAPI::get_CPU_brand());
+	int ISA_mode = BDMatchCoreAPI::search_ISA_mode();
+	switch (ISA_mode)
+	{
+	case 3:
 		Result->Text += "：使用AVX、AVX2指令集加速。";
-	}
-	else if (InstructionSet::AVX()) {
-		ISA_mode = 2;
+		break;
+	case 2:
 		Result->Text += "：使用SSE2、SSSE3、SSE4.1、AVX指令集加速。";
-	}
-	else if (InstructionSet::SSE41() && InstructionSet::SSE2() && InstructionSet::SSSE3()) {
-		ISA_mode = 1;
+		break;
+	case 1:
 		Result->Text += "：使用SSE2、SSSE3、SSE4.1指令集加速。";
-	}
-	else {
+	default:
 		Result->Text += "：不使用增强指令集加速。";
+		break;
 	}
 	Result->Text += cut_off;
 	return 0;
@@ -890,14 +904,14 @@ System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::Event
 		match_control(false);
 		draw_store = setting->draw;
 		cancel_source = gcnew System::Threading::CancellationTokenSource();
-		keep_processing->test_and_set();
+		BDMatchCoreAPI::start_process();
 		Task<int>^matchtask = gcnew Task<int>(gcnew Func<int>(this, &MyForm::match_input), TaskCreationOptions::LongRunning);
 		taskbar->ProgressState(TBPFLAG::TBPF_NORMAL);
 		matchtask->Start();
 	}
 	else {
 		cancel_source->Cancel();
-		keep_processing->clear();
+		BDMatchCoreAPI::stop_process();
 		setting->draw = draw_store;
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		match_control(true);
@@ -914,7 +928,7 @@ System::Void BDMatch::MyForm::MyForm_Load(System::Object ^ sender, System::Event
 	TextEditorPanel->Visible = false;
 	TextEditorPanel->Dock = System::Windows::Forms::DockStyle::Fill;
 	taskbar = new TaskBar(this->Handle.ToPointer());
-	BDMatchCoreAPI::new_BDMatchCore(keep_processing);
+	BDMatchCoreAPI::new_BDMatchCore();
 	return System::Void();
 }
 
@@ -922,7 +936,6 @@ System::Void BDMatch::MyForm::MyForm_FormClosing(System::Object ^ sender, System
 {
 	save_settings("settings.ini", setting);
 	delete taskbar;
-	delete keep_processing;
 	return System::Void();
 }
 

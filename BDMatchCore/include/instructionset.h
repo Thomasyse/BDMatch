@@ -5,7 +5,7 @@
 #include <array>
 #include <vector>
 
-class __declspec(dllexport) InstructionSet
+class InstructionSet
 {
 	// forward declarations  
 	class InstructionSet_Internal;

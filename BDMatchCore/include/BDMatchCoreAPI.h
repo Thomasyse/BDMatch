@@ -11,7 +11,7 @@ typedef void(__stdcall* prog_func)(int, double);
 typedef void(__stdcall* feedback_func)(const char*, const long long len);
 
 namespace BDMatchCoreAPI {
-	BDMatchCore_API int new_BDMatchCore(std::atomic_flag* keep_processing = nullptr);
+	BDMatchCore_API int new_BDMatchCore();
 	BDMatchCore_API int clear_data();
 	BDMatchCore_API int load_interface(const prog_func& prog_back = nullptr, const feedback_func& feed_func = nullptr);
 	BDMatchCore_API int load_settings(const int& isa_mode = 0, const int& fft_num = 512, const int& min_db = -14,
@@ -24,6 +24,11 @@ namespace BDMatchCoreAPI {
 	BDMatchCore_API int clear_match();
 	BDMatchCore_API size_t get_nb_timeline();
 	BDMatchCore_API int get_timeline(const int& index, const int& type);
-	BDMatchCore_API int get_decode_info(const Deocde_File& file, const Decode_Info& type);
-	BDMatchCore_API char** get_decode_spec(const Deocde_File& file);
+	BDMatchCore_API int get_decode_info(const Decode_File& file, const Decode_Info& type);
+	BDMatchCore_API char** get_decode_spec(const Decode_File& file);
+	BDMatchCore_API int search_ISA_mode();
+	BDMatchCore_API const char* get_CPU_brand();
+	BDMatchCore_API int start_process();
+	BDMatchCore_API int stop_process();
+	int cal_ISA_mode();
 }

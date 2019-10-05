@@ -137,7 +137,7 @@ int Matching::se_re::init()
 }
 
 
-Matching::Match::Match(language_pack& lang_pack0, std::atomic_flag* keep_processing0)
+Matching::Match::Match(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0)
 	:lang_pack(lang_pack0), keep_processing(keep_processing0) {
 }
 
@@ -215,7 +215,7 @@ int Matching::Match::load_ass(const std::string &ass_path0)
 	ass_path = ass_path0;
 	ifstream tv_ass_file(ass_path, ios::binary | ios::ate);
 	if (!tv_ass_file.is_open()) {
-		feedback += lang_pack.get_text(Match_ASS, 0);//"\r\n读取字幕文件失败!"
+		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 0);//"\r\n读取字幕文件失败!"
 		return -1;
 	}
 	auto ass_file_size = tv_ass_file.tellg();
@@ -226,7 +226,7 @@ int Matching::Match::load_ass(const std::string &ass_path0)
 	size_t event_pos = tv_ass_text.find("\r\n[Events]\r\n");
 	if (event_pos == -1) {
 		tv_ass_text = "";
-		feedback += lang_pack.get_text(Match_ASS, 1);//"\r\n输入字幕文件无效！"
+		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 1);//"\r\n输入字幕文件无效！"
 		return -1;
 	}
 	event_pos += 2;
@@ -278,7 +278,8 @@ int Matching::Match::load_ass(const std::string &ass_path0)
 			bd_time.emplace_back(-1);
 			timeline_list[size_t(nb_timeline) - 1].start(-1);
 			timeline_list[size_t(nb_timeline) - 1].end(-1);
-			feedback += lang_pack.get_text(Match_ASS, 2) + lang_pack.to_u16string(nb_timeline) + lang_pack.get_text(Match_ASS, 3);//"\r\n信息：第***行为注释，将不作处理。"
+			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 2) + lang_pack.to_u16string(nb_timeline) +
+				lang_pack.get_text(Lang_Type::Match_ASS, 3);//"\r\n信息：第***行为注释，将不作处理。"
 			continue;
 		}
 		if (end <= start) {
@@ -286,7 +287,8 @@ int Matching::Match::load_ass(const std::string &ass_path0)
 			bd_time.emplace_back(-1);
 			timeline_list[size_t(nb_timeline) - 1].start(-1);
 			timeline_list[size_t(nb_timeline) - 1].end(-1);
-			feedback += lang_pack.get_text(Match_ASS, 2) + lang_pack.to_u16string(nb_timeline) + lang_pack.get_text(Match_ASS, 4);//"\r\n信息：第***行时长为零，将不作处理。"
+			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 2) + lang_pack.to_u16string(nb_timeline) +
+				lang_pack.get_text(Lang_Type::Match_ASS, 4);//"\r\n信息：第***行时长为零，将不作处理。"
 			continue;
 		}
 		if (double(end) - double(start) > max_length * 100.0 * t2f) {
@@ -294,7 +296,8 @@ int Matching::Match::load_ass(const std::string &ass_path0)
 			bd_time.emplace_back(-1);
 			timeline_list[size_t(nb_timeline) - 1].start(-1);
 			timeline_list[size_t(nb_timeline) - 1].end(-1);
-			feedback += lang_pack.get_text(Match_ASS, 5) + lang_pack.to_u16string(nb_timeline) + lang_pack.get_text(Match_ASS, 6);//"\r\n警告：第***行时长过长，将不作处理。"
+			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(nb_timeline) + 
+				lang_pack.get_text(Lang_Type::Match_ASS, 6);//"\r\n警告：第***行时长过长，将不作处理。"
 			continue;
 		}
 		if (end >= tv_fft_samp_num || (end - find_range) > bd_fft_samp_num) {
@@ -302,7 +305,8 @@ int Matching::Match::load_ass(const std::string &ass_path0)
 			bd_time.emplace_back(-1);
 			timeline_list[size_t(nb_timeline) - 1].start(-1);
 			timeline_list[size_t(nb_timeline) - 1].end(-1);
-			feedback += lang_pack.get_text(Match_ASS, 5) + lang_pack.to_u16string(nb_timeline) + lang_pack.get_text(Match_ASS, 7);//"\r\n警告：第***行超过音频长度，将不作处理。"
+			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(nb_timeline) + 
+				lang_pack.get_text(Lang_Type::Match_ASS, 7);//"\r\n警告：第***行超过音频长度，将不作处理。"
 			continue;
 		}
 		int maxdb = -128;
@@ -316,7 +320,8 @@ int Matching::Match::load_ass(const std::string &ass_path0)
 			bd_time.emplace_back(-1);
 			timeline_list[size_t(nb_timeline) - 1].start(-1);
 			timeline_list[size_t(nb_timeline) - 1].end(-1);
-			feedback += lang_pack.get_text(Match_ASS, 5) + lang_pack.to_u16string(nb_timeline) + lang_pack.get_text(Match_ASS, 8);//"\r\n警告：第***行声音过小，将不作处理。"
+			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(nb_timeline) + 
+				lang_pack.get_text(Lang_Type::Match_ASS, 8);//"\r\n警告：第***行声音过小，将不作处理。"
 			continue;
 		}
 		bool existed = false;
@@ -351,7 +356,7 @@ int Matching::Match::match()
 	int offset = 0; int fivesec = 0; int lastlinetime = 0;
 	if (fast_match) {
 		fivesec = static_cast<int>(500 * t2f);
-		feedback += lang_pack.get_text(Match_ASS, 9);//"\r\n信息：使用快速匹配。"
+		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 9);//"\r\n信息：使用快速匹配。"
 	}
 	for (long long i = 0; i < nb_timeline; i++) {
 		if (tv_time[i] >= 0) {
@@ -460,7 +465,7 @@ int Matching::Match::match()
 			if (debug_mode) {
 				int delta1 = bd_se.find(besttime, 1);
 				if (delta1 > deb_info.maxdelta)deb_info.maxdelta = delta1;
-				feedback += lang_pack.get_text(General, 0) + lang_pack.to_u16string(delta1);//"\r\n delta"
+				feedback += lang_pack.get_text(Lang_Type::General, 0) + lang_pack.to_u16string(delta1);//"\r\n delta"
 				double foundindex = bd_se.find(besttime, 0) / (double)find_num;
 				deb_info.aveindex = deb_info.aveindex + foundindex;
 				if (foundindex > deb_info.maxindex&&duration > 75 * interval) {
@@ -488,11 +493,11 @@ int Matching::Match::match()
 	if (debug_mode) {
 		deb_info.aveindex /= static_cast<double>(nb_timeline) / 100.0;
 		deb_info.maxindex *= 100;
-		feedback += lang_pack.get_text(Match_ASS, 10) + lang_pack.to_u16string(deb_info.aveindex) +
-			lang_pack.get_text(Match_ASS, 11) + //"\r\nAverage Found Index = ***%    "
-			lang_pack.get_text(Match_ASS, 12) + lang_pack.to_u16string(deb_info.maxindex) + 
-			lang_pack.get_text(Match_ASS, 13) + //"Max Found Index= ***%\r\nMax Found Line= "
-			lang_pack.to_u16string(deb_info.maxline) + lang_pack.get_text(Match_ASS, 14) + 
+		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 10) + lang_pack.to_u16string(deb_info.aveindex) +
+			lang_pack.get_text(Lang_Type::Match_ASS, 11) + //"\r\nAverage Found Index = ***%    "
+			lang_pack.get_text(Lang_Type::Match_ASS, 12) + lang_pack.to_u16string(deb_info.maxindex) + 
+			lang_pack.get_text(Lang_Type::Match_ASS, 13) + //"Max Found Index= ***%\r\nMax Found Line= "
+			lang_pack.to_u16string(deb_info.maxline) + lang_pack.get_text(Lang_Type::Match_ASS, 14) + 
 			lang_pack.to_u16string(deb_info.maxdelta);//"***    Max Delta= ***"
 	}
 	return 0;
@@ -520,8 +525,9 @@ int Matching::Match::output(const std::string &output_path)
 			int check_feedback = check_feedbacks[line_num];
 			check_feedbacks[i] = check_feedback;
 			if (check_feedback > 0)
-				feedback += lang_pack.get_text(Match_ASS, 5) + lang_pack.to_u16string(i + 1) + lang_pack.get_text(Match_ASS, 15)
-				+ lang_pack.to_u16string(line_num + 1) + lang_pack.get_text(Match_ASS, 16);//"\r\n警告：第***行（与第***行时间相同）可能存在匹配错误!";
+				feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(i + 1) +
+				lang_pack.get_text(Lang_Type::Match_ASS, 15) + lang_pack.to_u16string(line_num + 1) + 
+				lang_pack.get_text(Lang_Type::Match_ASS, 16);//"\r\n警告：第***行（与第***行时间相同）可能存在匹配错误!";
 			continue;
 		}
 		int temp = 0;
@@ -541,16 +547,16 @@ int Matching::Match::output(const std::string &output_path)
 		}
 		switch (check) {
 		case 1:
-			feedback += lang_pack.get_text(Match_ASS, 5) + lang_pack.to_u16string(i + 1) + lang_pack.get_text(Match_ASS, 17);
-			//"\r\n警告：第***行可能存在匹配错误：与前一行次序不一致！"
+			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(i + 1) +
+				lang_pack.get_text(Lang_Type::Match_ASS, 17);//"\r\n警告：第***行可能存在匹配错误：与前一行次序不一致！"
 			break;
 		case 2:
-			feedback += lang_pack.get_text(Match_ASS, 5) + lang_pack.to_u16string(i + 1) + lang_pack.get_text(Match_ASS, 18);
-			//"\r\n警告：第***行可能存在匹配错误：与后一行次序不一致！"
+			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(i + 1) + 
+				lang_pack.get_text(Lang_Type::Match_ASS, 18);//"\r\n警告：第***行可能存在匹配错误：与后一行次序不一致！"
 			break;
 		case 3:
-			feedback += lang_pack.get_text(Match_ASS, 5) + lang_pack.to_u16string(i + 1) + lang_pack.get_text(Match_ASS, 19);
-			//"\r\n警告：第***行可能存在匹配错误：与前后行时差不一致！"
+			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(i + 1) + 
+				lang_pack.get_text(Lang_Type::Match_ASS, 19);//"\r\n警告：第***行可能存在匹配错误：与前后行时差不一致！"
 			break;
 		}
 		check_feedbacks[i] = check;
@@ -565,9 +571,9 @@ int Matching::Match::output(const std::string &output_path)
 				if (i < nb_timeline - 1 && timeline_list[i].end() > bd_time[i + 1]
 					&& (timeline_list[i].end() - bd_time[i + 1]) <= overlap_interval) {
 					timeline_list[i].end(bd_time[i + 1]);
-					feedback += lang_pack.get_text(Match_ASS, 2) + lang_pack.to_u16string(i + 1) + lang_pack.get_text(Match_ASS, 20) +
-						lang_pack.to_u16string(i + 2) + lang_pack.get_text(Match_ASS, 21);
-					//"\r\n信息：第***行和第***行发生微小重叠，已自动修正。";
+					feedback += lang_pack.get_text(Lang_Type::Match_ASS, 2) + lang_pack.to_u16string(i + 1) +
+						lang_pack.get_text(Lang_Type::Match_ASS, 20) +	lang_pack.to_u16string(i + 2) +
+						lang_pack.get_text(Lang_Type::Match_ASS, 21);//"\r\n信息：第***行和第***行发生微小重叠，已自动修正。";
 				}
 			}
 			else {
@@ -587,18 +593,19 @@ int Matching::Match::output(const std::string &output_path)
 	}
 	fstream output_file(output_path, ios::out | ios::trunc);
 	if (!output_file.is_open()) {
-		feedback += lang_pack.get_text(Match_ASS, 22);//"\r\n打开输出字幕文件失败!"
+		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 22);//"\r\n打开输出字幕文件失败!"
 		return -1;
 	}
 	if (!(output_file << head + content)) {
-		feedback += lang_pack.get_text(Match_ASS, 23);//"\r\n写入字幕文件失败!"
+		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 23);//"\r\n写入字幕文件失败!"
 		return -1;
 	}
 	long endclock = clock();
 	double spend = (double(endclock) - double(startclock)) / (double)CLOCKS_PER_SEC;
 	string spend_str = lang_pack.to_u16string(spend);
 	spend_str = spend_str.substr(0, spend_str.find_last_of('.') + 8);
-	feedback += lang_pack.get_text(Match_ASS, 24) + spend_str + lang_pack.get_text(General, 3);//"\r\n匹配时间：***秒"
+	feedback += lang_pack.get_text(Lang_Type::Match_ASS, 24) + spend_str + 
+		lang_pack.get_text(Lang_Type::General, 3);//"\r\n匹配时间：***秒"
 	if (prog_single)prog_single(3, 1.0);
 	return 0;
 }

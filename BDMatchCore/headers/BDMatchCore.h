@@ -9,7 +9,7 @@ typedef void(__stdcall* feedback_func)(const char*, const long long len);
 
 class BDMatchCore {
 public:
-	BDMatchCore(std::atomic_flag* keep_processing0 = nullptr);
+	BDMatchCore();
 	~BDMatchCore();
 	int clear_data();
 	int load_interface(const prog_func& prog_back0 = nullptr, const feedback_func& feed_func0 = nullptr);
@@ -23,8 +23,11 @@ public:
 	int clear_match();
 	size_t get_nb_timeline();
 	int get_timeline(const int& index, const int& type);
-	int get_decode_info(const Deocde_File& file, const Decode_Info& type);
-	char** get_decode_spec(const Deocde_File& file);
+	int get_decode_info(const Decode_File& file, const Decode_Info& type);
+	char** get_decode_spec(const Decode_File& file);
+	int initialize_cancel_token();
+	int start_process();
+	int stop_process();
 private:
 	language_pack lang_pack;//language pack
 	int feedback_tv(const std::string& tv_path);
@@ -34,7 +37,7 @@ private:
 	std::unique_ptr<Decode::Decode> tv_decode;
 	std::unique_ptr<Decode::Decode> bd_decode;
 	std::unique_ptr<Matching::Match> match;
-	std::atomic_flag* const keep_processing;//multithreading cancel token
+	std::shared_ptr<std::atomic_flag> keep_processing = nullptr;//multithreading cancel token
 	prog_func prog_back = nullptr;
 	feedback_func feed_func = nullptr;
 	int isa_mode = 0;

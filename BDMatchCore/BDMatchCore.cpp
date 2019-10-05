@@ -51,8 +51,8 @@ int match{
 }
 */
 
-BDMatchCore::BDMatchCore(std::atomic_flag *keep_processing0)
-	:keep_processing(keep_processing0) {
+BDMatchCore::BDMatchCore()
+{
 }
 BDMatchCore::~BDMatchCore()
 {
@@ -210,7 +210,7 @@ int BDMatchCore::match_1(const char *ass_path0)
 			tv_decode->get_file_name(), bd_decode->get_file_name(), bd_decode->get_audio_only());
 		re = match->load_ass(ass_path);
 		if (feed_func) {
-			std::string tmp = lang_pack.get_text(Core, 5);
+			std::string tmp = lang_pack.get_text(Lang_Type::Core, 5);
 			feed_func(tmp.c_str(), tmp.length());//"\r\nASS文件："
 			feed_func(ass_path.substr(ass_path.find_last_of("\\") + 1).c_str(), -1);
 		}
@@ -263,26 +263,26 @@ int BDMatchCore::get_timeline(const int & index, const int & type)
 	else return -1;
 }
 
-int BDMatchCore::get_decode_info(const Deocde_File & file, const Decode_Info & type)
+int BDMatchCore::get_decode_info(const Decode_File & file, const Decode_Info & type)
 {
 	Decode::Decode *decode_ptr;
-	if (file == BD_Decode)decode_ptr = bd_decode.get();
+	if (file == Decode_File::BD_Decode)decode_ptr = bd_decode.get();
 	else decode_ptr = tv_decode.get();
 	if (!decode_ptr)return -1;
 	switch (type) {
-	case Channels:
+	case Decode_Info::Channels:
 		return decode_ptr->get_channels();
 		break;
-	case FFT_Samp_Num:
+	case Decode_Info::FFT_Samp_Num:
 		return decode_ptr->get_fft_samp_num();
 		break;
-	case Milisec:
+	case Decode_Info::Milisec:
 		return decode_ptr->get_milisec();
 		break;
-	case Samp_Rate:
+	case Decode_Info::Samp_Rate:
 		return decode_ptr->get_samp_rate();
 		break;
-	case FFT_Num:
+	case Decode_Info::FFT_Num:
 		return decode_ptr->get_fft_num();
 		break;
 	default:
@@ -290,27 +290,45 @@ int BDMatchCore::get_decode_info(const Deocde_File & file, const Decode_Info & t
 	}
 	return 0;
 }
-char ** BDMatchCore::get_decode_spec(const Deocde_File & file)
+char ** BDMatchCore::get_decode_spec(const Decode_File & file)
 {
 	Decode::Decode *decode_ptr;
-	if (file == TV_Decode)decode_ptr = tv_decode.get();
+	if (file == Decode_File::TV_Decode)decode_ptr = tv_decode.get();
 	else decode_ptr = bd_decode.get();
 	if (!decode_ptr)return nullptr;
 	else return decode_ptr->get_fft_spec();
+}
+
+int BDMatchCore::initialize_cancel_token()
+{
+	keep_processing = std::make_shared<std::atomic_flag>();
+	keep_processing->test_and_set();
+	return 0;
+}
+int BDMatchCore::start_process()
+{
+	keep_processing->test_and_set();
+	return 0;
+}
+int BDMatchCore::stop_process()
+{
+	keep_processing->clear();
+	return 0;
 }
 
 int BDMatchCore::feedback_tv(const std::string& tv_path)
 {
 	if (feed_func) {
 		std::string feedback = "";
-		feedback = lang_pack.get_text(General, 0) + lang_pack.get_text(Core, 0) + lang_pack.get_text(General, 1);//"\r\nTV文件：  "
+		feedback = lang_pack.get_text(Lang_Type::General, 0) + lang_pack.get_text(Lang_Type::Core, 0) +
+			lang_pack.get_text(Lang_Type::General, 1);//"\r\nTV文件：  "
 		feed_func(feedback.c_str(), feedback.length());
 		feed_func(tv_path.substr(tv_path.find_last_of("\\") + 1).c_str(), -1);
-		feedback = lang_pack.get_text(General, 0) + tv_decode->get_feedback();//"\r\n tv_feedback"
+		feedback = lang_pack.get_text(Lang_Type::General, 0) + tv_decode->get_feedback();//"\r\n tv_feedback"
 		if (vol_match) {
 			std::string vol = lang_pack.to_u16string(10.0 * log10(tv_decode->get_avg_vol()));
 			vol = vol.substr(0, vol.find_last_of('.') + 6);
-			feedback += lang_pack.get_text(Core, 2) + vol + lang_pack.get_text(Core, 3);//"   响度：**.*dB"
+			feedback += lang_pack.get_text(Lang_Type::Core, 2) + vol + lang_pack.get_text(Lang_Type::Core, 3);//"   响度：**.*dB"
 		}
 		feed_func(feedback.c_str(), feedback.length());
 	}
@@ -320,16 +338,18 @@ int BDMatchCore::feedback_bd(const std::string& bd_path, const double& bd_pre_av
 {
 	if (feed_func) {
 		std::string feedback = "";
-		feedback = lang_pack.get_text(General, 0) + lang_pack.get_text(Core, 1) + lang_pack.get_text(General, 1);//"\r\nBD文件：  "
+		feedback = lang_pack.get_text(Lang_Type::General, 0) + lang_pack.get_text(Lang_Type::Core, 1) + 
+			lang_pack.get_text(Lang_Type::General, 1);//"\r\nBD文件：  "
 		feed_func(feedback.c_str(), feedback.length());
 		feed_func(bd_path.substr(bd_path.find_last_of("\\") + 1).c_str(), -1);
-		feedback = lang_pack.get_text(General, 0) + bd_decode->get_feedback();//"\r\n bd_feedback"
+		feedback = lang_pack.get_text(Lang_Type::General, 0) + bd_decode->get_feedback();//"\r\n bd_feedback"
 		if (vol_match) {
 			std::string vol = lang_pack.to_u16string(10.0 * log10(bd_pre_avg_vol));
 			vol = vol.substr(0, vol.find_last_of('.') + 6);
 			std::string vol2 = lang_pack.to_u16string(10.0 * log10(bd_decode->get_avg_vol()));
 			vol2 = vol2.substr(0, vol2.find_last_of('.') + 6);
-			feedback += lang_pack.get_text(Core, 2) + vol + lang_pack.get_text(General, 2) + vol2 + lang_pack.get_text(Core, 3);//"   响度：**.*->**.*dB"
+			feedback += lang_pack.get_text(Lang_Type::Core, 2) + vol + lang_pack.get_text(Lang_Type::General, 2) +
+				vol2 + lang_pack.get_text(Lang_Type::Core, 3);//"   响度：**.*->**.*dB"
 		}
 		feed_func(feedback.c_str(), feedback.length());
 	}
@@ -341,7 +361,8 @@ int BDMatchCore::feedback_time(const double& spend)
 		std::string feedback = "";
 		std::string spend_str = lang_pack.to_u16string(spend);
 		spend_str = spend_str.substr(0, spend_str.find_last_of('.') + 8);
-		feedback += lang_pack.get_text(General, 0) + lang_pack.get_text(Core, 4) + spend_str + lang_pack.get_text(General, 3);//"\r\n解码时间：**.***秒"
+		feedback += lang_pack.get_text(Lang_Type::General, 0) + lang_pack.get_text(Lang_Type::Core, 4) +
+			spend_str + lang_pack.get_text(Lang_Type::General, 3);//"\r\n解码时间：**.***秒"
 		feed_func(feedback.c_str(), feedback.length());
 	}
 	return 0;

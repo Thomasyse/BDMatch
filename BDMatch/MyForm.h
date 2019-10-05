@@ -3,7 +3,6 @@
 #include "Settings.h"
 #pragma unmanaged
 #include "headers/user interface.h"
-#include <atomic>
 #pragma managed
 
 namespace BDMatch {
@@ -59,9 +58,7 @@ namespace BDMatch {
 		String^ output_path = "";
 		bool debug_mode = false;
 		System::Threading::CancellationTokenSource^ cancel_source;
-		int ISA_mode = 0;
 		TaskBar *taskbar;
-		std::atomic_flag *keep_processing = new std::atomic_flag;
 
 	private: System::Windows::Forms::Button^ Match;
 	private: System::Windows::Forms::Button^ TVfind;
@@ -90,7 +87,7 @@ namespace BDMatch {
 
 	private: System::Windows::Forms::SplitContainer^  splitContainer1;
 	private: System::Windows::Forms::TrackBar^  TimeRoll;
-	private: System::Windows::Forms::PictureBox^  Spectrum;
+
 	private: System::Windows::Forms::TableLayoutPanel^  tableLayoutPanel2;
 	private: System::Windows::Forms::Label^  ChartTime;
 	private: System::Windows::Forms::ComboBox^  ChSelect;
@@ -143,7 +140,6 @@ namespace BDMatch {
 			this->SingleProgress = (gcnew System::Windows::Forms::ProgressBar());
 			this->splitContainer1 = (gcnew System::Windows::Forms::SplitContainer());
 			this->TimeRoll = (gcnew System::Windows::Forms::TrackBar());
-			this->Spectrum = (gcnew System::Windows::Forms::PictureBox());
 			this->tableLayoutPanel2 = (gcnew System::Windows::Forms::TableLayoutPanel());
 			this->ViewSel = (gcnew System::Windows::Forms::ComboBox());
 			this->label4 = (gcnew System::Windows::Forms::Label());
@@ -160,10 +156,8 @@ namespace BDMatch {
 			this->AllTablePanel->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->splitContainer1))->BeginInit();
 			this->splitContainer1->Panel1->SuspendLayout();
-			this->splitContainer1->Panel2->SuspendLayout();
 			this->splitContainer1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->TimeRoll))->BeginInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->Spectrum))->BeginInit();
 			this->tableLayoutPanel2->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->LineSel))->BeginInit();
 			this->TextEditorPanel->SuspendLayout();
@@ -455,10 +449,6 @@ namespace BDMatch {
 			// splitContainer1.Panel1
 			// 
 			this->splitContainer1->Panel1->Controls->Add(this->TimeRoll);
-			// 
-			// splitContainer1.Panel2
-			// 
-			this->splitContainer1->Panel2->Controls->Add(this->Spectrum);
 			this->splitContainer1->Size = System::Drawing::Size(938, 287);
 			this->splitContainer1->SplitterDistance = 30;
 			this->splitContainer1->TabIndex = 21;
@@ -475,16 +465,6 @@ namespace BDMatch {
 			this->TimeRoll->TabIndex = 0;
 			this->TimeRoll->TickFrequency = 100;
 			this->TimeRoll->Scroll += gcnew System::EventHandler(this, &MyForm::TimeRoll_Scroll);
-			// 
-			// Spectrum
-			// 
-			this->Spectrum->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->Spectrum->Location = System::Drawing::Point(0, 0);
-			this->Spectrum->Name = L"Spectrum";
-			this->Spectrum->Size = System::Drawing::Size(938, 253);
-			this->Spectrum->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
-			this->Spectrum->TabIndex = 0;
-			this->Spectrum->TabStop = false;
 			// 
 			// tableLayoutPanel2
 			// 
@@ -677,11 +657,9 @@ namespace BDMatch {
 			this->AllTablePanel->PerformLayout();
 			this->splitContainer1->Panel1->ResumeLayout(false);
 			this->splitContainer1->Panel1->PerformLayout();
-			this->splitContainer1->Panel2->ResumeLayout(false);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->splitContainer1))->EndInit();
 			this->splitContainer1->ResumeLayout(false);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->TimeRoll))->EndInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->Spectrum))->EndInit();
 			this->tableLayoutPanel2->ResumeLayout(false);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->LineSel))->EndInit();
 			this->TextEditorPanel->ResumeLayout(false);

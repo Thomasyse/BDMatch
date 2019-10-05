@@ -2,6 +2,7 @@
 #include "datastruct.h"
 #include <atomic>
 #include <string>
+#include <memory>
 #include "language_pack.h"
 extern"C" {
 #include "libavcodec/avcodec.h"
@@ -45,7 +46,7 @@ namespace Decode {
 	class Decode
 	{
 	public:
-		Decode(language_pack& lang_pack0, std::atomic_flag* keep_processing0 = nullptr);
+		Decode(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr);
 		~Decode();
 		int load_settings(const int &fft_num0, const bool &output_pcm0, const int &min_db0, 
 			const int &resamp_rate0, const int &prog_type0,	fftw_plan plan0, const prog_func &prog_single0 = nullptr);
@@ -73,7 +74,7 @@ namespace Decode {
 			int &nb_last, const int &nb_samples);
 		virtual int FFT(DataStruct::node** nodes, double** in, int fft_index, const int nb_fft);
 		virtual int FD8(double* inseq, DataStruct::node* outseq);
-		std::atomic_flag * const keep_processing;//multithreading cancel token
+		std::shared_ptr<std::atomic_flag> const keep_processing;//multithreading cancel token
 		//language pack
 		language_pack& lang_pack;
 		//settings
@@ -117,7 +118,7 @@ namespace Decode {
 
 	class Decode_SSE :public Decode {
 	public:
-		Decode_SSE(language_pack& lang_pack0, std::atomic_flag* keep_processing0 = nullptr)
+		Decode_SSE(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr)
 			:Decode(lang_pack0, keep_processing0) {}
 		int FFT(DataStruct::node** nodes, double** in, int fft_index, const int nb_fft);
 		int FD8(double* inseq, DataStruct::node* outseq);
@@ -125,7 +126,7 @@ namespace Decode {
 
 	class Decode_AVX :public Decode {
 	public:
-		Decode_AVX(language_pack& lang_pack0, std::atomic_flag* keep_processing0 = nullptr)
+		Decode_AVX(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr)
 			:Decode(lang_pack0, keep_processing0) {}
 		int FFT(DataStruct::node** nodes, double** in, int fft_index, const int nb_fft);
 		int FD8(double* inseq, DataStruct::node* outseq);
@@ -133,7 +134,7 @@ namespace Decode {
 
 	class Decode_AVX2 :public Decode {
 	public:
-		Decode_AVX2(language_pack& lang_pack0, std::atomic_flag *keep_processing0 = nullptr)
+		Decode_AVX2(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr)
 			:Decode(lang_pack0, keep_processing0) {}
 		int normalize(uint8_t ** const &audiodata, double ** &normalized_samples, double ** &seqs,
 			int &nb_last, const int &nb_samples);

@@ -68,7 +68,7 @@ namespace Matching {
 
 	class Match {
 	public:
-		Match(language_pack& lang_pack0, std::atomic_flag* keep_processing0 = nullptr);
+		Match(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr);
 		~Match();
 		int load_settings(const int &min_check_num0, const int &find_field0, const int &ass_offset0, 
 			const int &max_length0,
@@ -92,7 +92,7 @@ namespace Matching {
 			const int check_field, se_re *re);
 		debug_info deb_info;//debug info in matching
 		prog_func prog_single = nullptr;//func_ptr for progress bar
-		std::atomic_flag * const keep_processing;//multithreading cancel token
+		std::shared_ptr<std::atomic_flag> const keep_processing;//multithreading cancel token
 		language_pack& lang_pack;//language pack
 		long startclock = 0;//timing
 		//ass info and data
@@ -131,7 +131,7 @@ namespace Matching {
 
 	class Match_SSE : public Match {
 	public:
-		Match_SSE(language_pack& lang_pack0, std::atomic_flag* keep_processing0 = nullptr)
+		Match_SSE(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr)
 			:Match(lang_pack0, keep_processing0) {}
 		int caldiff(const int tv_start, const int se_start, const int se_end, const int min_check_num,
 			const int check_field, se_re *re);
@@ -139,7 +139,7 @@ namespace Matching {
 
 	class Match_AVX2 : public Match {
 	public:
-		Match_AVX2(language_pack& lang_pack0, std::atomic_flag* keep_processing0 = nullptr)
+		Match_AVX2(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr)
 			:Match(lang_pack0, keep_processing0) {}
 		int caldiff(const int tv_start, const int se_start, const int se_end, const int min_check_num,
 			const int check_field, se_re *re);

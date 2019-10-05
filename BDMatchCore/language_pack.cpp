@@ -4,16 +4,16 @@ std::string language_pack::get_text(const Lang_Type& type, const int& index)
 {
 	std::u16string str = u"";
 	switch (type) {
-	case General:
+	case Lang_Type::General:
 		str = general_texts[index];
 		break;
-	case Core:
+	case Lang_Type::Core:
 		str = match_core_texts[index];
 		break;
-	case Decoder:
+	case Lang_Type::Decoder:
 		str = decoder_texts[index];
 		break;
-	case Match_ASS:
+	case Lang_Type::Match_ASS:
 		str = match_texts[index];
 		break;
 	default:

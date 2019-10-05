@@ -10,7 +10,7 @@
 
 class fixed_thread_pool {
 public:
-	explicit fixed_thread_pool(size_t thread_count, std::atomic_flag *keep_processing0 = nullptr)
+	explicit fixed_thread_pool(size_t thread_count, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr)
 		: data_(std::make_shared<data>()) {
 		data_->keep_processing = keep_processing0;
 		for (size_t i = 0; i < thread_count; ++i) {
@@ -97,7 +97,7 @@ private:
 		std::condition_variable cond_;
 		std::condition_variable fin_;
 		std::atomic<size_t> task_num_ = 0;
-		std::atomic_flag *keep_processing = nullptr;
+		std::shared_ptr<std::atomic_flag> keep_processing = nullptr;
 		bool is_shutdown_ = false;
 		std::queue<std::function<void()>> tasks_;
 	};

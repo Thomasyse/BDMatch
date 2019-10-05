@@ -2,7 +2,7 @@
 #include<string>
 #include<vector>
 
-enum Lang_Type { General, Core, Decoder, Match_ASS };
+enum class Lang_Type { General, Core, Decoder, Match_ASS };
 
 class language_pack {
 public:
