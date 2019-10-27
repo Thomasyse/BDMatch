@@ -223,7 +223,8 @@ int Matching::Match::load_ass(const std::string &ass_path0)
 	tv_ass_file.seekg(0);
 	tv_ass_file.read(&tv_ass_text[0], ass_file_size);
 	tv_ass_file.close();
-	size_t event_pos = tv_ass_text.find("\r\n[Events]\r\n");
+	while (tv_ass_text.find("\r\n") != string::npos)tv_ass_text = tv_ass_text.replace(tv_ass_text.find("\r\n"), 2, "\n");
+	size_t event_pos = tv_ass_text.find("\n[Events]\n");
 	if (event_pos == -1) {
 		tv_ass_text = "";
 		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 1);//"\r\n输入字幕文件无效！"
@@ -233,17 +234,17 @@ int Matching::Match::load_ass(const std::string &ass_path0)
 	head = tv_ass_text.substr(0, event_pos);
 	content = tv_ass_text.substr(event_pos);
 	tv_ass_text = "";
-	regex regex_audio_file("Audio ((File)|(URI)): .*?\\r\\n");
-	regex regex_video_file("Video File: .*?\\r\\n");
+	regex regex_audio_file("Audio ((File)|(URI)): .*?\\n");
+	regex regex_video_file("Video File: .*?\\n");
 	head = regex_replace(head, regex_audio_file,
-		"Audio File: " + bd_file_name + "\r\n");
+		"Audio File: " + bd_file_name + "\n");
 	if (bd_audio_only)head = regex_replace(head, regex_video_file, "");
 	else head = regex_replace(head, regex_video_file,
-		"Video File: " + bd_file_name + "\r\n");
+		"Video File: " + bd_file_name + "\n");
 	//: 0,0:22:38.77,0:22:43.35
 	regex timeline_regex(
-		"\\r\\n[a-zA-Z]+: [0-9],[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},");
-	regex header_regex("\\r\\n[a-zA-Z]+: [0-9],");
+		"\\n[a-zA-Z]+: [0-9],[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},");
+	regex header_regex("\\n[a-zA-Z]+: [0-9],");
 	regex time_regex("[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2}");
 	smatch timeline_match;
 	string temp = content;
