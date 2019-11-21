@@ -26,6 +26,7 @@ For users of other platforms, [BDMatchCore](/BDMatchCore), including the core fu
 1. Windows 7 or newer
 2. CPU with AVX Instrinsics
 3. .Net Framework 4.5 or newer
+4. Microsoft Visual C++ Redistributable for Visual Studio 2019
 
 ### BDMatchCore Compilation:
 1. FFmpeg shared and dev builds
