@@ -27,6 +27,7 @@
 1. Windows 7或更高版本
 2. 带AVX指令集的CPU
 3. .Net Framework 4.5或更高版本
+4. Microsoft Visual C++ Redistributable for Visual Studio 2019
 
 ### BDMatchCore编译：
 1. FFmpeg共享和开发构建
