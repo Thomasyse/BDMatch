@@ -13,7 +13,7 @@ std::string language_pack::get_text(const Lang_Type& type, const int& index)
 	case Lang_Type::Decoder:
 		str = decoder_texts[index];
 		break;
-	case Lang_Type::Match_ASS:
+	case Lang_Type::Match_Sub:
 		str = match_texts[index];
 		break;
 	default:

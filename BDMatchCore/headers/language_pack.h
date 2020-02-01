@@ -2,7 +2,7 @@
 #include<string>
 #include<vector>
 
-enum class Lang_Type { General, Core, Decoder, Match_ASS };
+enum class Lang_Type { General, Core, Decoder, Match_Sub };
 
 class language_pack {
 public:
@@ -16,7 +16,7 @@ public:
 	std::string to_u16string<std::string>(std::string&& input);//only support ASCII characters!!
 private:
 	std::vector<std::u16string> general_texts = { u"\r\n", u"  ", u"->", u"秒" };
-	std::vector<std::u16string> match_core_texts = { u"TV文件：", u"BD文件：", u"   响度：", u"dB" , u"解码时间：", u"\r\nASS文件：" };
+	std::vector<std::u16string> match_core_texts = { u"TV文件：", u"BD文件：", u"   响度：", u"dB" , u"解码时间：", u"\r\n字幕文件：" };
 	std::vector<std::u16string> decoder_texts = { u"\r\n无法打开文件！", u"\r\n无法读取文件流信息！", u"\r\n无音频流！", u"\r\n无法找到音频的对应解码器！",
 		u"\r\n无法创建音频的解码器信息！", u"\r\n无法获取音频的解码器信息！", u"\r\n无法打开音频的对应解码器！", u"\r\n无法打开要写入的PCM文件！",
 		u"\r\n无法构建重采样环境！", u"\r\n无法初始化重采样环境！", u"\r\n无法为音频帧分配内存！", u"\r\n无法提交音频至解码器！", u"\r\n音频解码出错！",

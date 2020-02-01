@@ -25,6 +25,7 @@
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>BDMatch</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <TargetFramework>4.8</TargetFramework>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -132,7 +133,8 @@
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <EnableParallelCodeGeneration>
+      </EnableParallelCodeGeneration>
       <Optimization>MaxSpeed</Optimization>
       <FloatingPointModel>Precise</FloatingPointModel>
       <IntrinsicFunctions>false</IntrinsicFunctions>

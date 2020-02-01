@@ -24,6 +24,7 @@ namespace DataStruct {
 
 enum class Decode_File { TV_Decode, BD_Decode };
 enum class Decode_Info { Channels, FFT_Samp_Num, Milisec, Samp_Rate, FFT_Num };
+enum class Sub_Type { ASS, SRT };
 
 namespace Matching {
 	constexpr int Timeline_Start_Time = 0;

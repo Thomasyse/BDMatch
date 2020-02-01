@@ -7,7 +7,7 @@ namespace DataStruct1 {
 	public delegate void ProgressCallback(int type, double val = 0);
 	public delegate void FeedbackCallback(const char* input, const long long len);
 
-	enum SettingType { FFTNum, MinCheckNum, FindField, MinFinddB, MaxLength, AssOffset, OutputPCM, Draw, MatchAss, ParallelDecode, FastMatch, VolMatch };
+	enum SettingType { FFTNum, MinCheckNum, FindField, MinFinddB, MaxLength, SubOffset, OutputPCM, Draw, MatchAss, ParallelDecode, FastMatch, VolMatch };
 
 	public ref struct SettingVals {
 	public:
@@ -21,7 +21,7 @@ namespace DataStruct1 {
 		int find_field = 10;
 		int max_length = 20;
 		int min_check_num = 80;
-		int ass_offset = 0;
+		int sub_offset = 0;
 		bool output_pcm = false;
 		bool draw = false;
 		bool match_ass = true;

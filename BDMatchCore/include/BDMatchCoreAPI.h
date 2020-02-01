@@ -16,10 +16,10 @@ namespace BDMatchCoreAPI {
 	BDMatchCore_API int load_interface(const prog_func& prog_back = nullptr, const feedback_func& feed_func = nullptr);
 	BDMatchCore_API int load_settings(const int& isa_mode = 0, const int& fft_num = 512, const int& min_db = -14,
 		const bool& output_pcm = false, const bool& parallel_decode = false, const bool& vol_match = false,
-		const int& min_check_num = 100, const int& find_field = 10, const int& ass_offset = 0, const int& max_length = 20,
+		const int& min_check_num = 100, const int& find_field = 10, const int& sub_offset = 0, const int& max_length = 20,
 		const bool& match_ass = true, const bool& fast_match = false, const bool& debug_mode = false);
 	BDMatchCore_API int decode(const char* tv_path, const char* bd_path);
-	BDMatchCore_API int match_1(const char* ass_path);
+	BDMatchCore_API int match_1(const char* sub_path);
 	BDMatchCore_API int match_2(const char* output_path);
 	BDMatchCore_API int clear_match();
 	BDMatchCore_API size_t get_nb_timeline();

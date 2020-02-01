@@ -70,7 +70,7 @@ namespace Matching {
 	public:
 		Match(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr);
 		~Match();
-		int load_settings(const int &min_check_num0, const int &find_field0, const int &ass_offset0, 
+		int load_settings(const int &min_check_num0, const int &find_field0, const int &sub_offset0, 
 			const int &max_length0,
 			const bool &fast_match0, const bool &debug_mode0, const prog_func &prog_single0 = nullptr);
 		int load_decode_info(node ** const &tv_fft_data0, node ** const &bd_fft_data0,
@@ -78,7 +78,7 @@ namespace Matching {
 			const int &tv_milisec0, const int &bd_milisec0, const int &tv_samp_rate,
 			const std::string &tv_file_name0, const std::string &bd_file_name0, 
 			const bool &bd_audio_only0);
-		int load_ass(const std::string &ass_path0);//load ass file
+		int load_sub(const std::string &sub_path0);//load subtitle file
 		int match();//match ass lines
 		int output(const std::string &output_path);//write and check results at specific address
 		int output();//write and check results at auto address
@@ -86,6 +86,10 @@ namespace Matching {
 		int get_timeline(const int &line, const int &type);//return timeline info
 		std::string get_feedback();//return timeline info
 	protected:
+		int load_ass(const std::string& ass_path0);//load ass file
+		int load_srt(const std::string& srt_path0);//load srt file
+		int add_timeline(const int &start, const int &end, const bool &iscom, 
+			const std::string &header, const std::string &text);//add and check timeline
 		std::string cs2time(const int &cs0);
 		int time2cs(const std::string &time);
 		virtual int caldiff(const int tv_start, const int se_start, const int se_end, const int min_check_num,
@@ -95,9 +99,10 @@ namespace Matching {
 		std::shared_ptr<std::atomic_flag> const keep_processing;//multithreading cancel token
 		language_pack& lang_pack;//language pack
 		long startclock = 0;//timing
-		//ass info and data
-		std::string ass_path;
-		std::string tv_ass_text;
+		//sub info and data
+		Sub_Type sub_type = Sub_Type::ASS;
+		std::string sub_path;
+		std::string tv_sub_text;
 		std::string head, content;
 		std::vector<timeline> timeline_list;
 		long long nb_timeline = 0;
@@ -109,7 +114,7 @@ namespace Matching {
 		std::string tv_file_name, bd_file_name;
 		bool bd_audio_only = false;
 		//settings of matching
-		int find_field = 10, min_check_num = 200, ass_offset = 0, max_length = 20;
+		int find_field = 10, min_check_num = 200, sub_offset = 0, max_length = 20;
 		bool fast_match = false, debug_mode = false;
 		//vars for searching
 		bdsearch bd_se;

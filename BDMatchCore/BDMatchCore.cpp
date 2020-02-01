@@ -19,24 +19,24 @@ int match{
 	bool vol_match = false;//whether to match the volume of BD to TV, recommended true for large volume difference between TV and BD
 	int min_check_num = 100;//check times for match results, larger for precision, smaller for speed
 	int find_field = 10;//range for searching the results(-xx -> +xx), with the unit of second
-	int ass_offset = 0;//offset of the timeline of the ass file, with the unit of centisecond
+	int sub_offset = 0;//offset of the timeline of the ass file, with the unit of centisecond
 	int max_length = 20;//the max length of the timeline to be matched, with the unit of second
 	bool match_ass = true;//whether to match the ass
 	bool fast_match = false;//whether to match fast but perhaps lose some pecision
 	bool debug_mode = false;//whether to show some debug info
 	match_core->load_settings(isa_mode,fft_num,min_db,output_pcm, parallel_decode, vol_match,
-		min_check_num, find_field, ass_offset, max_length,
+		min_check_num, find_field, sub_offset, max_length,
 		match_ass, fast_match, debug_mode);
 	//decode
 	const char *tv_path = "TV file path";
 	const char *bd_path = "BD file path";
-	const char *ass_path = "ASS file path";
+	const char *sub_path = "subtitle file path";
 	const char *output_path = "output ASS file path";//"" for auto rename.
 	int re = 0;
 	re = match_core->decode(tv_path, bd_path);
 	if (re < 0) return re;
 	if (match_ass) {
-		re = match_core->match_1(ass_path);
+		re = match_core->match_1(sub_path);
 		if (re < 0) return re;
 		re = match_core->match_2(output_path);
 		if (re < 0) return re;
@@ -75,7 +75,7 @@ int BDMatchCore::load_interface(const prog_func & prog_back0, const feedback_fun
 
 int BDMatchCore::load_settings(const int &isa_mode0, const int &fft_num0, const int &min_db0,
 	const bool &output_pcm0, const bool &parallel_decode0, const bool &vol_match0, 
-	const int &min_check_num0, const int &find_field0, const int &ass_offset0, const int &max_length0,
+	const int &min_check_num0, const int &find_field0, const int &sub_offset0, const int &max_length0,
 	const bool &match_ass0, const bool &fast_match0, const bool &debug_mode0)
 {
 	isa_mode = isa_mode0;
@@ -86,7 +86,7 @@ int BDMatchCore::load_settings(const int &isa_mode0, const int &fft_num0, const 
 	parallel_decode = parallel_decode0;
 	min_check_num = min_check_num0;
 	find_field = find_field0;
-	ass_offset = ass_offset0;
+	sub_offset = sub_offset0;
 	max_length = max_length0;
 	match_ass = match_ass0;
 	fast_match = fast_match0;
@@ -190,9 +190,9 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 	return 0;
 }
 
-int BDMatchCore::match_1(const char *ass_path0)
+int BDMatchCore::match_1(const char *sub_path0)
 {
-	std::string ass_path = ass_path0;
+	std::string sub_path = sub_path0;
 	if (match_ass) {
 		if (!keep_processing->test_and_set()) {
 			keep_processing->clear();
@@ -202,17 +202,17 @@ int BDMatchCore::match_1(const char *ass_path0)
 		else if (isa_mode <= 2)match.reset(new Matching::Match_SSE(lang_pack, keep_processing));
 		else if (isa_mode == 3)match.reset(new Matching::Match_AVX2(lang_pack, keep_processing));
 		int re = 0;
-		match->load_settings(min_check_num, find_field, ass_offset, max_length,
+		match->load_settings(min_check_num, find_field, sub_offset, max_length,
 			fast_match, debug_mode, prog_back);
 		match->load_decode_info(tv_decode->get_fft_data(), bd_decode->get_fft_data(),
 			tv_decode->get_channels(), bd_decode->get_channels(), tv_decode->get_fft_samp_num(), bd_decode->get_fft_samp_num(),
 			tv_decode->get_milisec(), bd_decode->get_milisec(), tv_decode->get_samp_rate(),
 			tv_decode->get_file_name(), bd_decode->get_file_name(), bd_decode->get_audio_only());
-		re = match->load_ass(ass_path);
+		re = match->load_sub(sub_path);
 		if (feed_func) {
 			std::string tmp = lang_pack.get_text(Lang_Type::Core, 5);
-			feed_func(tmp.c_str(), tmp.length());//"\r\nASS文件："
-			feed_func(ass_path.substr(ass_path.find_last_of("\\") + 1).c_str(), -1);
+			feed_func(tmp.c_str(), tmp.length());//"\r\n字幕文件："
+			feed_func(sub_path.substr(sub_path.find_last_of("\\") + 1).c_str(), -1);
 		}
 		feedback_match();
 		if (re < 0) return re;

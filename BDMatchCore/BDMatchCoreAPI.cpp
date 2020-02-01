@@ -30,13 +30,13 @@ BDMatchCore_API int BDMatchCoreAPI::load_interface(const prog_func& prog_back, c
 
 BDMatchCore_API int BDMatchCoreAPI::load_settings(const int& isa_mode0, const int& fft_num, const int& min_db,
 	const bool& output_pcm, const bool& parallel_decode, const bool& vol_match, 
-	const int& min_check_num, const int& find_field, const int& ass_offset, const int& max_length, 
+	const int& min_check_num, const int& find_field, const int& sub_offset, const int& max_length,
 	const bool& match_ass, const bool& fast_match, const bool& debug_mode)
 {
 	if (isa_mode0 >= 0)ISA_mode = isa_mode0;
 	return match_core->load_settings(ISA_mode, fft_num, min_db, 
 		output_pcm, parallel_decode, vol_match, 
-		min_check_num, find_field, ass_offset, max_length, 
+		min_check_num, find_field, sub_offset, max_length,
 		match_ass, fast_match, debug_mode);
 }
 
@@ -45,9 +45,9 @@ BDMatchCore_API int BDMatchCoreAPI::decode(const char* tv_path, const char* bd_p
 	return match_core->decode(tv_path, bd_path);
 }
 
-BDMatchCore_API int BDMatchCoreAPI::match_1(const char* ass_path)
+BDMatchCore_API int BDMatchCoreAPI::match_1(const char* sub_path)
 {
-	return match_core->match_1(ass_path);
+	return match_core->match_1(sub_path);
 }
 
 BDMatchCore_API int BDMatchCoreAPI::match_2(const char* output_path)

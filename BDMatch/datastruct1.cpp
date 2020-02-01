@@ -12,7 +12,7 @@ DataStruct1::SettingVals::SettingVals(SettingVals ^ in)
 	find_field = in->find_field;
 	max_length = in->max_length;
 	min_check_num = in->min_check_num;
-	ass_offset = in->ass_offset;
+	sub_offset = in->sub_offset;
 	output_pcm = in->output_pcm;
 	draw = in->draw;
 	match_ass = in->match_ass;
@@ -39,8 +39,8 @@ String^ DataStruct1::SettingVals::getname(const SettingType &type)
 	case MinCheckNum:
 		name = "MinCheckNum";
 		break;
-	case AssOffset:
-		name = "AssOffset";
+	case SubOffset:
+		name = "SubOffset";
 		break;
 	case MatchAss:
 		name = "MatchAss";
@@ -84,8 +84,8 @@ int DataStruct1::SettingVals::getval(const SettingType & type)
 	case MinCheckNum:
 		val = min_check_num;
 		break;
-	case AssOffset:
-		val = ass_offset;
+	case SubOffset:
+		val = sub_offset;
 		break;
 	case MatchAss:
 		val = static_cast<int>(match_ass);
@@ -113,7 +113,6 @@ int DataStruct1::SettingVals::getval(const SettingType & type)
 }
 int DataStruct1::SettingVals::setval(const SettingType & type,int val)
 {
-	using namespace std;
 	switch (type) {
 	case FFTNum:
 		val = val > 64 ? val : 64;
@@ -140,8 +139,8 @@ int DataStruct1::SettingVals::setval(const SettingType & type,int val)
 		val = val < 100000000 ? val : 100000000;
 		min_check_num = val;
 		break;
-	case AssOffset:
-		ass_offset = val;
+	case SubOffset:
+		sub_offset = val;
 		break;
 	case OutputPCM:
 		output_pcm = static_cast<bool>(val);

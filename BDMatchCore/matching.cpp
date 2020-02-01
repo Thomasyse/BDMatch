@@ -7,6 +7,7 @@
 
 constexpr int tvmax_num = 12;
 constexpr int tvmin_num = 12;
+constexpr int allowed_offset = 2;
 
 using namespace DataStruct;
 using std::min;
@@ -149,13 +150,13 @@ Matching::Match::~Match()
 	diffa = nullptr;
 }
 
-int Matching::Match::load_settings(const int & min_check_num0, const int & find_field0, const int &ass_offset0,
+int Matching::Match::load_settings(const int & min_check_num0, const int & find_field0, const int &sub_offset0,
 	const int &max_length0,
 	const bool & fast_match0, const bool & debug_mode0, const prog_func &prog_single0)
 {
 	min_check_num = min_check_num0;
 	find_field = find_field0;
-	ass_offset = ass_offset0;
+	sub_offset = sub_offset0;
 	max_length = max_length0;
 	fast_match = fast_match0;
 	debug_mode = debug_mode0;
@@ -208,32 +209,100 @@ int Matching::Match::load_decode_info(node ** const & tv_fft_data0, node ** cons
 	return 0;
 }
 
+int Matching::Match::load_sub(const std::string &sub_path0)
+{
+	std::string ext_name = sub_path0.find_last_of('.') != std::string::npos ? 
+		sub_path0.substr(sub_path0.find_last_of('.')) : "";
+	std::transform(ext_name.begin(), ext_name.end(), ext_name.begin(),
+		[](unsigned char c) { return std::tolower(c); });
+	if (ext_name == ".srt") {
+		sub_type = Sub_Type::SRT;
+		return load_srt(sub_path0);
+	}
+	else return load_ass(sub_path0);
+	return 0;
+}
+int Matching::Match::load_srt(const std::string &srt_path0)
+{
+	using std::ios, std::regex, std::ifstream, std::smatch, std::string;
+	feedback = "";
+	sub_path = srt_path0;
+	ifstream tv_srt_file(sub_path, ios::binary | ios::ate);
+	if (!tv_srt_file.is_open()) {
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 0);//"\r\n读取字幕文件失败!"
+		return -1;
+	}
+	auto srt_file_size = tv_srt_file.tellg();
+	tv_sub_text.resize(srt_file_size, '\0');
+	tv_srt_file.seekg(0);
+	tv_srt_file.read(&tv_sub_text[0], srt_file_size);
+	tv_srt_file.close();
+	while (tv_sub_text.find("\r\n") != string::npos)tv_sub_text = tv_sub_text.replace(tv_sub_text.find("\r\n"), 2, "\n");
+	if (tv_sub_text.find(" --> ") == std::string::npos) {
+		tv_sub_text = "";
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 1);//"\r\n输入字幕文件无效！"
+		return -1;
+	}
+	head = "";
+	content = tv_sub_text;
+	tv_sub_text = "";
+	// 00:00:39,770 --> 00:00:41,880
+	regex timeline_regex(
+		"\\n[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3} --> [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\\n");
+	regex time_regex("[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}");
+	smatch timeline_match;
+	string temp = content;
+	timeline_list.reserve(srt_file_size / 40);
+	tv_time.reserve(srt_file_size / 40);
+	bd_time.reserve(srt_file_size / 40);
+	nb_timeline = 0;
+	while (regex_search(temp, timeline_match, timeline_regex)) {
+		string match = timeline_match.str();
+		string text = match;
+		temp = timeline_match.suffix();
+		nb_timeline++;
+		smatch time_match;
+		//time
+		int time[2] = { 0,0 };
+		for (int i = 0; i < 2; i++) {
+			regex_search(match, time_match, time_regex);
+			time[i] = time2cs(time_match.str());
+			match = time_match.suffix();
+			//cs to fft
+			time[i] = static_cast<int>(round(static_cast<double>(time[i])* t2f));
+		}
+		int start = time[0];
+		int end = time[1];
+		add_timeline(start, end, false, "", text);//neither comment nor header
+	}
+	return 0;
+}
 int Matching::Match::load_ass(const std::string &ass_path0)
 {
-	using namespace std;
+	using std::ios, std::regex, std::ifstream, std::smatch, std::string;
 	feedback = "";
-	ass_path = ass_path0;
-	ifstream tv_ass_file(ass_path, ios::binary | ios::ate);
+	sub_path = ass_path0;
+	ifstream tv_ass_file(sub_path, ios::binary | ios::ate);
 	if (!tv_ass_file.is_open()) {
-		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 0);//"\r\n读取字幕文件失败!"
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 0);//"\r\n读取字幕文件失败!"
 		return -1;
 	}
 	auto ass_file_size = tv_ass_file.tellg();
-	tv_ass_text.resize(ass_file_size, '\0');
+	tv_sub_text.resize(ass_file_size, '\0');
 	tv_ass_file.seekg(0);
-	tv_ass_file.read(&tv_ass_text[0], ass_file_size);
+	tv_ass_file.read(&tv_sub_text[0], ass_file_size);
 	tv_ass_file.close();
-	while (tv_ass_text.find("\r\n") != string::npos)tv_ass_text = tv_ass_text.replace(tv_ass_text.find("\r\n"), 2, "\n");
-	size_t event_pos = tv_ass_text.find("\n[Events]\n");
+	while (tv_sub_text.find("\r\n") != string::npos)tv_sub_text = tv_sub_text.replace(tv_sub_text.find("\r\n"), 2, "\n");
+	size_t event_pos = tv_sub_text.find("\n[Events]\n");
 	if (event_pos == -1) {
-		tv_ass_text = "";
-		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 1);//"\r\n输入字幕文件无效！"
+		tv_sub_text = "";
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 1);//"\r\n输入字幕文件无效！"
 		return -1;
 	}
 	event_pos += 2;
-	head = tv_ass_text.substr(0, event_pos);
-	content = tv_ass_text.substr(event_pos);
-	tv_ass_text = "";
+	head = tv_sub_text.substr(0, event_pos);
+	content = tv_sub_text.substr(event_pos);
+	tv_sub_text = "";
 	regex regex_audio_file("Audio ((File)|(URI)): .*?\\n");
 	regex regex_video_file("Video File: .*?\\n");
 	head = regex_replace(head, regex_audio_file,
@@ -273,74 +342,79 @@ int Matching::Match::load_ass(const std::string &ass_path0)
 		}
 		int start = time[0];
 		int end = time[1];
-		timeline_list.emplace_back(timeline(start, end, iscom, header, text));
-		if (iscom) {
-			tv_time.emplace_back(-1);
-			bd_time.emplace_back(-1);
-			timeline_list[size_t(nb_timeline) - 1].start(-1);
-			timeline_list[size_t(nb_timeline) - 1].end(-1);
-			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 2) + lang_pack.to_u16string(nb_timeline) +
-				lang_pack.get_text(Lang_Type::Match_ASS, 3);//"\r\n信息：第***行为注释，将不作处理。"
-			continue;
-		}
-		if (end <= start) {
-			tv_time.emplace_back(-1);
-			bd_time.emplace_back(-1);
-			timeline_list[size_t(nb_timeline) - 1].start(-1);
-			timeline_list[size_t(nb_timeline) - 1].end(-1);
-			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 2) + lang_pack.to_u16string(nb_timeline) +
-				lang_pack.get_text(Lang_Type::Match_ASS, 4);//"\r\n信息：第***行时长为零，将不作处理。"
-			continue;
-		}
-		if (double(end) - double(start) > max_length * 100.0 * t2f) {
-			tv_time.emplace_back(-1);
-			bd_time.emplace_back(-1);
-			timeline_list[size_t(nb_timeline) - 1].start(-1);
-			timeline_list[size_t(nb_timeline) - 1].end(-1);
-			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(nb_timeline) + 
-				lang_pack.get_text(Lang_Type::Match_ASS, 6);//"\r\n警告：第***行时长过长，将不作处理。"
-			continue;
-		}
-		if (end >= tv_fft_samp_num || (end - find_range) > bd_fft_samp_num) {
-			tv_time.emplace_back(-1);
-			bd_time.emplace_back(-1);
-			timeline_list[size_t(nb_timeline) - 1].start(-1);
-			timeline_list[size_t(nb_timeline) - 1].end(-1);
-			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(nb_timeline) + 
-				lang_pack.get_text(Lang_Type::Match_ASS, 7);//"\r\n警告：第***行超过音频长度，将不作处理。"
-			continue;
-		}
-		int maxdb = -128;
-		for (int j = start; j <= end; j++) {
-			if (tv_fft_data[0][j].maxv() > maxdb) {
-				maxdb = tv_fft_data[0][j].maxv();
-			}
-		}
-		if (maxdb <= -128) {
-			tv_time.emplace_back(-1);
-			bd_time.emplace_back(-1);
-			timeline_list[size_t(nb_timeline) - 1].start(-1);
-			timeline_list[size_t(nb_timeline) - 1].end(-1);
-			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(nb_timeline) + 
-				lang_pack.get_text(Lang_Type::Match_ASS, 8);//"\r\n警告：第***行声音过小，将不作处理。"
-			continue;
-		}
-		bool existed = false;
-		int same_line;
-		for (same_line = 0; same_line < nb_timeline - 1; same_line++) {
-			if (start == tv_time[same_line] && end == timeline_list[same_line].end()) {
-				existed = true;
-				break;
-			}
-		}
-		if (existed) {
-			tv_time.emplace_back(-same_line - 2);
-			bd_time.emplace_back(-same_line - 2);
-			continue;
-		}
-		tv_time.emplace_back(start);
-		bd_time.emplace_back(0);
+		add_timeline(start, end, iscom, header, text);
 	}
+	return 0;
+}
+int Matching::Match::add_timeline(const int &start, const int &end, const bool &iscom, const std::string &header, const std::string &text)
+{
+	timeline_list.emplace_back(timeline(start, end, iscom, header, text));
+	if (iscom) {
+		tv_time.emplace_back(-1);
+		bd_time.emplace_back(-1);
+		timeline_list[size_t(nb_timeline) - 1].start(-1);
+		timeline_list[size_t(nb_timeline) - 1].end(-1);
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 2) + lang_pack.to_u16string(nb_timeline) +
+			lang_pack.get_text(Lang_Type::Match_Sub, 3);//"\r\n信息：第***行为注释，将不作处理。"
+		return -1;
+	}
+	if (end <= start) {
+		tv_time.emplace_back(-1);
+		bd_time.emplace_back(-1);
+		timeline_list[size_t(nb_timeline) - 1].start(-1);
+		timeline_list[size_t(nb_timeline) - 1].end(-1);
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 2) + lang_pack.to_u16string(nb_timeline) +
+			lang_pack.get_text(Lang_Type::Match_Sub, 4);//"\r\n信息：第***行时长为零，将不作处理。"
+		return -1;
+	}
+	if (double(end) - double(start) > max_length * 100.0 * t2f) {
+		tv_time.emplace_back(-1);
+		bd_time.emplace_back(-1);
+		timeline_list[size_t(nb_timeline) - 1].start(-1);
+		timeline_list[size_t(nb_timeline) - 1].end(-1);
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + lang_pack.to_u16string(nb_timeline) +
+			lang_pack.get_text(Lang_Type::Match_Sub, 6);//"\r\n警告：第***行时长过长，将不作处理。"
+		return -1;
+	}
+	if (end >= tv_fft_samp_num || (end - find_range) > bd_fft_samp_num) {
+		tv_time.emplace_back(-1);
+		bd_time.emplace_back(-1);
+		timeline_list[size_t(nb_timeline) - 1].start(-1);
+		timeline_list[size_t(nb_timeline) - 1].end(-1);
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + lang_pack.to_u16string(nb_timeline) +
+			lang_pack.get_text(Lang_Type::Match_Sub, 7);//"\r\n警告：第***行超过音频长度，将不作处理。"
+		return -1;
+	}
+	int maxdb = -128;
+	for (int j = start; j <= end; j++) {
+		if (tv_fft_data[0][j].maxv() > maxdb) {
+			maxdb = tv_fft_data[0][j].maxv();
+		}
+	}
+	if (maxdb <= -128) {
+		tv_time.emplace_back(-1);
+		bd_time.emplace_back(-1);
+		timeline_list[size_t(nb_timeline) - 1].start(-1);
+		timeline_list[size_t(nb_timeline) - 1].end(-1);
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + lang_pack.to_u16string(nb_timeline) +
+			lang_pack.get_text(Lang_Type::Match_Sub, 8);//"\r\n警告：第***行声音过小，将不作处理。"
+		return -1;
+	}
+	bool existed = false;
+	int same_line;
+	for (same_line = 0; same_line < nb_timeline - 1; same_line++) {
+		if (start == tv_time[same_line] && end == timeline_list[same_line].end()) {
+			existed = true;
+			break;
+		}
+	}
+	if (existed) {
+		tv_time.emplace_back(-same_line - 2);
+		bd_time.emplace_back(-same_line - 2);
+		return -2;
+	}
+	tv_time.emplace_back(start);
+	bd_time.emplace_back(0);
 	return 0;
 }
 
@@ -357,7 +431,7 @@ int Matching::Match::match()
 	int offset = 0; int fivesec = 0; int lastlinetime = 0;
 	if (fast_match) {
 		fivesec = static_cast<int>(500 * t2f);
-		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 9);//"\r\n信息：使用快速匹配。"
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 9);//"\r\n信息：使用快速匹配。"
 	}
 	for (long long i = 0; i < nb_timeline; i++) {
 		if (tv_time[i] >= 0) {
@@ -494,11 +568,11 @@ int Matching::Match::match()
 	if (debug_mode) {
 		deb_info.aveindex /= static_cast<double>(nb_timeline) / 100.0;
 		deb_info.maxindex *= 100;
-		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 10) + lang_pack.to_u16string(deb_info.aveindex) +
-			lang_pack.get_text(Lang_Type::Match_ASS, 11) + //"\r\nAverage Found Index = ***%    "
-			lang_pack.get_text(Lang_Type::Match_ASS, 12) + lang_pack.to_u16string(deb_info.maxindex) + 
-			lang_pack.get_text(Lang_Type::Match_ASS, 13) + //"Max Found Index= ***%\r\nMax Found Line= "
-			lang_pack.to_u16string(deb_info.maxline) + lang_pack.get_text(Lang_Type::Match_ASS, 14) + 
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 10) + lang_pack.to_u16string(deb_info.aveindex) +
+			lang_pack.get_text(Lang_Type::Match_Sub, 11) + //"\r\nAverage Found Index = ***%    "
+			lang_pack.get_text(Lang_Type::Match_Sub, 12) + lang_pack.to_u16string(deb_info.maxindex) + 
+			lang_pack.get_text(Lang_Type::Match_Sub, 13) + //"Max Found Index= ***%\r\nMax Found Line= "
+			lang_pack.to_u16string(deb_info.maxline) + lang_pack.get_text(Lang_Type::Match_Sub, 14) + 
 			lang_pack.to_u16string(deb_info.maxdelta);//"***    Max Delta= ***"
 	}
 	return 0;
@@ -506,7 +580,7 @@ int Matching::Match::match()
 
 int Matching::Match::output(const std::string &output_path)
 {
-	using namespace std;
+	using std::vector, std::string, std::fstream, std::ios;
 	feedback = "";
 	//check feedbacks
 	vector<int>time_diff(nb_timeline);
@@ -526,9 +600,9 @@ int Matching::Match::output(const std::string &output_path)
 			int check_feedback = check_feedbacks[line_num];
 			check_feedbacks[i] = check_feedback;
 			if (check_feedback > 0)
-				feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(i + 1) +
-				lang_pack.get_text(Lang_Type::Match_ASS, 15) + lang_pack.to_u16string(line_num + 1) + 
-				lang_pack.get_text(Lang_Type::Match_ASS, 16);//"\r\n警告：第***行（与第***行时间相同）可能存在匹配错误!";
+				feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + lang_pack.to_u16string(i + 1) +
+				lang_pack.get_text(Lang_Type::Match_Sub, 15) + lang_pack.to_u16string(line_num + 1) + 
+				lang_pack.get_text(Lang_Type::Match_Sub, 16);//"\r\n警告：第***行（与第***行时间相同）可能存在匹配错误!";
 			continue;
 		}
 		int temp = 0;
@@ -538,31 +612,31 @@ int Matching::Match::output(const std::string &output_path)
 			temp = tv_time[i] - tv_time[i - 1] >= 0 ? 1 : -1;
 			temp *= bd_time[i] - bd_time[i - 1] >= 0 ? 1 : -1;
 			if (temp < 0) check = 1;
-			if (labs(time_diff[i] - time_diff[i - 1]) > 3 * interval) check2 = false;
+			if (labs(time_diff[i] - time_diff[i - 1]) > allowed_offset * interval) check2 = false;
 		}
 		if (check == 0 && i < nb_timeline - 1 && tv_time[i + 1] != -1) {
 			temp = tv_time[i + 1] - tv_time[i] >= 0 ? 1 : -1;
 			temp *= bd_time[i + 1] - bd_time[i] >= 0 ? 1 : -1;
 			if (temp < 0) check = 2;
-			if (labs(time_diff[i] - time_diff[i + 1]) > 3 * interval && !check2) check = 3;
+			if (labs(time_diff[i] - time_diff[i + 1]) > allowed_offset * interval && !check2) check = 3;
 		}
 		switch (check) {
 		case 1:
-			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(i + 1) +
-				lang_pack.get_text(Lang_Type::Match_ASS, 17);//"\r\n警告：第***行可能存在匹配错误：与前一行次序不一致！"
+			feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + lang_pack.to_u16string(i + 1) +
+				lang_pack.get_text(Lang_Type::Match_Sub, 17);//"\r\n警告：第***行可能存在匹配错误：与前一行次序不一致！"
 			break;
 		case 2:
-			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(i + 1) + 
-				lang_pack.get_text(Lang_Type::Match_ASS, 18);//"\r\n警告：第***行可能存在匹配错误：与后一行次序不一致！"
+			feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + lang_pack.to_u16string(i + 1) + 
+				lang_pack.get_text(Lang_Type::Match_Sub, 18);//"\r\n警告：第***行可能存在匹配错误：与后一行次序不一致！"
 			break;
 		case 3:
-			feedback += lang_pack.get_text(Lang_Type::Match_ASS, 5) + lang_pack.to_u16string(i + 1) + 
-				lang_pack.get_text(Lang_Type::Match_ASS, 19);//"\r\n警告：第***行可能存在匹配错误：与前后行时差不一致！"
+			feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + lang_pack.to_u16string(i + 1) + 
+				lang_pack.get_text(Lang_Type::Match_Sub, 19);//"\r\n警告：第***行可能存在匹配错误：与前后行时差不一致！"
 			break;
 		}
 		check_feedbacks[i] = check;
 	}
-	//write ass
+	//write subtitle
 	for (long long i = 0; i < nb_timeline; i++) {
 		if (tv_time[i] != -1) {
 			if (tv_time[i] >= 0) {
@@ -572,9 +646,9 @@ int Matching::Match::output(const std::string &output_path)
 				if (i < nb_timeline - 1 && timeline_list[i].end() > bd_time[i + 1]
 					&& (timeline_list[i].end() - bd_time[i + 1]) <= overlap_interval) {
 					timeline_list[i].end(bd_time[i + 1]);
-					feedback += lang_pack.get_text(Lang_Type::Match_ASS, 2) + lang_pack.to_u16string(i + 1) +
-						lang_pack.get_text(Lang_Type::Match_ASS, 20) +	lang_pack.to_u16string(i + 2) +
-						lang_pack.get_text(Lang_Type::Match_ASS, 21);//"\r\n信息：第***行和第***行发生微小重叠，已自动修正。";
+					feedback += lang_pack.get_text(Lang_Type::Match_Sub, 2) + lang_pack.to_u16string(i + 1) +
+						lang_pack.get_text(Lang_Type::Match_Sub, 20) +	lang_pack.to_u16string(i + 2) +
+						lang_pack.get_text(Lang_Type::Match_Sub, 21);//"\r\n信息：第***行和第***行发生微小重叠，已自动修正。";
 				}
 			}
 			else {
@@ -583,8 +657,17 @@ int Matching::Match::output(const std::string &output_path)
 			}
 			int start = static_cast<int>(round(static_cast<double>(timeline_list[i].start()) * f2t));
 			int end = static_cast<int>(round(static_cast<double>(timeline_list[i].end()) * f2t));
-			string replacetext = timeline_list[i].head() + cs2time(start) + "," + cs2time(end) + ",";
-			string former_text = timeline_list[i].former_text();
+			string replacetext, former_text;
+			switch (sub_type) {
+			case Sub_Type::ASS:
+				replacetext = timeline_list[i].head() + cs2time(start) + "," + cs2time(end) + ",";
+				break;
+			case Sub_Type::SRT:
+				replacetext = "\n" + cs2time(start) + " --> " + cs2time(end) + "\n";
+			default:
+				break;
+			}
+			former_text = timeline_list[i].former_text();
 			content = content.replace(content.find(former_text), former_text.length(), replacetext);
 		}
 		else {
@@ -592,27 +675,41 @@ int Matching::Match::output(const std::string &output_path)
 			timeline_list[i].end(-1);
 		}
 	}
+	//write file
 	fstream output_file(output_path, ios::out | ios::trunc);
 	if (!output_file.is_open()) {
-		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 22);//"\r\n打开输出字幕文件失败!"
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 22);//"\r\n打开输出字幕文件失败!"
 		return -1;
 	}
 	if (!(output_file << head + content)) {
-		feedback += lang_pack.get_text(Lang_Type::Match_ASS, 23);//"\r\n写入字幕文件失败!"
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 23);//"\r\n写入字幕文件失败!"
 		return -1;
 	}
 	long endclock = clock();
 	double spend = (double(endclock) - double(startclock)) / (double)CLOCKS_PER_SEC;
 	string spend_str = lang_pack.to_u16string(spend);
 	spend_str = spend_str.substr(0, spend_str.find_last_of('.') + 8);
-	feedback += lang_pack.get_text(Lang_Type::Match_ASS, 24) + spend_str + 
+	feedback += lang_pack.get_text(Lang_Type::Match_Sub, 24) + spend_str + 
 		lang_pack.get_text(Lang_Type::General, 3);//"\r\n匹配时间：***秒"
 	if (prog_single)prog_single(3, 1.0);
 	return 0;
 }
 int Matching::Match::output()
 {
-	std::string output_path = ass_path.substr(0, ass_path.find_last_of('.')) + ".matched.ass";
+	std::string output_path;
+	switch (sub_type) {
+	case Sub_Type::ASS:
+		output_path = sub_path.substr(0, sub_path.find_last_of('.')) + ".matched.ass";
+		break;
+	case Sub_Type::SRT:
+		output_path = sub_path.substr(0, sub_path.find_last_of('.')) + ".matched.srt";
+		break;
+	default:
+		output_path = sub_path.find_last_of('.') != std::string::npos ?
+			sub_path.substr(0, sub_path.find_last_of('.')) + ".matched" + sub_path.substr(sub_path.find_last_of('.'))
+			: sub_path + ".matched";
+		break;
+	}
 	output(output_path);
 	return 0;
 }
@@ -621,7 +718,7 @@ long long Matching::Match::get_nb_timeline()
 {
 	return nb_timeline;
 }
-int Matching::Match::get_timeline(const int & line, const int & type)
+int Matching::Match::get_timeline(const int &line, const int &type)
 {
 	switch (type) {
 	case Timeline_Start_Time:
@@ -640,7 +737,7 @@ std::string Matching::Match::get_feedback()
 	return feedback;
 }
 
-std::string Matching::Match::cs2time(const int & cs0)
+std::string Matching::Match::cs2time(const int &cs0)
 {
 	int hh, mm, ss, cs;
 	cs = cs0;
@@ -651,23 +748,52 @@ std::string Matching::Match::cs2time(const int & cs0)
 	ss = cs / 100;
 	cs -= ss * 100;
 	std::string timeout = "";
-	timeout += std::to_string(hh) + ":";
-	if (mm < 10)timeout += "0";
-	timeout += std::to_string(mm) + ":";
-	if (ss < 10)timeout += "0";
-	timeout += std::to_string(ss) + ".";
-	if (cs < 10)timeout += "0";
-	timeout += std::to_string(cs);
+	switch (sub_type) {
+	case Sub_Type::ASS:
+		timeout += std::to_string(hh) + ":";
+		if (mm < 10)timeout += "0";
+		timeout += std::to_string(mm) + ":";
+		if (ss < 10)timeout += "0";
+		timeout += std::to_string(ss) + ".";
+		if (cs < 10)timeout += "0";
+		timeout += std::to_string(cs);
+		break;
+	case Sub_Type::SRT:
+		if (hh < 10)timeout += "0";
+		timeout += std::to_string(hh) + ":";
+		if (mm < 10)timeout += "0";
+		timeout += std::to_string(mm) + ":";
+		if (ss < 10)timeout += "0";
+		timeout += std::to_string(ss) + ".";
+		if (cs < 10)timeout += "0";
+		timeout += std::to_string(cs) + "0";
+		break;
+	default:
+		break;
+	}
 	return timeout;
 }
-int Matching::Match::time2cs(const std::string & time)
+int Matching::Match::time2cs(const std::string &time)
 {
-	using namespace std;
-	int cs = atoi(&time[0])*360000;
-	cs += stoi(time.substr(2, 2)) * 6000;
-	cs += stoi(time.substr(5, 2)) * 100;
-	cs += stoi(time.substr(8, 2));
-	cs += ass_offset;
+	using std::stoi;
+	int cs = 0;
+	switch (sub_type) {
+	case Sub_Type::ASS:
+		cs += stoi(time.substr(0, 1)) * 360000;
+		cs += stoi(time.substr(2, 2)) * 6000;
+		cs += stoi(time.substr(5, 2)) * 100;
+		cs += stoi(time.substr(8, 2));
+		break;
+	case Sub_Type::SRT:
+		cs += stoi(time.substr(0, 2)) * 360000;
+		cs += stoi(time.substr(3, 2)) * 6000;
+		cs += stoi(time.substr(6, 2)) * 100;
+		cs += stoi(time.substr(9, 2));
+		break;
+	default:
+		break;
+	}
+	cs += sub_offset;
 	return cs;
 }
 

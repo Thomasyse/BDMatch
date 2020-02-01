@@ -15,11 +15,11 @@ public:
 	int load_interface(const prog_func& prog_back0 = nullptr, const feedback_func& feed_func0 = nullptr);
 	int load_settings(const int& isa_mode0 = 0, const int& fft_num0 = 512, const int& min_db0 = -14,
 		const bool& output_pcm0 = false, const bool& parallel_decode0 = false, const bool& vol_match0 = false,
-		const int& min_check_num0 = 100, const int& find_field0 = 10, const int& ass_offset0 = 0, const int& max_length0 = 20,
+		const int& min_check_num0 = 100, const int& find_field0 = 10, const int& sub_offset0 = 0, const int& max_length0 = 20,
 		const bool& match_ass0 = true, const bool& fast_match0 = false, const bool& debug_mode0 = false);
-	int decode(const char* tv_path, const char* bd_path);
-	int match_1(const char* ass_path);
-	int match_2(const char* output_path);
+	int decode(const char* tv_path0, const char* bd_path0);
+	int match_1(const char* sub_path0);
+	int match_2(const char* output_path0);
 	int clear_match();
 	size_t get_nb_timeline();
 	int get_timeline(const int& index, const int& type);
@@ -48,7 +48,7 @@ private:
 	bool parallel_decode = false;
 	int min_check_num = 100;
 	int find_field = 10;
-	int ass_offset = 0;
+	int sub_offset = 0;
 	int max_length = 20;
 	bool match_ass = true;
 	bool fast_match = false;

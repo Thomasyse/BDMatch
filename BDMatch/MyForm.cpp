@@ -5,7 +5,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.9"
+#define appversion "1.5.10"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -55,19 +55,19 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	bool vol_match = setting->vol_match;
 	int min_check_num = setting->min_check_num;
 	int find_field = setting->find_field;
-	int ass_offset = setting->ass_offset;
+	int sub_offset = setting->sub_offset;
 	int max_length = setting->max_length;
 	bool match_ass = setting->match_ass;
 	bool fast_match = setting->fast_match;
 	bool debug_mode0 = debug_mode;
 	BDMatchCoreAPI::load_settings(-1, fft_num, min_db, output_pcm, parallel_decode, vol_match,
-		min_check_num, find_field, ass_offset, max_length,
+		min_check_num, find_field, sub_offset, max_length,
 		match_ass, fast_match, debug_mode0);
 	//decode
 	marshal_context convert;
 	const char* tv_path = convert.marshal_as<const char*>(tvtext);
 	const char* bd_path = convert.marshal_as<const char*>(bdtext);
-	const char* ass_path = convert.marshal_as<const char*>(asstext);
+	const char* sub_path = convert.marshal_as<const char*>(asstext);
 	const char* output_path0 = convert.marshal_as<const char*>(output_path);
 	re = BDMatchCoreAPI::decode(tv_path, bd_path);
 	if (re < 0) {
@@ -75,7 +75,7 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		return re;
 	}
 	if (setting->match_ass) {
-		re = write_ass(ass_path, output_path0);
+		re = write_ass(sub_path, output_path0);
 	}
 	else {
 		prog_single(3, 0);
@@ -94,11 +94,11 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	return 0;
 }
 
-int BDMatch::MyForm::write_ass(const char* ass_path, const char* output_path)
+int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path)
 {
 	//
 	int re = 0;
-	re = BDMatchCoreAPI::match_1(ass_path);
+	re = BDMatchCoreAPI::match_1(sub_path);
 	if (re < 0) {
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;
@@ -471,7 +471,7 @@ int BDMatch::MyForm::match_input()
 
 	Result->Text = "";
 	search_ISA();
-	if (setting->ass_offset != 0)Result->Text += "\r\nASS时间偏置：延后 " + setting->ass_offset.ToString() + " 厘秒" + cut_off;
+	if (setting->sub_offset != 0)Result->Text += "\r\nASS时间偏置：延后 " + setting->sub_offset.ToString() + " 厘秒" + cut_off;
 	/*
 	ASStext->Text = "\"G:\\Movie\\[SFEO-Raws] Haruchika Haruta & Chika (BD 1080P x264 FLAC)\\\
 [SFEO-Raws] Haruchika Haruta & Chika - 03 (BD 1080P x264 FLAC).ass\"\
@@ -1134,7 +1134,7 @@ System::Void BDMatch::MyForm::ASStext_DragDrop(System::Object ^ sender, System::
 
 System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nThis binary distribution is under the GPLv3 license.\n\nBDMatch Project:\nCopyright (c) 2019, Thomasys\n\nDependencies:\nFFmpeg 4.2\nFFTW 3.3.7: " +
+	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nThis binary distribution is under the GPLv3 license.\n\nBDMatch Project:\nCopyright (c) 2019, Thomasys\n\nDependencies:\nFFmpeg 4.2.2\nFFTW 3.3.7: " +
 		"Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005). ", "关于", MessageBoxButtons::OK);
 	return System::Void();
 }

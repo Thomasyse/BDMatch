@@ -168,13 +168,13 @@ namespace BDMatch {
 			// 
 			this->AllTablePanel->ColumnCount = 4;
 			this->AllTablePanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
-				100)));
+				112)));
 			this->AllTablePanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
-				35)));
+				39)));
 			this->AllTablePanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
 				100)));
 			this->AllTablePanel->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
-				75)));
+				84)));
 			this->AllTablePanel->Controls->Add(this->TotalProgress, 0, 6);
 			this->AllTablePanel->Controls->Add(this->settings, 0, 4);
 			this->AllTablePanel->Controls->Add(this->ASStext, 1, 1);
@@ -194,29 +194,30 @@ namespace BDMatch {
 			this->AllTablePanel->Controls->Add(this->tableLayoutPanel2, 0, 8);
 			this->AllTablePanel->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->AllTablePanel->Location = System::Drawing::Point(0, 0);
+			this->AllTablePanel->Margin = System::Windows::Forms::Padding(3, 4, 3, 4);
 			this->AllTablePanel->Name = L"AllTablePanel";
 			this->AllTablePanel->RowCount = 9;
-			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 20)));
-			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 44)));
-			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 54)));
-			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 54)));
-			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 64)));
-			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 40)));
-			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 40)));
+			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 24)));
+			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 53)));
+			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 65)));
+			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 65)));
+			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 77)));
+			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 48)));
+			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 48)));
 			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 40)));
 			this->AllTablePanel->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 60)));
-			this->AllTablePanel->Size = System::Drawing::Size(1081, 803);
+			this->AllTablePanel->Size = System::Drawing::Size(1216, 964);
 			this->AllTablePanel->TabIndex = 4;
 			// 
 			// TotalProgress
 			// 
 			this->AllTablePanel->SetColumnSpan(this->TotalProgress, 4);
 			this->TotalProgress->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->TotalProgress->Location = System::Drawing::Point(5, 279);
-			this->TotalProgress->Margin = System::Windows::Forms::Padding(5, 3, 5, 3);
+			this->TotalProgress->Location = System::Drawing::Point(6, 336);
+			this->TotalProgress->Margin = System::Windows::Forms::Padding(6, 4, 6, 4);
 			this->TotalProgress->Maximum = 200;
 			this->TotalProgress->Name = L"TotalProgress";
-			this->TotalProgress->Size = System::Drawing::Size(1071, 34);
+			this->TotalProgress->Size = System::Drawing::Size(1204, 40);
 			this->TotalProgress->Step = 1;
 			this->TotalProgress->Style = System::Windows::Forms::ProgressBarStyle::Continuous;
 			this->TotalProgress->TabIndex = 18;
@@ -228,10 +229,10 @@ namespace BDMatch {
 			this->settings->BackColor = System::Drawing::Color::Transparent;
 			this->settings->Font = (gcnew System::Drawing::Font(L"微软雅黑", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->settings->Location = System::Drawing::Point(3, 209);
-			this->settings->Margin = System::Windows::Forms::Padding(3, 7, 5, 7);
+			this->settings->Location = System::Drawing::Point(3, 252);
+			this->settings->Margin = System::Windows::Forms::Padding(3, 8, 6, 8);
 			this->settings->Name = L"settings";
-			this->settings->Size = System::Drawing::Size(39, 20);
+			this->settings->Size = System::Drawing::Size(46, 24);
 			this->settings->TabIndex = 16;
 			this->settings->Text = L"设置";
 			this->settings->TextAlign = System::Drawing::ContentAlignment::BottomLeft;
@@ -246,11 +247,11 @@ namespace BDMatch {
 			this->ASStext->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->ASStext->Font = (gcnew System::Drawing::Font(L"微软雅黑", 10.8F));
 			this->ASStext->FormattingEnabled = true;
-			this->ASStext->Location = System::Drawing::Point(103, 25);
-			this->ASStext->Margin = System::Windows::Forms::Padding(3, 5, 0, 0);
+			this->ASStext->Location = System::Drawing::Point(115, 30);
+			this->ASStext->Margin = System::Windows::Forms::Padding(3, 6, 0, 0);
 			this->ASStext->MaxDropDownItems = 10;
 			this->ASStext->Name = L"ASStext";
-			this->ASStext->Size = System::Drawing::Size(903, 32);
+			this->ASStext->Size = System::Drawing::Size(1017, 38);
 			this->ASStext->TabIndex = 13;
 			this->ASStext->DragDrop += gcnew System::Windows::Forms::DragEventHandler(this, &MyForm::ASStext_DragDrop);
 			this->ASStext->DragEnter += gcnew System::Windows::Forms::DragEventHandler(this, &MyForm::ASStext_DragEnter);
@@ -260,10 +261,10 @@ namespace BDMatch {
 			this->BDfind->Dock = System::Windows::Forms::DockStyle::Left;
 			this->BDfind->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->BDfind->Location = System::Drawing::Point(1006, 133);
-			this->BDfind->Margin = System::Windows::Forms::Padding(0, 15, 18, 1);
+			this->BDfind->Location = System::Drawing::Point(1132, 160);
+			this->BDfind->Margin = System::Windows::Forms::Padding(0, 18, 20, 1);
 			this->BDfind->Name = L"BDfind";
-			this->BDfind->Size = System::Drawing::Size(38, 38);
+			this->BDfind->Size = System::Drawing::Size(43, 46);
 			this->BDfind->TabIndex = 11;
 			this->BDfind->Text = L"…";
 			this->BDfind->UseVisualStyleBackColor = true;
@@ -274,10 +275,10 @@ namespace BDMatch {
 			this->TVfind->Dock = System::Windows::Forms::DockStyle::Left;
 			this->TVfind->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->TVfind->Location = System::Drawing::Point(1006, 79);
-			this->TVfind->Margin = System::Windows::Forms::Padding(0, 15, 18, 1);
+			this->TVfind->Location = System::Drawing::Point(1132, 95);
+			this->TVfind->Margin = System::Windows::Forms::Padding(0, 18, 20, 1);
 			this->TVfind->Name = L"TVfind";
-			this->TVfind->Size = System::Drawing::Size(38, 38);
+			this->TVfind->Size = System::Drawing::Size(43, 46);
 			this->TVfind->TabIndex = 10;
 			this->TVfind->Text = L"…";
 			this->TVfind->UseVisualStyleBackColor = true;
@@ -290,10 +291,10 @@ namespace BDMatch {
 			this->About->BackColor = System::Drawing::Color::Transparent;
 			this->About->Font = (gcnew System::Drawing::Font(L"微软雅黑", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->About->Location = System::Drawing::Point(1024, 209);
-			this->About->Margin = System::Windows::Forms::Padding(3, 7, 5, 7);
+			this->About->Location = System::Drawing::Point(1150, 252);
+			this->About->Margin = System::Windows::Forms::Padding(3, 8, 6, 8);
 			this->About->Name = L"About";
-			this->About->Size = System::Drawing::Size(52, 20);
+			this->About->Size = System::Drawing::Size(60, 24);
 			this->About->TabIndex = 7;
 			this->About->Text = L"v0.0.0";
 			this->About->TextAlign = System::Drawing::ContentAlignment::BottomRight;
@@ -306,10 +307,10 @@ namespace BDMatch {
 			this->BDLabel->BackColor = System::Drawing::Color::Transparent;
 			this->BDLabel->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->BDLabel->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13));
-			this->BDLabel->Location = System::Drawing::Point(8, 125);
-			this->BDLabel->Margin = System::Windows::Forms::Padding(8, 7, 0, 0);
+			this->BDLabel->Location = System::Drawing::Point(9, 150);
+			this->BDLabel->Margin = System::Windows::Forms::Padding(9, 8, 0, 0);
 			this->BDLabel->Name = L"BDLabel";
-			this->BDLabel->Size = System::Drawing::Size(92, 47);
+			this->BDLabel->Size = System::Drawing::Size(103, 57);
 			this->BDLabel->TabIndex = 5;
 			this->BDLabel->Text = L"BD：";
 			this->BDLabel->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
@@ -320,10 +321,10 @@ namespace BDMatch {
 			this->TVLabel->BackColor = System::Drawing::Color::Transparent;
 			this->TVLabel->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->TVLabel->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13));
-			this->TVLabel->Location = System::Drawing::Point(8, 71);
-			this->TVLabel->Margin = System::Windows::Forms::Padding(8, 7, 0, 0);
+			this->TVLabel->Location = System::Drawing::Point(9, 85);
+			this->TVLabel->Margin = System::Windows::Forms::Padding(9, 8, 0, 0);
 			this->TVLabel->Name = L"TVLabel";
-			this->TVLabel->Size = System::Drawing::Size(92, 47);
+			this->TVLabel->Size = System::Drawing::Size(103, 57);
 			this->TVLabel->TabIndex = 3;
 			this->TVLabel->Text = L"TV：";
 			this->TVLabel->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
@@ -335,12 +336,12 @@ namespace BDMatch {
 			this->ASSLabel->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->ASSLabel->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->ASSLabel->Location = System::Drawing::Point(3, 20);
+			this->ASSLabel->Location = System::Drawing::Point(3, 24);
 			this->ASSLabel->Margin = System::Windows::Forms::Padding(3, 0, 0, 0);
 			this->ASSLabel->Name = L"ASSLabel";
-			this->ASSLabel->Size = System::Drawing::Size(97, 44);
+			this->ASSLabel->Size = System::Drawing::Size(109, 53);
 			this->ASSLabel->TabIndex = 0;
-			this->ASSLabel->Text = L"ASS：";
+			this->ASSLabel->Text = L"Sub：";
 			this->ASSLabel->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
 			this->ASSLabel->MouseDoubleClick += gcnew System::Windows::Forms::MouseEventHandler(this, &MyForm::ASSLabel_MouseDoubleClick);
 			// 
@@ -349,10 +350,10 @@ namespace BDMatch {
 			this->ASSfind->Dock = System::Windows::Forms::DockStyle::Left;
 			this->ASSfind->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->ASSfind->Location = System::Drawing::Point(1006, 24);
-			this->ASSfind->Margin = System::Windows::Forms::Padding(0, 4, 18, 2);
+			this->ASSfind->Location = System::Drawing::Point(1132, 29);
+			this->ASSfind->Margin = System::Windows::Forms::Padding(0, 5, 20, 2);
 			this->ASSfind->Name = L"ASSfind";
-			this->ASSfind->Size = System::Drawing::Size(38, 38);
+			this->ASSfind->Size = System::Drawing::Size(43, 46);
 			this->ASSfind->TabIndex = 2;
 			this->ASSfind->Text = L"…";
 			this->ASSfind->UseVisualStyleBackColor = true;
@@ -363,11 +364,11 @@ namespace BDMatch {
 			this->Match->Anchor = System::Windows::Forms::AnchorStyles::Top;
 			this->Match->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->Match->Location = System::Drawing::Point(493, 182);
-			this->Match->Margin = System::Windows::Forms::Padding(3, 10, 3, 3);
-			this->Match->MinimumSize = System::Drawing::Size(82, 43);
+			this->Match->Location = System::Drawing::Point(554, 219);
+			this->Match->Margin = System::Windows::Forms::Padding(3, 12, 3, 4);
+			this->Match->MinimumSize = System::Drawing::Size(92, 52);
 			this->Match->Name = L"Match";
-			this->Match->Size = System::Drawing::Size(155, 45);
+			this->Match->Size = System::Drawing::Size(174, 54);
 			this->Match->TabIndex = 8;
 			this->Match->Text = L"匹配";
 			this->Match->UseVisualStyleBackColor = true;
@@ -380,11 +381,11 @@ namespace BDMatch {
 			this->TVtext->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->TVtext->Font = (gcnew System::Drawing::Font(L"微软雅黑", 10.8F));
 			this->TVtext->FormattingEnabled = true;
-			this->TVtext->Location = System::Drawing::Point(103, 80);
-			this->TVtext->Margin = System::Windows::Forms::Padding(3, 16, 0, 0);
+			this->TVtext->Location = System::Drawing::Point(115, 96);
+			this->TVtext->Margin = System::Windows::Forms::Padding(3, 19, 0, 0);
 			this->TVtext->MaxDropDownItems = 10;
 			this->TVtext->Name = L"TVtext";
-			this->TVtext->Size = System::Drawing::Size(903, 32);
+			this->TVtext->Size = System::Drawing::Size(1017, 38);
 			this->TVtext->TabIndex = 4;
 			this->TVtext->DragDrop += gcnew System::Windows::Forms::DragEventHandler(this, &MyForm::TVtext_DragDrop);
 			this->TVtext->DragEnter += gcnew System::Windows::Forms::DragEventHandler(this, &MyForm::TVtext_DragEnter);
@@ -396,11 +397,11 @@ namespace BDMatch {
 			this->BDtext->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->BDtext->Font = (gcnew System::Drawing::Font(L"微软雅黑", 10.8F));
 			this->BDtext->FormattingEnabled = true;
-			this->BDtext->Location = System::Drawing::Point(103, 134);
-			this->BDtext->Margin = System::Windows::Forms::Padding(3, 16, 0, 0);
+			this->BDtext->Location = System::Drawing::Point(115, 161);
+			this->BDtext->Margin = System::Windows::Forms::Padding(3, 19, 0, 0);
 			this->BDtext->MaxDropDownItems = 10;
 			this->BDtext->Name = L"BDtext";
-			this->BDtext->Size = System::Drawing::Size(903, 32);
+			this->BDtext->Size = System::Drawing::Size(1017, 38);
 			this->BDtext->TabIndex = 9;
 			this->BDtext->DragDrop += gcnew System::Windows::Forms::DragEventHandler(this, &MyForm::BDtext_DragDrop);
 			this->BDtext->DragEnter += gcnew System::Windows::Forms::DragEventHandler(this, &MyForm::BDtext_DragEnter);
@@ -412,13 +413,13 @@ namespace BDMatch {
 			this->Result->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->Result->Font = (gcnew System::Drawing::Font(L"微软雅黑", 10.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->Result->Location = System::Drawing::Point(5, 321);
-			this->Result->Margin = System::Windows::Forms::Padding(5);
+			this->Result->Location = System::Drawing::Point(6, 386);
+			this->Result->Margin = System::Windows::Forms::Padding(6, 6, 6, 6);
 			this->Result->Multiline = true;
 			this->Result->Name = L"Result";
 			this->Result->ReadOnly = true;
 			this->Result->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
-			this->Result->Size = System::Drawing::Size(1071, 184);
+			this->Result->Size = System::Drawing::Size(1204, 221);
 			this->Result->TabIndex = 14;
 			this->Result->TextChanged += gcnew System::EventHandler(this, &MyForm::Result_TextChanged);
 			// 
@@ -427,11 +428,11 @@ namespace BDMatch {
 			this->SingleProgress->BackColor = System::Drawing::SystemColors::Control;
 			this->AllTablePanel->SetColumnSpan(this->SingleProgress, 4);
 			this->SingleProgress->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->SingleProgress->Location = System::Drawing::Point(5, 239);
-			this->SingleProgress->Margin = System::Windows::Forms::Padding(5, 3, 5, 3);
+			this->SingleProgress->Location = System::Drawing::Point(6, 288);
+			this->SingleProgress->Margin = System::Windows::Forms::Padding(6, 4, 6, 4);
 			this->SingleProgress->Maximum = 200;
 			this->SingleProgress->Name = L"SingleProgress";
-			this->SingleProgress->Size = System::Drawing::Size(1071, 34);
+			this->SingleProgress->Size = System::Drawing::Size(1204, 40);
 			this->SingleProgress->Step = 1;
 			this->SingleProgress->Style = System::Windows::Forms::ProgressBarStyle::Continuous;
 			this->SingleProgress->TabIndex = 15;
@@ -441,16 +442,17 @@ namespace BDMatch {
 			this->AllTablePanel->SetColumnSpan(this->splitContainer1, 2);
 			this->splitContainer1->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->splitContainer1->FixedPanel = System::Windows::Forms::FixedPanel::Panel1;
-			this->splitContainer1->Location = System::Drawing::Point(138, 513);
-			this->splitContainer1->Margin = System::Windows::Forms::Padding(3, 3, 5, 3);
+			this->splitContainer1->Location = System::Drawing::Point(154, 617);
+			this->splitContainer1->Margin = System::Windows::Forms::Padding(3, 4, 6, 4);
 			this->splitContainer1->Name = L"splitContainer1";
 			this->splitContainer1->Orientation = System::Windows::Forms::Orientation::Horizontal;
 			// 
 			// splitContainer1.Panel1
 			// 
 			this->splitContainer1->Panel1->Controls->Add(this->TimeRoll);
-			this->splitContainer1->Size = System::Drawing::Size(938, 287);
+			this->splitContainer1->Size = System::Drawing::Size(1056, 343);
 			this->splitContainer1->SplitterDistance = 30;
+			this->splitContainer1->SplitterWidth = 5;
 			this->splitContainer1->TabIndex = 21;
 			// 
 			// TimeRoll
@@ -459,9 +461,10 @@ namespace BDMatch {
 			this->TimeRoll->Enabled = false;
 			this->TimeRoll->LargeChange = 100;
 			this->TimeRoll->Location = System::Drawing::Point(0, 0);
+			this->TimeRoll->Margin = System::Windows::Forms::Padding(3, 4, 3, 4);
 			this->TimeRoll->Maximum = 200;
 			this->TimeRoll->Name = L"TimeRoll";
-			this->TimeRoll->Size = System::Drawing::Size(938, 30);
+			this->TimeRoll->Size = System::Drawing::Size(1056, 30);
 			this->TimeRoll->TabIndex = 0;
 			this->TimeRoll->TickFrequency = 100;
 			this->TimeRoll->Scroll += gcnew System::EventHandler(this, &MyForm::TimeRoll_Scroll);
@@ -479,17 +482,17 @@ namespace BDMatch {
 			this->tableLayoutPanel2->Controls->Add(this->label5, 0, 0);
 			this->tableLayoutPanel2->Controls->Add(this->LineSel, 0, 4);
 			this->tableLayoutPanel2->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->tableLayoutPanel2->Location = System::Drawing::Point(5, 513);
-			this->tableLayoutPanel2->Margin = System::Windows::Forms::Padding(5, 3, 3, 3);
+			this->tableLayoutPanel2->Location = System::Drawing::Point(6, 617);
+			this->tableLayoutPanel2->Margin = System::Windows::Forms::Padding(6, 4, 3, 4);
 			this->tableLayoutPanel2->Name = L"tableLayoutPanel2";
 			this->tableLayoutPanel2->RowCount = 6;
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 45)));
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 45)));
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 45)));
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 45)));
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 45)));
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 45)));
-			this->tableLayoutPanel2->Size = System::Drawing::Size(127, 287);
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 54)));
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 54)));
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 54)));
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 54)));
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 54)));
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 54)));
+			this->tableLayoutPanel2->Size = System::Drawing::Size(142, 343);
 			this->tableLayoutPanel2->TabIndex = 22;
 			// 
 			// ViewSel
@@ -499,9 +502,10 @@ namespace BDMatch {
 			this->ViewSel->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11.8F));
 			this->ViewSel->FormattingEnabled = true;
 			this->ViewSel->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"按时间", L"按行" });
-			this->ViewSel->Location = System::Drawing::Point(3, 138);
+			this->ViewSel->Location = System::Drawing::Point(3, 166);
+			this->ViewSel->Margin = System::Windows::Forms::Padding(3, 4, 3, 4);
 			this->ViewSel->Name = L"ViewSel";
-			this->ViewSel->Size = System::Drawing::Size(121, 35);
+			this->ViewSel->Size = System::Drawing::Size(136, 39);
 			this->ViewSel->TabIndex = 7;
 			this->ViewSel->SelectedIndexChanged += gcnew System::EventHandler(this, &MyForm::ViewSel_SelectedIndexChanged);
 			// 
@@ -510,9 +514,9 @@ namespace BDMatch {
 			this->label4->BackColor = System::Drawing::Color::Transparent;
 			this->label4->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->label4->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F));
-			this->label4->Location = System::Drawing::Point(3, 90);
+			this->label4->Location = System::Drawing::Point(3, 108);
 			this->label4->Name = L"label4";
-			this->label4->Size = System::Drawing::Size(121, 45);
+			this->label4->Size = System::Drawing::Size(136, 54);
 			this->label4->TabIndex = 6;
 			this->label4->Text = L"查看：";
 			this->label4->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
@@ -522,9 +526,9 @@ namespace BDMatch {
 			this->ChartTime->BackColor = System::Drawing::Color::Transparent;
 			this->ChartTime->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->ChartTime->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11.8F));
-			this->ChartTime->Location = System::Drawing::Point(3, 225);
+			this->ChartTime->Location = System::Drawing::Point(3, 270);
 			this->ChartTime->Name = L"ChartTime";
-			this->ChartTime->Size = System::Drawing::Size(121, 62);
+			this->ChartTime->Size = System::Drawing::Size(136, 73);
 			this->ChartTime->TabIndex = 5;
 			this->ChartTime->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			// 
@@ -535,9 +539,10 @@ namespace BDMatch {
 			this->ChSelect->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11.8F));
 			this->ChSelect->FormattingEnabled = true;
 			this->ChSelect->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"左", L"右" });
-			this->ChSelect->Location = System::Drawing::Point(3, 48);
+			this->ChSelect->Location = System::Drawing::Point(3, 58);
+			this->ChSelect->Margin = System::Windows::Forms::Padding(3, 4, 3, 4);
 			this->ChSelect->Name = L"ChSelect";
-			this->ChSelect->Size = System::Drawing::Size(121, 35);
+			this->ChSelect->Size = System::Drawing::Size(136, 39);
 			this->ChSelect->TabIndex = 4;
 			this->ChSelect->SelectedIndexChanged += gcnew System::EventHandler(this, &MyForm::ChSelect_SelectedIndexChanged);
 			// 
@@ -548,7 +553,7 @@ namespace BDMatch {
 			this->label5->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F));
 			this->label5->Location = System::Drawing::Point(3, 0);
 			this->label5->Name = L"label5";
-			this->label5->Size = System::Drawing::Size(121, 45);
+			this->label5->Size = System::Drawing::Size(136, 54);
 			this->label5->TabIndex = 2;
 			this->label5->Text = L"声道：";
 			this->label5->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
@@ -557,10 +562,11 @@ namespace BDMatch {
 			// 
 			this->LineSel->Enabled = false;
 			this->LineSel->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F));
-			this->LineSel->Location = System::Drawing::Point(3, 183);
+			this->LineSel->Location = System::Drawing::Point(3, 220);
+			this->LineSel->Margin = System::Windows::Forms::Padding(3, 4, 3, 4);
 			this->LineSel->Minimum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1, 0, 0, 0 });
 			this->LineSel->Name = L"LineSel";
-			this->LineSel->Size = System::Drawing::Size(120, 38);
+			this->LineSel->Size = System::Drawing::Size(135, 44);
 			this->LineSel->TabIndex = 8;
 			this->LineSel->Value = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1, 0, 0, 0 });
 			this->LineSel->ValueChanged += gcnew System::EventHandler(this, &MyForm::LineSel_ValueChanged);
@@ -573,9 +579,10 @@ namespace BDMatch {
 			// TextEditorPanel
 			// 
 			this->TextEditorPanel->Controls->Add(this->tableLayoutPanel1);
-			this->TextEditorPanel->Location = System::Drawing::Point(178, 0);
+			this->TextEditorPanel->Location = System::Drawing::Point(200, 0);
+			this->TextEditorPanel->Margin = System::Windows::Forms::Padding(3, 4, 3, 4);
 			this->TextEditorPanel->Name = L"TextEditorPanel";
-			this->TextEditorPanel->Size = System::Drawing::Size(138, 426);
+			this->TextEditorPanel->Size = System::Drawing::Size(155, 511);
 			this->TextEditorPanel->TabIndex = 5;
 			// 
 			// tableLayoutPanel1
@@ -584,7 +591,7 @@ namespace BDMatch {
 			this->tableLayoutPanel1->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
 				50)));
 			this->tableLayoutPanel1->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Absolute,
-				150)));
+				169)));
 			this->tableLayoutPanel1->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
 				50)));
 			this->tableLayoutPanel1->Controls->Add(this->EditorLabel, 0, 0);
@@ -592,12 +599,13 @@ namespace BDMatch {
 			this->tableLayoutPanel1->Controls->Add(this->TextEditor, 0, 1);
 			this->tableLayoutPanel1->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->tableLayoutPanel1->Location = System::Drawing::Point(0, 0);
+			this->tableLayoutPanel1->Margin = System::Windows::Forms::Padding(3, 4, 3, 4);
 			this->tableLayoutPanel1->Name = L"tableLayoutPanel1";
 			this->tableLayoutPanel1->RowCount = 3;
-			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 50)));
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 60)));
 			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 100)));
-			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 50)));
-			this->tableLayoutPanel1->Size = System::Drawing::Size(138, 426);
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 60)));
+			this->tableLayoutPanel1->Size = System::Drawing::Size(155, 511);
 			this->tableLayoutPanel1->TabIndex = 0;
 			// 
 			// EditorLabel
@@ -610,7 +618,7 @@ namespace BDMatch {
 			this->EditorLabel->Location = System::Drawing::Point(3, 0);
 			this->EditorLabel->Margin = System::Windows::Forms::Padding(3, 0, 0, 0);
 			this->EditorLabel->Name = L"EditorLabel";
-			this->EditorLabel->Size = System::Drawing::Size(135, 50);
+			this->EditorLabel->Size = System::Drawing::Size(152, 60);
 			this->EditorLabel->TabIndex = 1;
 			this->EditorLabel->Text = L"输入编辑";
 			this->EditorLabel->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
@@ -620,9 +628,10 @@ namespace BDMatch {
 			this->CompleteEdit->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->CompleteEdit->Font = (gcnew System::Drawing::Font(L"微软雅黑", 13.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->CompleteEdit->Location = System::Drawing::Point(-3, 379);
+			this->CompleteEdit->Location = System::Drawing::Point(-4, 455);
+			this->CompleteEdit->Margin = System::Windows::Forms::Padding(3, 4, 3, 4);
 			this->CompleteEdit->Name = L"CompleteEdit";
-			this->CompleteEdit->Size = System::Drawing::Size(144, 44);
+			this->CompleteEdit->Size = System::Drawing::Size(163, 52);
 			this->CompleteEdit->TabIndex = 2;
 			this->CompleteEdit->Text = L"完成";
 			this->CompleteEdit->UseVisualStyleBackColor = true;
@@ -634,21 +643,23 @@ namespace BDMatch {
 			this->TextEditor->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->TextEditor->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->TextEditor->Location = System::Drawing::Point(3, 53);
+			this->TextEditor->Location = System::Drawing::Point(3, 64);
+			this->TextEditor->Margin = System::Windows::Forms::Padding(3, 4, 3, 4);
 			this->TextEditor->Multiline = true;
 			this->TextEditor->Name = L"TextEditor";
 			this->TextEditor->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
-			this->TextEditor->Size = System::Drawing::Size(132, 320);
+			this->TextEditor->Size = System::Drawing::Size(149, 383);
 			this->TextEditor->TabIndex = 3;
 			// 
 			// MyForm
 			// 
-			this->AutoScaleDimensions = System::Drawing::SizeF(8, 15);
+			this->AutoScaleDimensions = System::Drawing::SizeF(9, 18);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(1081, 803);
+			this->ClientSize = System::Drawing::Size(1216, 964);
 			this->Controls->Add(this->TextEditorPanel);
 			this->Controls->Add(this->AllTablePanel);
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
+			this->Margin = System::Windows::Forms::Padding(3, 4, 3, 4);
 			this->Name = L"MyForm";
 			this->Text = L"BDMatch";
 			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &MyForm::MyForm_FormClosing);
@@ -680,7 +691,7 @@ namespace BDMatch {
 	private:
 		int match(String^ ASSText, String^ TVText, String^ BDText);
 		int draw_pre(); 
-		int BDMatch::MyForm::write_ass(const char* ass_path, const char* output_path);
+		int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path);
 		int draw_pre(const int &re);
 		int draw_chart();
 		String ^ ms2time(int ms);
