@@ -23,13 +23,13 @@
 
 ## 要求
 
-### Windows发行版：
+### Windows 发行版：
 1. Windows 7 或更高版本
 2. 带 AVX 指令集的 CPU
 3. .Net Framework 4.5 或更高版本
 4. Microsoft Visual C++ Redistributable for Visual Studio 2019
 
-### BDMatchCore编译：
+### BDMatchCore 编译：
 1. FFmpeg 共享和开发构建
 2. fftw 共享和开发构建
 3. 带 AVX 指令集的 CPU
