@@ -22,7 +22,7 @@ For users of other platforms, [BDMatchCore](/BDMatchCore), including the core fu
 
 ## Requirements
 
-### Windows releases:
+### Windows Releases:
 1. Windows 7 or newer
 2. CPU with AVX Instrinsics
 3. .Net Framework 4.5 or newer
