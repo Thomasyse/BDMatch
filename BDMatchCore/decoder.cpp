@@ -383,8 +383,15 @@ int Decode::Decode::decode_audio() {
 				if (vol_mode != 1) {
 					if (nb_fft_sample > 0) {
 						int fft_index = fft_samp_num;
-						fft_samp_num += nb_fft_sample;
-						pool.execute(std::bind(&Decode::Decode::FFT, this, fft_data, normalized_samples, fft_index, nb_fft_sample));
+						if (fft_index < e_fft_num) {
+							if (fft_index + nb_fft_sample > e_fft_num)nb_fft_sample = e_fft_num - fft_index;
+							fft_samp_num += nb_fft_sample;
+							pool.execute(std::bind(&Decode::Decode::FFT, this, fft_data, normalized_samples, fft_index, nb_fft_sample));
+						}
+						else {
+							delete[] normalized_samples;
+							normalized_samples = nullptr;
+						}
 					}
 				}
 				//输出pcm数据
@@ -806,7 +813,6 @@ int Decode::Decode::normalize(uint8_t ** const &audiodata, double **&normalized_
 		}
 	}
 	return nb_fft_samples;
-	return 0;
 }
 int Decode::Decode::FFT(DataStruct::node ** nodes, double ** in, int fft_index, const int nb_fft)
 {

@@ -5,7 +5,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.10"
+#define appversion "1.5.11"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
