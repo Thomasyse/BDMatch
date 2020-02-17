@@ -188,7 +188,6 @@ int Matching::Match::load_decode_info(node ** const & tv_fft_data0, node ** cons
 	tv_ch = tv_ch0;
 	bd_ch = bd_ch0;
 	ch = min(tv_ch, bd_ch);
-	ch = min(ch, 2);
 	//time of audio
 	tv_milisec = tv_milisec0;
 	bd_milisec = bd_milisec0;
@@ -803,7 +802,7 @@ int Matching::Match::caldiff(const int tv_start, const int se_start, const int s
 		return -1;
 	}
 	long long sum = 0;
-	char *tvdata[2], *bddata[2];
+	char* tvdata[8], * bddata[8];
 	for (int seindex = se_start; seindex < se_end; seindex++) {
 		int bdstart = bd_se.read(seindex);
 		sum = 0;
@@ -837,9 +836,6 @@ int Matching::Match::caldiff(const int tv_start, const int se_start, const int s
 			return -1;
 		}
 	}
-	for (int i = 0; i < ch; i++) {
-		tvdata[i] = bddata[i] = nullptr;
-	}
 	*re = feedback;
 	return 0;
 }
@@ -853,7 +849,7 @@ int Matching::Match_SSE::caldiff(const int tv_start, const int se_start, const i
 	}
 	long long sum = 0;
 	int vectornum = fft_size / 8;
-	char *tvdata[2], *bddata[2];
+	char* tvdata[8], * bddata[8];
 	__m128i tvvector, bdvector, difvector[2];
 	__m128i sumvector[2] = { _mm_setzero_si128(),_mm_setzero_si128() };
 	const __m128i w1vector = _mm_set1_epi16(129);
@@ -902,9 +898,6 @@ int Matching::Match_SSE::caldiff(const int tv_start, const int se_start, const i
 			return -1;
 		}
 	}
-	for (int i = 0; i < ch; i++) {
-		tvdata[i] = bddata[i] = nullptr;
-	}
 	*re = feedback;
 	return 0;
 }
@@ -918,7 +911,7 @@ int Matching::Match_AVX2::caldiff(const int tv_start, const int se_start, const 
 	}
 	long long sum = 0;
 	int vectornum = fft_size / 16;
-	__m128i *tvdata[2], *bddata[2];
+	__m128i* tvdata[8], * bddata[8];
 	__m256i tvvector, bdvector, difvector[2];
 	__m256i sumvector[2] = { _mm256_setzero_si256(),_mm256_setzero_si256() };
 	__m128i sumvector8[2];
@@ -972,9 +965,6 @@ int Matching::Match_AVX2::caldiff(const int tv_start, const int se_start, const 
 			*re = feedback;
 			return -1;
 		}
-	}
-	for (int i = 0; i < ch; i++) {
-		tvdata[i] = bddata[i] = nullptr;
 	}
 	*re = feedback;
 	return 0;

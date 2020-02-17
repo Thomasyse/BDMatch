@@ -95,6 +95,7 @@ namespace Decode {
 		int fft_samp_num = 0;
 		int e_fft_num = 0;
 		int channels = 0;//audio channels
+		int data_channels = 0;//audio data channels
 		int real_ch = 0;//Planar: channels, Linear: 1
 		long long start_time = 0;
 		bool audio_only = false;

@@ -5,7 +5,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.12"
+#define appversion "1.5.13"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -239,6 +239,10 @@ int BDMatch::MyForm::draw_chart()
 	}
 	int duration = tvend - tvstart + 1;
 
+	if (ChSelect->SelectedIndex > min(tv_draw.ch, bd_draw.ch) - 1) {
+		ChartTime->Text = "无该声道！";
+		return -1;
+	}
 	char* bd_spec_ch = bd_draw.spec[ChSelect->SelectedIndex];
 	char* tv_spec_ch = tv_draw.spec[ChSelect->SelectedIndex];
 	//create bitmap and set memory for data, fetch the pointer for future use

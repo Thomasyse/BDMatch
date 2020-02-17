@@ -414,7 +414,7 @@ namespace BDMatch {
 			this->Result->Font = (gcnew System::Drawing::Font(L"微软雅黑", 10.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
 			this->Result->Location = System::Drawing::Point(6, 386);
-			this->Result->Margin = System::Windows::Forms::Padding(6, 6, 6, 6);
+			this->Result->Margin = System::Windows::Forms::Padding(6);
 			this->Result->Multiline = true;
 			this->Result->Name = L"Result";
 			this->Result->ReadOnly = true;
@@ -538,7 +538,7 @@ namespace BDMatch {
 			this->ChSelect->Enabled = false;
 			this->ChSelect->Font = (gcnew System::Drawing::Font(L"微软雅黑", 11.8F));
 			this->ChSelect->FormattingEnabled = true;
-			this->ChSelect->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"左", L"右" });
+			this->ChSelect->Items->AddRange(gcnew cli::array< System::Object^  >(8) { L"左", L"右", L"3", L"4", L"5", L"6", L"7", L"8" });
 			this->ChSelect->Location = System::Drawing::Point(3, 58);
 			this->ChSelect->Margin = System::Windows::Forms::Padding(3, 4, 3, 4);
 			this->ChSelect->Name = L"ChSelect";

@@ -119,7 +119,7 @@ namespace Matching {
 		//vars for searching
 		bdsearch bd_se;
 		std::vector<int> tv_time, bd_time;
-		int ch = 2;
+		int ch = 0; // num of audio channels
 		int interval = 1; //search interval
 		int	overlap_interval = 1; //interval to judge overlap
 		int find_range = 10;

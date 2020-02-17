@@ -267,11 +267,11 @@ int Decode::Decode::decode_audio() {
 	}
 	//为频谱数据分配内存
 	if (vol_mode != 1) {
-		int chs = channels;
+		data_channels = std::min(channels, 8);
 		int spectrum_size = fft_num / 2;
-		fft_data = new node*[chs];
-		fft_spec = new char*[chs];
-		for (int i = 0; i < chs; i++) {
+		fft_data = new node*[data_channels];
+		fft_spec = new char*[data_channels];
+		for (int i = 0; i < data_channels; i++) {
 			fft_data[i] = new node[e_fft_num];
 			fft_spec[i] = new char[size_t(e_fft_num) * size_t(spectrum_size)];
 			char* index = fft_spec[i];
@@ -479,7 +479,7 @@ int Decode::Decode::get_milisec()
 }
 int Decode::Decode::get_channels()
 {
-	return channels;
+	return data_channels;
 }
 int Decode::Decode::get_samp_rate()
 {
@@ -532,7 +532,7 @@ void Decode::Decode::sub_prog_back(int type, double val)
 int Decode::Decode::clear_fft_data()
 {
 	if (fft_data) {
-		for (int i = 0; i < channels; i++) {
+		for (int i = 0; i < data_channels; i++) {
 			if (fft_data[i]) {
 				delete[] fft_data[i];
 				fft_data[i] = nullptr;
@@ -542,7 +542,7 @@ int Decode::Decode::clear_fft_data()
 		fft_data = nullptr;
 	}
 	if (fft_spec) {
-		for (int i = 0; i < channels; i++) {
+		for (int i = 0; i < data_channels; i++) {
 			if (fft_spec[i]) {
 				delete[] fft_spec[i];
 				fft_spec[i] = nullptr;
@@ -820,7 +820,7 @@ int Decode::Decode::FFT(DataStruct::node ** nodes, double ** in, int fft_index, 
 	double *out_d = (double*)fftw_malloc(sizeof(double)*fft_num / 2);
 	int fi_m = nb_fft * fft_num;
 	for (int fi = 0; fi < fi_m; fi += fft_num) {
-		for (int ch = 0; ch < channels; ch++) {
+		for (int ch = 0; ch < data_channels; ch++) {
 			fftw_execute_dft_r2c(plan, in[ch] + fi, out);
 			for (int i = 0; i < fft_num / 2; i++) {
 				double real = *(out + i)[0];
@@ -868,7 +868,7 @@ int Decode::Decode_SSE::FFT(DataStruct::node ** nodes, double ** in, int fft_ind
 	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*fft_num);
 	int fi_m = nb_fft * fft_num;
 	for (int fi = 0; fi < fi_m; fi += fft_num) {
-		for (int ch = 0; ch < channels; ch++) {
+		for (int ch = 0; ch < data_channels; ch++) {
 			fftw_execute_dft_r2c(plan, in[ch] + fi, out);
 			FD8(reinterpret_cast<double*>(out), nodes[ch] + fft_index);
 		}
@@ -920,7 +920,7 @@ int Decode::Decode_AVX::FFT(DataStruct::node ** nodes, double ** in, int fft_ind
 	int fi_m = nb_fft * fft_num;
 	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*fft_num);
 	for (int fi = 0; fi < fi_m; fi += fft_num) {
-		for (int ch = 0; ch < channels; ch++) {
+		for (int ch = 0; ch < data_channels; ch++) {
 			fftw_execute_dft_r2c(plan, in[ch] + fi, out);
 			FD8(reinterpret_cast<double*>(out), nodes[ch] + fft_index);
 		}
@@ -1709,7 +1709,7 @@ int Decode::Decode_AVX2::FFT(DataStruct::node ** nodes, double ** in, int fft_in
 	int fi_m = nb_fft * fft_num;
 	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*fft_num);
 	for (int fi = 0; fi < fi_m; fi += fft_num) {
-		for (int ch = 0; ch < channels; ch++) {
+		for (int ch = 0; ch < data_channels; ch++) {
 			fftw_execute_dft_r2c(plan, in[ch] + fi, out);
 			FD8(reinterpret_cast<double*>(out), nodes[ch] + fft_index);
 		}
