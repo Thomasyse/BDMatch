@@ -267,7 +267,7 @@ int Decode::Decode::decode_audio() {
 	}
 	//为频谱数据分配内存
 	if (vol_mode != 1) {
-		int chs = std::min(channels, 2);
+		int chs = channels;
 		int spectrum_size = fft_num / 2;
 		fft_data = new node*[chs];
 		fft_spec = new char*[chs];

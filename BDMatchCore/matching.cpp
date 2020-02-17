@@ -77,10 +77,7 @@ int Matching::bdsearch::reserve(const int &num)
 }
 int Matching::bdsearch::push(const int &time, const int &diff)
 {
-	std::array<int, 2> a;
-	a[0] = time;
-	a[1] = diff;
-	bditem.emplace_back(a);
+	bditem.emplace_back(std::array<int, 2>({ time, diff }));
 	return 0;
 }
 int Matching::bdsearch::read(const int &pos)
