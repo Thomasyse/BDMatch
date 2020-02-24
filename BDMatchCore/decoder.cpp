@@ -572,226 +572,60 @@ int Decode::Decode::normalize(uint8_t ** const &audiodata, double **&normalized_
 		normalized_samples = new double*[channels];
 		for (int ch = 0; ch < channels; ch++)normalized_samples[ch] = (double*)fftw_malloc(sizeof(double)*length);
 	}
-	if (real_ch == channels) {
-		if (sample_type == 1) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				float *tempf = reinterpret_cast<float *>(audiodata[ch]);
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempf[k]);
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempf[k]);
-			}
-		}
-		else if (sample_type == 2) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				double *tempd = reinterpret_cast<double *>(audiodata[ch]);
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = tempd[k];
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = tempd[k];
-			}
-		}
-		else if (sample_type == 8)
+	if (real_ch == channels) 
+		switch (sample_type)
 		{
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(audiodata[ch][k]) / 255.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(audiodata[ch][k]) / 255.0;
-			}
+		case 1:
+			transfer_audio_data_planar<float>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 2:
+			transfer_audio_data_planar<double>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 8:
+			transfer_audio_data_planar<char>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 16:
+			transfer_audio_data_planar<short>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 24:
+			transfer_audio_data_planar<int, 24>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 32:
+			transfer_audio_data_planar<int>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 64:
+			transfer_audio_data_planar<long long>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		default:
+			break;
 		}
-		else if (sample_type == 16) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				short *temps = reinterpret_cast<short *>(audiodata[ch]);
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(temps[k]) / 32767.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(temps[k]) / 32767.0;
-			}
+	else
+		switch (sample_type)
+		{
+		case 1:
+			transfer_audio_data_packed<float>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 2:
+			transfer_audio_data_packed<double>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 8:
+			transfer_audio_data_packed<char>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 16:
+			transfer_audio_data_packed<short>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 24:
+			transfer_audio_data_packed<int, 24>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 32:
+			transfer_audio_data_packed<int>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 64:
+			transfer_audio_data_packed<long long>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		default:
+			break;
 		}
-		else if (sample_type == 24) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				int *tempi = reinterpret_cast<int *>(audiodata[ch]);
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
-			}
-		}
-		else if (sample_type == 32) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				int *tempi2 = reinterpret_cast<int *>(audiodata[ch]);
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempi2[k]) / 2147483647.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi2[k]) / 2147483647.0;
-			}
-		}
-		else if (sample_type == 64) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				long long *templ = reinterpret_cast<long long *>(audiodata[ch]);
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
-			}
-		}
-	}
-	else {
-		if (sample_type == 1) {
-			float *tempf = reinterpret_cast<float *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(tempf[index]);
-				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(tempf[index]);
-				}
-		}
-		else if (sample_type == 2) {
-			double *tempd = reinterpret_cast<double *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					normalized_samples[ch][i] = tempd[index];
-				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					seqs[ch][i] = tempd[index];
-				}
-		}
-		else if (sample_type == 8) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(audiodata[0][index]) / 255.0;
-				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(audiodata[0][index]) / 255.0;
-				}
-		}
-		else if (sample_type == 16) {
-			short *temps = reinterpret_cast<short *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(temps[index]) / 32767.0;
-				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(temps[index]) / 32767.0;
-				}
-		}
-		else if (sample_type == 24) {
-			int *tempi = reinterpret_cast<int *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(tempi[index] >> 8) / 8388607.0;
-				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(tempi[index] >> 8) / 8388607.0;
-				}
-		}
-		else if (sample_type == 32) {
-			int *tempi2 = reinterpret_cast<int *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(tempi2[index]) / 2147483647.0;
-				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(tempi2[index]) / 2147483647.0;
-				}
-		}
-		else if (sample_type == 64) {
-			long long *templ = reinterpret_cast<long long *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(templ[index]) / static_cast<double>(9223372036854775807);
-				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(templ[index]) / static_cast<double>(9223372036854775807);
-				}
-		}
-	}
 	nb_last = nb_last_next;
 	//响度计算和匹配
 	if (vol_mode >= 0 && length > 0) {
@@ -969,7 +803,578 @@ int Decode::Decode_AVX::FD8(double * inseq, DataStruct::node * outseq)
 	return 0;
 }
 
-int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& normalized_samples, double **& seqs, int & nb_last, const int & nb_samples)
+inline int Decode::Decode_AVX2::transfer_audio_data_planar_float(uint8_t** const audiodata, 
+	double** const normalized_samples, double** const seqs, 
+	const int& nb_last, const int& nb_last_next, const int& length, const int& nb_samples)
+{
+	int index = 0, index2 = 0;
+	if (length > 0) {
+		for (int ch = 0; ch < channels; ch++)
+			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		index = nb_last;
+	}
+	else index2 = nb_last;
+	for (int ch = 0; ch < channels; ch++) {
+		int avxlength = nb_samples / 8;
+		int avx_last = nb_samples % 8;
+		int nb_to_norm = std::max(length - nb_last, 0);
+		int threshold = nb_to_norm / 8;
+		int remainder = nb_to_norm % 8;
+		float* tempf = reinterpret_cast<float*>(audiodata[ch]);
+		double* tempd = normalized_samples[ch] + index;
+		double* temp_seq = seqs[ch] + index2;
+		for (int i = 0; i < threshold; i++) {
+			__m256 temp256 = _mm256_load_ps(tempf);
+			__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
+			__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
+			_mm256_storeu_pd(tempd, _mm256_cvtps_pd(temp128_1));
+			tempd += 4;
+			_mm256_storeu_pd(tempd, _mm256_cvtps_pd(temp128_2));
+			tempd += 4;
+			tempf += 8;
+		}
+		if (threshold < avxlength) {
+			if (remainder) {
+				__m256 temp256 = _mm256_load_ps(tempf);
+				__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
+				__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
+				__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
+				__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
+				for (int j = 0; j < 4; j++)
+					if (j < remainder) *(tempd++) = tempd_1.m256d_f64[j];
+					else *(temp_seq++) = tempd_1.m256d_f64[j];
+				remainder -= 4;
+				for (int j = 0; j < 4; j++)
+					if (j < remainder) *(tempd++) = tempd_2.m256d_f64[j];
+					else *(temp_seq++) = tempd_2.m256d_f64[j];
+				tempf += 8;
+				threshold++;
+			}
+			for (int i = threshold; i < avxlength; i++) {
+				__m256 temp256 = _mm256_load_ps(tempf);
+				__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
+				__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
+				_mm256_storeu_pd(temp_seq, _mm256_cvtps_pd(temp128_1));
+				temp_seq += 4;
+				_mm256_storeu_pd(temp_seq, _mm256_cvtps_pd(temp128_2));
+				temp_seq += 4;
+				tempf += 8;
+			}
+		}
+		if (avx_last > 0) {
+			int threshold2 = avx_last - nb_last_next;
+			for (int i = 0; i < avx_last; i++)
+				if (i < threshold2)*(tempd++) = static_cast<double>(*(tempf++));
+				else *(temp_seq++) = static_cast<double>(*(tempf++));
+		}
+	}
+	return 0;
+}
+inline int Decode::Decode_AVX2::transfer_audio_data_packed_float(uint8_t** const audiodata, 
+	double** const normalized_samples, double** const seqs, 
+	const int& nb_last, const int& length, const int& nb_samples)
+{
+	int index = 0, index2 = 0;
+	if (length > 0) {
+		for (int ch = 0; ch < channels; ch++)
+			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		index = nb_last;
+	}
+	else index2 = nb_last;
+	int ch = 0;
+	float* tempf = reinterpret_cast<float*>(audiodata[0]);
+	int avxlength = nb_samples * channels / 8;
+	int avx_last = (nb_samples * channels) % 8;
+	int nb_to_norm = std::max(length - nb_last, 0);
+	int threshold = nb_to_norm * channels / 8;
+	int remainder = nb_to_norm * channels % 8;
+	for (int i = 0; i < threshold; i++) {
+		__m256 temp256 = _mm256_load_ps(tempf);
+		__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
+		__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
+		__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
+		__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
+		double out;
+		for (int j = 0; j < 4; j++) {
+			out = tempd_1.m256d_f64[j];
+			normalized_samples[ch++][index] = out;
+			if (ch == channels) {
+				ch = 0;
+				index++;
+			}
+		}
+		for (int j = 0; j < 4; j++) {
+			out = tempd_2.m256d_f64[j];
+			normalized_samples[ch++][index] = out;
+			if (ch == channels) {
+				ch = 0;
+				index++;
+			}
+		}
+		tempf += 8;
+	}
+	if (threshold < avxlength) {
+		if (remainder) {
+			__m256 temp256 = _mm256_load_ps(tempf);
+			__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
+			__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
+			__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
+			__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
+			for (int j = 0; j < 8; j++) {
+				double out;
+				if (j < 4)out = tempd_1.m256d_f64[j];
+				else out = tempd_2.m256d_f64[j - 4];
+				if (index < length) {
+					normalized_samples[ch++][index] = out;
+					if (ch == channels) {
+						ch = 0;
+						index++;
+					}
+				}
+				else {
+					seqs[ch++][index2] = out;
+					if (ch == channels) {
+						ch = 0;
+						index2++;
+					}
+				}
+			}
+			tempf += 8;
+			threshold++;
+		}
+		for (int i = threshold; i < avxlength; i++) {
+			__m256 temp256 = _mm256_load_ps(tempf);
+			__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
+			__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
+			__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
+			__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
+			double out;
+			for (int j = 0; j < 4; j++) {
+				out = tempd_1.m256d_f64[j];
+				seqs[ch++][index2] = out;
+				if (ch == channels) {
+					ch = 0;
+					index2++;
+				}
+			}
+			for (int j = 0; j < 4; j++) {
+				out = tempd_2.m256d_f64[j];
+				seqs[ch++][index2] = out;
+				if (ch == channels) {
+					ch = 0;
+					index2++;
+				}
+			}
+			tempf += 8;
+		}
+	}
+	for (int i = 0; i < avx_last; i++) {
+		if (index < length) {
+			normalized_samples[ch++][index] = static_cast<double>(*(tempf++));
+			if (ch == channels) {
+				ch = 0;
+				index++;
+			}
+		}
+		else {
+			seqs[ch++][index2] = static_cast<double>(*(tempf++));
+			if (ch == channels) {
+				ch = 0;
+				index2++;
+			}
+		}
+	}
+	return 0;
+}
+inline int Decode::Decode_AVX2::transfer_audio_data_packed_int16(uint8_t** const audiodata, 
+	double** const normalized_samples, double** const seqs, 
+	const int& nb_last, const int& length, const int& nb_samples)
+{
+	int index = 0, index2 = 0;
+	if (length > 0) {
+		for (int ch = 0; ch < channels; ch++)
+			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		index = nb_last;
+	}
+	else index2 = nb_last;
+	int ch = 0;
+	__m128i* temp128 = reinterpret_cast<__m128i*>(audiodata[0]);
+	short* temps = reinterpret_cast<short*>(audiodata[0]);
+	__m256d const16 = _mm256_set1_pd(1.0 / 32767.0);
+	int avxlength = nb_samples * channels / 8;
+	int avx_last = (nb_samples * channels) % 8;
+	int nb_to_norm = std::max(length - nb_last, 0);
+	int threshold = nb_to_norm * channels / 8;
+	int remainder = nb_to_norm * channels % 8;
+	for (int i = 0; i < threshold; i++) {
+		__m128i temp16 = _mm_load_si128(temp128);
+		__m256i temp32 = _mm256_cvtepi16_epi32(temp16);
+		__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
+		__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
+		__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
+		__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
+		tempd_1 = _mm256_mul_pd(tempd_1, const16);
+		tempd_2 = _mm256_mul_pd(tempd_2, const16);
+		double out;
+		for (int j = 0; j < 4; j++) {
+			out = tempd_1.m256d_f64[j];
+			normalized_samples[ch++][index] = out;
+			if (ch == channels) {
+				ch = 0;
+				index++;
+			}
+		}
+		for (int j = 0; j < 4; j++) {
+			out = tempd_2.m256d_f64[j];
+			normalized_samples[ch++][index] = out;
+			if (ch == channels) {
+				ch = 0;
+				index++;
+			}
+		}
+		temp128++;
+		temps += 8;
+	}
+	if (threshold < avxlength) {
+		if (remainder) {
+			__m128i temp16 = _mm_load_si128(temp128);
+			__m256i temp32 = _mm256_cvtepi16_epi32(temp16);
+			__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
+			__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
+			__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
+			__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
+			tempd_1 = _mm256_mul_pd(tempd_1, const16);
+			tempd_2 = _mm256_mul_pd(tempd_2, const16);
+			for (int j = 0; j < 8; j++) {
+				double out;
+				if (j < 4)out = tempd_1.m256d_f64[j];
+				else out = tempd_2.m256d_f64[j - 4];
+				if (index < length) {
+					normalized_samples[ch++][index] = out;
+					if (ch == channels) {
+						ch = 0;
+						index++;
+					}
+				}
+				else {
+					seqs[ch++][index2] = out;
+					if (ch == channels) {
+						ch = 0;
+						index2++;
+					}
+				}
+			}
+			temp128++;
+			temps += 8;
+			threshold++;
+		}
+		for (int i = threshold; i < avxlength; i++) {
+			__m128i temp16 = _mm_load_si128(temp128);
+			__m256i temp32 = _mm256_cvtepi16_epi32(temp16);
+			__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
+			__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
+			__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
+			__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
+			tempd_1 = _mm256_mul_pd(tempd_1, const16);
+			tempd_2 = _mm256_mul_pd(tempd_2, const16);
+			double out;
+			for (int j = 0; j < 4; j++) {
+				out = tempd_1.m256d_f64[j];
+				seqs[ch++][index2] = out;
+				if (ch == channels) {
+					ch = 0;
+					index2++;
+				}
+			}
+			for (int j = 0; j < 4; j++) {
+				out = tempd_2.m256d_f64[j];
+				seqs[ch++][index2] = out;
+				if (ch == channels) {
+					ch = 0;
+					index2++;
+				}
+			}
+			temp128++;
+			temps += 8;
+		}
+	}
+	for (int i = 0; i < avx_last; i++) {
+		if (index < length) {
+			normalized_samples[ch++][index] = static_cast<double>(*(temps++)) / 32767.0;
+			if (ch == channels) {
+				ch = 0;
+				index++;
+			}
+		}
+		else {
+			seqs[ch++][index2] = static_cast<double>(*(temps++)) / 32767.0;
+			if (ch == channels) {
+				ch = 0;
+				index2++;
+			}
+		}
+	}
+	return 0;
+}
+inline int Decode::Decode_AVX2::transfer_audio_data_packed_int24(uint8_t** const audiodata, 
+	double** const normalized_samples, double** const seqs, 
+	const int& nb_last, const int& length, const int& nb_samples)
+{
+	int index = 0, index2 = 0;
+	if (length > 0) {
+		for (int ch = 0; ch < channels; ch++)
+			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		index = nb_last;
+	}
+	else index2 = nb_last;
+	int ch = 0;
+	int* tempi = reinterpret_cast<int*>(audiodata[0]);
+	__m256i* temp256 = reinterpret_cast<__m256i*>(audiodata[0]);
+	__m256d const24 = _mm256_set1_pd(1.0 / 8388607.0);
+	int avxlength = nb_samples * channels / 8;
+	int avx_last = (nb_samples * channels) % 8;
+	int nb_to_norm = std::max(length - nb_last, 0);
+	int threshold = nb_to_norm * channels / 8;
+	int remainder = nb_to_norm * channels % 8;
+	for (int i = 0; i < threshold; i++) {
+		__m256i temp32 = _mm256_load_si256(temp256);
+		temp32 = _mm256_srai_epi32(temp32, 8);
+		__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
+		__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
+		__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
+		__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
+		tempd_1 = _mm256_mul_pd(tempd_1, const24);
+		tempd_2 = _mm256_mul_pd(tempd_2, const24);
+		double out;
+		for (int j = 0; j < 4; j++) {
+			out = tempd_1.m256d_f64[j];
+			normalized_samples[ch++][index] = out;
+			if (ch == channels) {
+				ch = 0;
+				index++;
+			}
+		}
+		for (int j = 0; j < 4; j++) {
+			out = tempd_2.m256d_f64[j];
+			normalized_samples[ch++][index] = out;
+			if (ch == channels) {
+				ch = 0;
+				index++;
+			}
+		}
+		temp256++;
+		tempi += 8;
+	}
+	if (threshold < avxlength) {
+		if (remainder) {
+			__m256i temp32 = _mm256_load_si256(temp256);
+			temp32 = _mm256_srai_epi32(temp32, 8);
+			__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
+			__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
+			__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
+			__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
+			tempd_1 = _mm256_mul_pd(tempd_1, const24);
+			tempd_2 = _mm256_mul_pd(tempd_2, const24);
+			for (int j = 0; j < 8; j++) {
+				double out;
+				if (j < 4)out = tempd_1.m256d_f64[j];
+				else out = tempd_2.m256d_f64[j - 4];
+				if (index < length) {
+					normalized_samples[ch++][index] = out;
+					if (ch == channels) {
+						ch = 0;
+						index++;
+					}
+				}
+				else {
+					seqs[ch++][index2] = out;
+					if (ch == channels) {
+						ch = 0;
+						index2++;
+					}
+				}
+			}
+			temp256++;
+			tempi += 8;
+			threshold++;
+		}
+		for (int i = threshold; i < avxlength; i++) {
+			__m256i temp32 = _mm256_load_si256(temp256);
+			temp32 = _mm256_srai_epi32(temp32, 8);
+			__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
+			__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
+			__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
+			__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
+			tempd_1 = _mm256_mul_pd(tempd_1, const24);
+			tempd_2 = _mm256_mul_pd(tempd_2, const24);
+			double out;
+			for (int j = 0; j < 4; j++) {
+				out = tempd_1.m256d_f64[j];
+				seqs[ch++][index2] = out;
+				if (ch == channels) {
+					ch = 0;
+					index2++;
+				}
+			}
+			for (int j = 0; j < 4; j++) {
+				out = tempd_2.m256d_f64[j];
+				seqs[ch++][index2] = out;
+				if (ch == channels) {
+					ch = 0;
+					index2++;
+				}
+			}
+			temp256++;
+			tempi += 8;
+		}
+	}
+	for (int i = 0; i < avx_last; i++) {
+		if (index < length) {
+			normalized_samples[ch++][index] = static_cast<double>(*(tempi++) >> 8) / 8388607.0;
+			if (ch == channels) {
+				ch = 0;
+				index++;
+			}
+		}
+		else {
+			seqs[ch++][index2] = static_cast<double>(*(tempi++) >> 8) / 8388607.0;
+			if (ch == channels) {
+				ch = 0;
+				index2++;
+			}
+		}
+	}
+	return 0;
+}
+inline int Decode::Decode_AVX2::transfer_audio_data_packed_int32(uint8_t** const audiodata, 
+	double** const normalized_samples, double** const seqs, 
+	const int& nb_last, const int& length, const int& nb_samples)
+{
+	int index = 0, index2 = 0;
+	if (length > 0) {
+		for (int ch = 0; ch < channels; ch++)
+			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		index = nb_last;
+	}
+	else index2 = nb_last;
+	int ch = 0;
+	int* tempi32 = reinterpret_cast<int*>(audiodata[0]);
+	__m256i* temp256 = reinterpret_cast<__m256i*>(audiodata[0]);
+	__m256d const32 = _mm256_set1_pd(1.0 / 2147483647.0);
+	int avxlength = nb_samples * channels / 8;
+	int avx_last = (nb_samples * channels) % 8;
+	int nb_to_norm = std::max(length - nb_last, 0);
+	int threshold = nb_to_norm * channels / 8;
+	int remainder = nb_to_norm * channels % 8;
+	for (int i = 0; i < threshold; i++) {
+		__m256i temp32 = _mm256_load_si256(temp256);
+		__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
+		__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
+		__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
+		__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
+		tempd_1 = _mm256_mul_pd(tempd_1, const32);
+		tempd_2 = _mm256_mul_pd(tempd_2, const32);
+		double out;
+		for (int j = 0; j < 4; j++) {
+			out = tempd_1.m256d_f64[j];
+			normalized_samples[ch++][index] = out;
+			if (ch == channels) {
+				ch = 0;
+				index++;
+			}
+		}
+		for (int j = 0; j < 4; j++) {
+			out = tempd_2.m256d_f64[j];
+			normalized_samples[ch++][index] = out;
+			if (ch == channels) {
+				ch = 0;
+				index++;
+			}
+		}
+		temp256++;
+		tempi32 += 8;
+	}
+	if (threshold < avxlength) {
+		if (remainder) {
+			__m256i temp32 = _mm256_load_si256(temp256);
+			__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
+			__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
+			__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
+			__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
+			tempd_1 = _mm256_mul_pd(tempd_1, const32);
+			tempd_2 = _mm256_mul_pd(tempd_2, const32);
+			for (int j = 0; j < 8; j++) {
+				double out;
+				if (j < 4)out = tempd_1.m256d_f64[j];
+				else out = tempd_2.m256d_f64[j - 4];
+				if (index < length) {
+					normalized_samples[ch++][index] = out;
+					if (ch == channels) {
+						ch = 0;
+						index++;
+					}
+				}
+				else {
+					seqs[ch++][index2] = out;
+					if (ch == channels) {
+						ch = 0;
+						index2++;
+					}
+				}
+			}
+			temp256++;
+			tempi32 += 8;
+			threshold++;
+		}
+		for (int i = threshold; i < avxlength; i++) {
+			__m256i temp32 = _mm256_load_si256(temp256);
+			__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
+			__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
+			__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
+			__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
+			tempd_1 = _mm256_mul_pd(tempd_1, const32);
+			tempd_2 = _mm256_mul_pd(tempd_2, const32);
+			double out;
+			for (int j = 0; j < 4; j++) {
+				out = tempd_1.m256d_f64[j];
+				seqs[ch++][index2] = out;
+				if (ch == channels) {
+					ch = 0;
+					index2++;
+				}
+			}
+			for (int j = 0; j < 4; j++) {
+				out = tempd_2.m256d_f64[j];
+				seqs[ch++][index2] = out;
+				if (ch == channels) {
+					ch = 0;
+					index2++;
+				}
+			}
+			temp256++;
+			tempi32 += 8;
+		}
+	}
+	for (int i = 0; i < avx_last; i++) {
+		if (index < length) {
+			normalized_samples[ch++][index] = static_cast<double>(*(tempi32++)) / 2147483647.0;
+			if (ch == channels) {
+				ch = 0;
+				index++;
+			}
+		}
+		else {
+			seqs[ch++][index2] = static_cast<double>(*(tempi32++)) / 2147483647.0;
+			if (ch == channels) {
+				ch = 0;
+				index2++;
+			}
+		}
+	}
+	return 0;
+}
+
+int Decode::Decode_AVX2::normalize(uint8_t** const& audiodata, double**& normalized_samples, double**& seqs, int& nb_last, const int& nb_samples)
 {
 	int nb_last_next = (nb_samples + nb_last) % fft_num;
 	int length = nb_samples + nb_last - nb_last_next;
@@ -978,696 +1383,60 @@ int Decode::Decode_AVX2::normalize(uint8_t ** const & audiodata, double **& norm
 		normalized_samples = new double*[channels];
 		for (int ch = 0; ch < channels; ch++)normalized_samples[ch] = (double*)fftw_malloc(sizeof(double)*length);
 	}
-	if (real_ch == channels) {
-		if (sample_type == 1) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-				index = nb_last;
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				int avxlength = nb_samples / 8;
-				int avx_last = nb_samples % 8;
-				int nb_to_norm = std::max(length - nb_last, 0);
-				int threshold = nb_to_norm / 8;
-				int remainder = nb_to_norm % 8;
-				float *tempf = reinterpret_cast<float *>(audiodata[ch]);
-				double *tempd;
-				if (normalized_samples)tempd = normalized_samples[ch] + index;
-				else tempd = nullptr;
-				double *temp_seq = seqs[ch] + index2;
-				for (int i = 0; i < threshold; i++) {
-					__m256 temp256 = _mm256_load_ps(tempf);
-					__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
-					__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
-					_mm256_storeu_pd(tempd, _mm256_cvtps_pd(temp128_1));
-					tempd += 4;
-					_mm256_storeu_pd(tempd, _mm256_cvtps_pd(temp128_2));
-					tempd += 4;
-					tempf += 8;
-				}
-				if (threshold < avxlength) {
-					if (remainder) {
-						__m256 temp256 = _mm256_load_ps(tempf);
-						__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
-						__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
-						__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
-						__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
-						for (int j = 0; j < 4; j++)
-							if (j < remainder) *(tempd++) = tempd_1.m256d_f64[j];
-							else *(temp_seq++) = tempd_1.m256d_f64[j];
-						remainder -= 4;
-						for (int j = 0; j < 4; j++)
-							if (j < remainder) *(tempd++) = tempd_2.m256d_f64[j];
-							else *(temp_seq++) = tempd_2.m256d_f64[j];
-						tempf += 8;
-						threshold++;
-					}
-					for (int i = threshold; i < avxlength; i++) {
-						__m256 temp256 = _mm256_load_ps(tempf);
-						__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
-						__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
-						_mm256_storeu_pd(temp_seq, _mm256_cvtps_pd(temp128_1));
-						temp_seq += 4;
-						_mm256_storeu_pd(temp_seq, _mm256_cvtps_pd(temp128_2));
-						temp_seq += 4;
-						tempf += 8;
-					}
-				}
-				if (avx_last > 0) {
-					int threshold2 = avx_last - nb_last_next;
-					for (int i = 0; i < avx_last; i++)
-						if (i < threshold2)*(tempd++) = static_cast<double>(*(tempf++));
-						else *(temp_seq++) = static_cast<double>(*(tempf++));
-				}
-			}
-		}
-		else if (sample_type == 2) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				double *tempd = reinterpret_cast<double *>(audiodata[ch]);
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = tempd[k];
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = tempd[k];
-			}
-		}
-		else if (sample_type == 8)
+	if (real_ch == channels)
+		switch (sample_type)
 		{
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(audiodata[ch][k]) / 255.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(audiodata[ch][k]) / 255.0;
-			}
+		case 1:
+			transfer_audio_data_planar_float(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length, nb_samples);
+			break;
+		case 2:
+			transfer_audio_data_planar<double>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 8:
+			transfer_audio_data_planar<char>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 16:
+			transfer_audio_data_planar<short>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 24:
+			transfer_audio_data_planar<int, 24>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 32:
+			transfer_audio_data_planar<int>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 64:
+			transfer_audio_data_planar<long long>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		default:
+			break;
 		}
-		else if (sample_type == 16) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				short *temps = reinterpret_cast<short *>(audiodata[ch]);
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(temps[k]) / 32767.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(temps[k]) / 32767.0;
-			}
+	else
+		switch (sample_type)
+		{
+		case 1:
+			transfer_audio_data_packed_float(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			break;
+		case 2:
+			transfer_audio_data_packed<double>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 8:
+			transfer_audio_data_packed<char>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 16:
+			transfer_audio_data_packed_int16(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			break;
+		case 24:
+			transfer_audio_data_packed_int24(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			break;
+		case 32:
+			transfer_audio_data_packed_int32(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			break;
+		case 64:
+			transfer_audio_data_packed<long long>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		default:
+			break;
 		}
-		else if (sample_type == 24) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				int *tempi = reinterpret_cast<int *>(audiodata[ch]);
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
-			}
-		}
-		else if (sample_type == 32) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				int *tempi2 = reinterpret_cast<int *>(audiodata[ch]);
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempi2[k]) / 2147483647.0;
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi2[k]) / 2147483647.0;
-			}
-		}
-		else if (sample_type == 64) {
-			int index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int ch = 0; ch < channels; ch++) {
-				long long *templ = reinterpret_cast<long long *>(audiodata[ch]);
-				int k = 0;
-				for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
-				for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(templ[k]) / static_cast<double>(9223372036854775807);
-			}
-		}
-	}
-	else {
-		if (sample_type == 1) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-				index = nb_last;
-			}
-			else index2 = nb_last;
-			int ch = 0;
-			float *tempf = reinterpret_cast<float *>(audiodata[0]);
-			int avxlength = nb_samples * channels / 8;
-			int avx_last = (nb_samples * channels) % 8;
-			int nb_to_norm = std::max(length - nb_last, 0);
-			int threshold = nb_to_norm * channels / 8;
-			int remainder = nb_to_norm * channels % 8;
-			for (int i = 0; i < threshold; i++) {
-				__m256 temp256 = _mm256_load_ps(tempf);
-				__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
-				__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
-				__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
-				__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
-				double out;
-				for (int j = 0; j < 4; j++) {
-					out = tempd_1.m256d_f64[j];
-					normalized_samples[ch++][index] = out;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				for (int j = 0; j < 4; j++) {
-					out = tempd_2.m256d_f64[j];
-					normalized_samples[ch++][index] = out;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				tempf += 8;
-			}
-			if (threshold < avxlength) {
-				if (remainder) {
-					__m256 temp256 = _mm256_load_ps(tempf);
-					__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
-					__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
-					__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
-					__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
-					for (int j = 0; j < 8; j++) {
-						double out;
-						if (j < 4)out = tempd_1.m256d_f64[j];
-						else out = tempd_2.m256d_f64[j - 4];
-						if (index < length) {
-							normalized_samples[ch++][index] = out;
-							if (ch == channels) {
-								ch = 0;
-								index++;
-							}
-						}
-						else {
-							seqs[ch++][index2] = out;
-							if (ch == channels) {
-								ch = 0;
-								index2++;
-							}
-						}
-					}
-					tempf += 8;
-					threshold++;
-				}
-				for (int i = threshold; i < avxlength; i++) {
-					__m256 temp256 = _mm256_load_ps(tempf);
-					__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
-					__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
-					__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
-					__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
-					double out;
-					for (int j = 0; j < 4; j++) {
-						out = tempd_1.m256d_f64[j];
-						seqs[ch++][index2] = out;
-						if (ch == channels) {
-							ch = 0;
-							index2++;
-						}
-					}
-					for (int j = 0; j < 4; j++) {
-						out = tempd_2.m256d_f64[j];
-						seqs[ch++][index2] = out;
-						if (ch == channels) {
-							ch = 0;
-							index2++;
-						}
-					}
-					tempf += 8;
-				}
-			}
-			for (int i = 0; i < avx_last; i++) {
-				if (index < length) {
-					normalized_samples[ch++][index] = static_cast<double>(*(tempf++));
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				else {
-					seqs[ch++][index2] = static_cast<double>(*(tempf++));
-					if (ch == channels) {
-						ch = 0;
-						index2++;
-					}
-				}
-			}
-		}
-		else if (sample_type == 2) {
-			double *tempd = reinterpret_cast<double *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					normalized_samples[ch][i] = tempd[index];
-				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					seqs[ch][i] = tempd[index];
-				}
-		}
-		else if (sample_type == 8) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(audiodata[0][index]) / 255.0;
-				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(audiodata[0][index]) / 255.0;
-				}
-		}
-		else if (sample_type == 16) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-				index = nb_last;
-			}
-			else index2 = nb_last;
-			int ch = 0;
-			__m128i *temp128 = reinterpret_cast<__m128i *>(audiodata[0]);
-			short *temps = reinterpret_cast<short *>(audiodata[0]);
-			__m256d const16 = _mm256_set1_pd(1.0 / 32767.0);
-			int avxlength = nb_samples * channels / 8;
-			int avx_last = (nb_samples * channels) % 8;
-			int nb_to_norm = std::max(length - nb_last, 0);
-			int threshold = nb_to_norm * channels / 8;
-			int remainder = nb_to_norm * channels % 8;
-			for (int i = 0; i < threshold; i++) {
-				__m128i temp16 = _mm_load_si128(temp128);
-				__m256i temp32 = _mm256_cvtepi16_epi32(temp16);
-				__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-				__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-				__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-				__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-				tempd_1 = _mm256_mul_pd(tempd_1, const16);
-				tempd_2 = _mm256_mul_pd(tempd_2, const16);
-				double out;
-				for (int j = 0; j < 4; j++) {
-					out = tempd_1.m256d_f64[j];
-					normalized_samples[ch++][index] = out;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				for (int j = 0; j < 4; j++) {
-					out = tempd_2.m256d_f64[j];
-					normalized_samples[ch++][index] = out;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				temp128++;
-				temps += 8;
-			}
-			if (threshold < avxlength) {
-				if (remainder) {
-					__m128i temp16 = _mm_load_si128(temp128);
-					__m256i temp32 = _mm256_cvtepi16_epi32(temp16);
-					__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-					__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-					__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-					__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-					tempd_1 = _mm256_mul_pd(tempd_1, const16);
-					tempd_2 = _mm256_mul_pd(tempd_2, const16);
-					for (int j = 0; j < 8; j++) {
-						double out;
-						if (j < 4)out = tempd_1.m256d_f64[j];
-						else out = tempd_2.m256d_f64[j - 4];
-						if (index < length) {
-							normalized_samples[ch++][index] = out;
-							if (ch == channels) {
-								ch = 0;
-								index++;
-							}
-						}
-						else {
-							seqs[ch++][index2] = out;
-							if (ch == channels) {
-								ch = 0;
-								index2++;
-							}
-						}
-					}
-					temp128++;
-					temps += 8;
-					threshold++;
-				}
-				for (int i = threshold; i < avxlength; i++) {
-					__m128i temp16 = _mm_load_si128(temp128);
-					__m256i temp32 = _mm256_cvtepi16_epi32(temp16);
-					__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-					__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-					__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-					__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-					tempd_1 = _mm256_mul_pd(tempd_1, const16);
-					tempd_2 = _mm256_mul_pd(tempd_2, const16);
-					double out;
-					for (int j = 0; j < 4; j++) {
-						out = tempd_1.m256d_f64[j];
-						seqs[ch++][index2] = out;
-						if (ch == channels) {
-							ch = 0;
-							index2++;
-						}
-					}
-					for (int j = 0; j < 4; j++) {
-						out = tempd_2.m256d_f64[j];
-						seqs[ch++][index2] = out;
-						if (ch == channels) {
-							ch = 0;
-							index2++;
-						}
-					}
-					temp128++;
-					temps += 8;
-				}
-			}
-			for (int i = 0; i < avx_last; i++) {
-				if (index < length) {
-					normalized_samples[ch++][index] = static_cast<double>(*(temps++)) / 32767.0;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				else {
-					seqs[ch++][index2] = static_cast<double>(*(temps++)) / 32767.0;
-					if (ch == channels) {
-						ch = 0;
-						index2++;
-					}
-				}
-			}
-		}
-		else if (sample_type == 24) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-				index = nb_last;
-			}
-			else index2 = nb_last;
-			int ch = 0;
-			int *tempi = reinterpret_cast<int *>(audiodata[0]);
-			__m256i *temp256 = reinterpret_cast<__m256i *>(audiodata[0]);
-			__m256d const24 = _mm256_set1_pd(1.0 / 8388607.0);
-			int avxlength = nb_samples * channels / 8;
-			int avx_last = (nb_samples * channels) % 8;
-			int nb_to_norm = std::max(length - nb_last, 0);
-			int threshold = nb_to_norm * channels / 8;
-			int remainder = nb_to_norm * channels % 8;
-			for (int i = 0; i < threshold; i++) {
-				__m256i temp32 = _mm256_load_si256(temp256);
-				temp32 = _mm256_srai_epi32(temp32, 8);
-				__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-				__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-				__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-				__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-				tempd_1 = _mm256_mul_pd(tempd_1, const24);
-				tempd_2 = _mm256_mul_pd(tempd_2, const24);
-				double out;
-				for (int j = 0; j < 4; j++) {
-					out = tempd_1.m256d_f64[j];
-					normalized_samples[ch++][index] = out;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				for (int j = 0; j < 4; j++) {
-					out = tempd_2.m256d_f64[j];
-					normalized_samples[ch++][index] = out;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				temp256++;
-				tempi += 8;
-			}
-			if (threshold < avxlength) {
-				if (remainder) {
-					__m256i temp32 = _mm256_load_si256(temp256);
-					temp32 = _mm256_srai_epi32(temp32, 8);
-					__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-					__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-					__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-					__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-					tempd_1 = _mm256_mul_pd(tempd_1, const24);
-					tempd_2 = _mm256_mul_pd(tempd_2, const24);
-					for (int j = 0; j < 8; j++) {
-						double out;
-						if (j < 4)out = tempd_1.m256d_f64[j];
-						else out = tempd_2.m256d_f64[j - 4];
-						if (index < length) {
-							normalized_samples[ch++][index] = out;
-							if (ch == channels) {
-								ch = 0;
-								index++;
-							}
-						}
-						else {
-							seqs[ch++][index2] = out;
-							if (ch == channels) {
-								ch = 0;
-								index2++;
-							}
-						}
-					}
-					temp256++;
-					tempi += 8;
-					threshold++;
-				}
-				for (int i = threshold; i < avxlength; i++) {
-					__m256i temp32 = _mm256_load_si256(temp256);
-					temp32 = _mm256_srai_epi32(temp32, 8);
-					__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-					__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-					__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-					__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-					tempd_1 = _mm256_mul_pd(tempd_1, const24);
-					tempd_2 = _mm256_mul_pd(tempd_2, const24);
-					double out;
-					for (int j = 0; j < 4; j++) {
-						out = tempd_1.m256d_f64[j];
-						seqs[ch++][index2] = out;
-						if (ch == channels) {
-							ch = 0;
-							index2++;
-						}
-					}
-					for (int j = 0; j < 4; j++) {
-						out = tempd_2.m256d_f64[j];
-						seqs[ch++][index2] = out;
-						if (ch == channels) {
-							ch = 0;
-							index2++;
-						}
-					}
-					temp256++;
-					tempi += 8;
-				}
-			}
-			for (int i = 0; i < avx_last; i++) {
-				if (index < length) {
-					normalized_samples[ch++][index] = static_cast<double>(*(tempi++) >> 8) / 8388607.0;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				else {
-					seqs[ch++][index2] = static_cast<double>(*(tempi++) >> 8) / 8388607.0;
-					if (ch == channels) {
-						ch = 0;
-						index2++;
-					}
-				}
-			}
-		}
-		else if (sample_type == 32) {
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-				index = nb_last;
-			}
-			else index2 = nb_last;
-			int ch = 0;
-			int *tempi32 = reinterpret_cast<int *>(audiodata[0]);
-			__m256i *temp256 = reinterpret_cast<__m256i *>(audiodata[0]);
-			__m256d const32 = _mm256_set1_pd(1.0 / 2147483647.0);
-			int avxlength = nb_samples * channels / 8;
-			int avx_last = (nb_samples * channels) % 8;
-			int nb_to_norm = std::max(length - nb_last, 0);
-			int threshold = nb_to_norm * channels / 8;
-			int remainder = nb_to_norm * channels % 8;
-			for (int i = 0; i < threshold; i++) {
-				__m256i temp32 = _mm256_load_si256(temp256);
-				__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-				__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-				__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-				__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-				tempd_1 = _mm256_mul_pd(tempd_1, const32);
-				tempd_2 = _mm256_mul_pd(tempd_2, const32);
-				double out;
-				for (int j = 0; j < 4; j++) {
-					out = tempd_1.m256d_f64[j];
-					normalized_samples[ch++][index] = out;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				for (int j = 0; j < 4; j++) {
-					out = tempd_2.m256d_f64[j];
-					normalized_samples[ch++][index] = out;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				temp256++;
-				tempi32 += 8;
-			}
-			if (threshold < avxlength) {
-				if (remainder) {
-					__m256i temp32 = _mm256_load_si256(temp256);
-					__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-					__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-					__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-					__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-					tempd_1 = _mm256_mul_pd(tempd_1, const32);
-					tempd_2 = _mm256_mul_pd(tempd_2, const32);
-					for (int j = 0; j < 8; j++) {
-						double out;
-						if (j < 4)out = tempd_1.m256d_f64[j];
-						else out = tempd_2.m256d_f64[j - 4];
-						if (index < length) {
-							normalized_samples[ch++][index] = out;
-							if (ch == channels) {
-								ch = 0;
-								index++;
-							}
-						}
-						else {
-							seqs[ch++][index2] = out;
-							if (ch == channels) {
-								ch = 0;
-								index2++;
-							}
-						}
-					}
-					temp256++;
-					tempi32 += 8;
-					threshold++;
-				}
-				for (int i = threshold; i < avxlength; i++) {
-					__m256i temp32 = _mm256_load_si256(temp256);
-					__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-					__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-					__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-					__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-					tempd_1 = _mm256_mul_pd(tempd_1, const32);
-					tempd_2 = _mm256_mul_pd(tempd_2, const32);
-					double out;
-					for (int j = 0; j < 4; j++) {
-						out = tempd_1.m256d_f64[j];
-						seqs[ch++][index2] = out;
-						if (ch == channels) {
-							ch = 0;
-							index2++;
-						}
-					}
-					for (int j = 0; j < 4; j++) {
-						out = tempd_2.m256d_f64[j];
-						seqs[ch++][index2] = out;
-						if (ch == channels) {
-							ch = 0;
-							index2++;
-						}
-					}
-					temp256++;
-					tempi32 += 8;
-				}
-			}
-			for (int i = 0; i < avx_last; i++) {
-				if (index < length) {
-					normalized_samples[ch++][index] = static_cast<double>(*(tempi32++)) / 2147483647.0;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				else {
-					seqs[ch++][index2] = static_cast<double>(*(tempi32++)) / 2147483647.0;
-					if (ch == channels) {
-						ch = 0;
-						index2++;
-					}
-				}
-			}
-		}
-		else if (sample_type == 64) {
-			long long *templ = reinterpret_cast<long long *>(audiodata[0]);
-			int index = 0, index2 = 0;
-			if (length > 0) {
-				for (int ch = 0; ch < channels; ch++)
-					for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-			}
-			else index2 = nb_last;
-			for (int i = nb_last; i < length; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					normalized_samples[ch][i] = static_cast<double>(templ[index]) / static_cast<double>(9223372036854775807);
-				}
-			for (int i = index2; i < nb_last_next; i++)
-				for (int ch = 0; ch < channels; ch++, index++) {
-					seqs[ch][i] = static_cast<double>(templ[index]) / static_cast<double>(9223372036854775807);
-				}
-		}
-	}
 	nb_last = nb_last_next;
 	//响度计算和匹配
 	if (vol_mode >= 0 && length > 0) {

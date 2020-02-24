@@ -5,7 +5,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.13"
+#define appversion "1.5.14"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -796,6 +796,7 @@ int BDMatch::MyForm::search_ISA()
 		break;
 	case 1:
 		Result->Text += "：使用SSE2、SSSE3、SSE4.1指令集加速。";
+		break;
 	default:
 		Result->Text += "：不使用增强指令集加速。";
 		break;

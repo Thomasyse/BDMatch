@@ -804,16 +804,16 @@ int Matching::Match::caldiff(const int tv_start, const int se_start, const int s
 	long long sum = 0;
 	char* tvdata[8], * bddata[8];
 	for (int seindex = se_start; seindex < se_end; seindex++) {
-		int bdstart = bd_se.read(seindex);
+		int bd_start = bd_se.read(seindex);
 		sum = 0;
 		for (int i = 0; i < ch; i++) {
 			tvdata[i] = tv_fft_data[i][tv_start].getdata();
-			bddata[i] = bd_fft_data[i][bdstart].getdata();
+			bddata[i] = bd_fft_data[i][bd_start].getdata();
 		}
 		for (int i = 0; i <= duration; i++) {
 			for (int j = 0; j < ch; j++) {
 				for (int k = 0; k < fft_size; k++) {
-					sum += llabs(long long(tvdata[j][k]) - long long(bddata[j][k]) * (long long(tvdata[j][k]) + 129));
+					sum += llabs(long long(tvdata[j][k]) - long long(bddata[j][k])) * (long long(tvdata[j][k]) + 129LL);
 				}
 				tvdata[j] += fft_size;
 				bddata[j] += fft_size;
@@ -823,14 +823,14 @@ int Matching::Match::caldiff(const int tv_start, const int se_start, const int s
 		if (sum < feedback[0])
 		{
 			feedback[0] = sum;
-			feedback[1] = bdstart;
+			feedback[1] = bd_start;
 		}
 		if (feedback[0] < diffa[0]) {
 			diffa[0] = feedback[0];
 			diffa[1] = feedback[1];
 			diffa[2] = min_check_num;
 		}
-		else if (labs(bdstart - static_cast<int>(diffa[1])) <= check_field) diffa[2]--;
+		else if (labs(bd_start - static_cast<int>(diffa[1])) <= check_field) diffa[2]--;
 		if (diffa[2] <= 0) {
 			*re = feedback;
 			return -1;
