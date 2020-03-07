@@ -94,6 +94,8 @@ namespace Decode {
 		//fft data
 		DataStruct::node** fft_data = nullptr;
 		char** fft_spec = nullptr;
+		DataStruct::node* fft_data_mem = nullptr;
+		char* fft_spec_mem = nullptr;
 		//audio info
 		std::string file_name;
 		int out_bit_depth = 0;

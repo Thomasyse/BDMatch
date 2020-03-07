@@ -15,7 +15,7 @@ public:
 	template<>
 	std::string to_u16string<std::string>(std::string&& input);//only support ASCII characters!!
 private:
-	std::vector<std::u16string> general_texts = { u"\r\n", u"  ", u"->", u"秒" };
+	std::vector<std::u16string> general_texts = { u"\r\n", u"  ", u"->", u"秒", u", "};
 	std::vector<std::u16string> match_core_texts = { u"TV文件：", u"BD文件：", u"   响度：", u"dB" , u"解码时间：", u"\r\n字幕文件：" };
 	std::vector<std::u16string> decoder_texts = { u"\r\n无法打开文件！", u"\r\n无法读取文件流信息！", u"\r\n无音频流！", u"\r\n无法找到音频的对应解码器！",
 		u"\r\n无法创建音频的解码器信息！", u"\r\n无法获取音频的解码器信息！", u"\r\n无法打开音频的对应解码器！", u"\r\n无法打开要写入的PCM文件！",
@@ -28,7 +28,7 @@ private:
 		u"\r\n信息：使用快速匹配。", u"\r\nAverage Found Index = ", u"%    ", u"Max Found Index= ", u"%\r\nMax Found Line= ", u"    Max Delta= ",
 		u"行（与第", u"行时间相同）可能存在匹配错误!", u"行可能存在匹配错误：与前一行次序不一致！", u"行可能存在匹配错误：与后一行次序不一致！",
 		u"行可能存在匹配错误：与前后行时差不一致！", u"行和第", u"行发生微小重叠，已自动修正。", u"\r\n打开输出字幕文件失败!", u"\r\n写入字幕文件失败!",
-		u"\r\n匹配时间：" };
+		u"\r\n匹配时间：", u"\r\nDiffa Consistency = " };
 };
 
 template<typename T>
@@ -43,7 +43,7 @@ inline std::string language_pack::to_u16string(T&& input)//only support ASCII ch
 	return re;
 }
 template<>
-inline std::string language_pack::to_u16string(const char*&& input)//only support ASCII characters!!
+inline std::string language_pack::to_u16string<const char*>(const char*&& input)//only support ASCII characters!!
 {
 	const char* ptr = input;
 	std::string re = "";
@@ -55,7 +55,7 @@ inline std::string language_pack::to_u16string(const char*&& input)//only suppor
 	return re;
 }
 template<>
-inline std::string language_pack::to_u16string(std::string&& input)//only support ASCII characters!!
+inline std::string language_pack::to_u16string<std::string>(std::string&& input)//only support ASCII characters!!
 {
 	std::string re = "";
 	for (auto& i : input) {

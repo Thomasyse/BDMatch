@@ -142,9 +142,7 @@ Matching::Match::Match(language_pack& lang_pack0, std::shared_ptr<std::atomic_fl
 Matching::Match::~Match()
 {
 	if (search_result)delete[] search_result;
-	delete[] diffa;
 	search_result = nullptr;
-	diffa = nullptr;
 }
 
 int Matching::Match::load_settings(const int & min_check_num0, const int & find_field0, const int &sub_offset0,
@@ -534,14 +532,19 @@ int Matching::Match::match()
 			*/
 			//cal debug info
 			if (debug_mode) {
+				deb_info.nb_line++;
 				int delta1 = bd_se.find(besttime, 1);
-				if (delta1 > deb_info.maxdelta)deb_info.maxdelta = delta1;
-				feedback += lang_pack.get_text(Lang_Type::General, 0) + lang_pack.to_u16string(delta1);//"\r\n delta"
+				if (delta1 > deb_info.max_delta)deb_info.max_delta = delta1;
+				feedback += lang_pack.get_text(Lang_Type::General, 0) + lang_pack.to_u16string(i + 1)
+					+ lang_pack.get_text(Lang_Type::General, 4) + lang_pack.to_u16string(delta1);//"\r\n i, delta"
+				if (minsum == diffa[0])deb_info.diffa_consis++;
+				else feedback += lang_pack.get_text(Lang_Type::General, 4) + lang_pack.to_u16string(minsum)
+						+ lang_pack.get_text(Lang_Type::General, 4) + lang_pack.to_u16string(diffa[0]);//", minsum, diffa[0]"
 				double foundindex = bd_se.find(besttime, 0) / (double)find_num;
-				deb_info.aveindex = deb_info.aveindex + foundindex;
-				if (foundindex > deb_info.maxindex&&duration > 75 * interval) {
-					deb_info.maxindex = foundindex;
-					deb_info.maxline = i + 1;
+				deb_info.ave_index = deb_info.ave_index + foundindex;
+				if (foundindex > deb_info.max_index&&duration > 75 * interval) {
+					deb_info.max_index = foundindex;
+					deb_info.max_line = i + 1;
 				}
 			}
 			//
@@ -562,14 +565,17 @@ int Matching::Match::match()
 	search_result = nullptr;
 	//output debug info
 	if (debug_mode) {
-		deb_info.aveindex /= static_cast<double>(nb_timeline) / 100.0;
-		deb_info.maxindex *= 100;
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 10) + lang_pack.to_u16string(deb_info.aveindex) +
+		deb_info.ave_index *= 100.0 / static_cast<double>(deb_info.nb_line);
+		deb_info.max_index *= 100.0;
+		deb_info.diffa_consis *= 100.0 / static_cast<double>(deb_info.nb_line);
+		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 10) + lang_pack.to_u16string(deb_info.ave_index) +
 			lang_pack.get_text(Lang_Type::Match_Sub, 11) + //"\r\nAverage Found Index = ***%    "
-			lang_pack.get_text(Lang_Type::Match_Sub, 12) + lang_pack.to_u16string(deb_info.maxindex) + 
+			lang_pack.get_text(Lang_Type::Match_Sub, 12) + lang_pack.to_u16string(deb_info.max_index) +
 			lang_pack.get_text(Lang_Type::Match_Sub, 13) + //"Max Found Index= ***%\r\nMax Found Line= "
-			lang_pack.to_u16string(deb_info.maxline) + lang_pack.get_text(Lang_Type::Match_Sub, 14) + 
-			lang_pack.to_u16string(deb_info.maxdelta);//"***    Max Delta= ***"
+			lang_pack.to_u16string(deb_info.max_line) + lang_pack.get_text(Lang_Type::Match_Sub, 14) +
+			lang_pack.to_u16string(deb_info.max_delta) +//"***    Max Delta= ***"
+			lang_pack.get_text(Lang_Type::Match_Sub, 25) + lang_pack.to_u16string(deb_info.diffa_consis) +
+			lang_pack.get_text(Lang_Type::Match_Sub, 11);//"\r\nDiffa Consistency = ***%    "
 	}
 	return 0;
 }

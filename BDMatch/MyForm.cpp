@@ -5,7 +5,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.14"
+#define appversion "1.5.15"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -103,7 +103,7 @@ int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path)
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;
 	}
-	int nb_timeline = BDMatchCoreAPI::get_nb_timeline();
+	int nb_timeline = static_cast<int>(BDMatchCoreAPI::get_nb_timeline());
 	//绘图相关
 	if (setting->draw) {
 		tv_draw.time_list = gcnew array<int, 2>(nb_timeline, 2);
@@ -1139,7 +1139,7 @@ System::Void BDMatch::MyForm::ASStext_DragDrop(System::Object ^ sender, System::
 
 System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nThis binary distribution is under the GPLv3 license.\n\nBDMatch Project:\nCopyright (c) 2020, Thomasys\n\nDependencies:\nFFmpeg 4.2.2\nFFTW 3.3.7: " +
+	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nThis binary distribution is under the GPLv3 license.\n\nBDMatch Project:\nCopyright (c) 2020, Thomasys\n\nDependencies:\nFFmpeg 4.2.2\nFFTW 3.3.8: " +
 		"Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005). ", "关于", MessageBoxButtons::OK);
 	return System::Void();
 }

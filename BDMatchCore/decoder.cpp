@@ -271,9 +271,11 @@ int Decode::Decode::decode_audio() {
 		int spectrum_size = fft_num / 2;
 		fft_data = new node*[data_channels];
 		fft_spec = new char*[data_channels];
+		fft_data_mem = new node[data_channels * size_t(e_fft_num)];
+		fft_spec_mem = new char[data_channels * size_t(e_fft_num) * spectrum_size];
 		for (int i = 0; i < data_channels; i++) {
-			fft_data[i] = new node[e_fft_num];
-			fft_spec[i] = new char[size_t(e_fft_num) * size_t(spectrum_size)];
+			fft_data[i] = fft_data_mem + i * size_t(e_fft_num);
+			fft_spec[i] = fft_spec_mem + i * size_t(e_fft_num) * spectrum_size;
 			char* index = fft_spec[i];
 			for (int j = 0; j < e_fft_num; j++, index += spectrum_size) {
 				fft_data[i][j].init_data(spectrum_size, index);
@@ -531,26 +533,14 @@ void Decode::Decode::sub_prog_back(int type, double val)
 
 int Decode::Decode::clear_fft_data()
 {
-	if (fft_data) {
-		for (int i = 0; i < data_channels; i++) {
-			if (fft_data[i]) {
-				delete[] fft_data[i];
-				fft_data[i] = nullptr;
-			}
-		}
-		delete[] fft_data;
-		fft_data = nullptr;
-	}
-	if (fft_spec) {
-		for (int i = 0; i < data_channels; i++) {
-			if (fft_spec[i]) {
-				delete[] fft_spec[i];
-				fft_spec[i] = nullptr;
-			}
-		}
-		delete[] fft_spec;
-		fft_spec = nullptr;
-	}
+	delete[] fft_data_mem;
+	fft_data_mem = nullptr;
+	delete[] fft_spec_mem;
+	fft_spec_mem = nullptr;
+	delete[] fft_data;
+	fft_data = nullptr;
+	delete[] fft_spec;
+	fft_spec = nullptr;
 	return 0;
 }
 int Decode::Decode::clear_ffmpeg()

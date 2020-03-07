@@ -62,8 +62,8 @@ namespace Matching {
 	};
 
 	struct debug_info {//debug info in matching
-		double aveindex = 0, maxindex = 0;
-		long long maxdelta = 0, maxline = 0;
+		double ave_index = 0.0, max_index = 0.0, diffa_consis = 0.0;
+		long long max_delta = 0, max_line = 0, nb_line = 0;
 	};
 
 	class Match {
@@ -129,7 +129,7 @@ namespace Matching {
 		int duration = 0;
 		double t2f = 1.0;//Time to Frequency
 		double f2t = 1.0;//Frequency to Time
-		std::atomic<long long*> diffa = new long long[3];//multithreading flags
+		long long diffa[3];//Not to initialize and no need to make atomic
 		se_re *search_result = nullptr;
 		std::string feedback;
 	};
