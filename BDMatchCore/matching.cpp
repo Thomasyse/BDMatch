@@ -766,7 +766,7 @@ std::string Matching::Match::cs2time(const int &cs0)
 		if (mm < 10)timeout += "0";
 		timeout += std::to_string(mm) + ":";
 		if (ss < 10)timeout += "0";
-		timeout += std::to_string(ss) + ".";
+		timeout += std::to_string(ss) + ",";
 		if (cs < 10)timeout += "0";
 		timeout += std::to_string(cs) + "0";
 		break;
