@@ -5,7 +5,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.15"
+#define appversion "1.5.16"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -477,7 +477,7 @@ int BDMatch::MyForm::match_input()
 	search_ISA();
 	if (setting->sub_offset != 0)Result->Text += "\r\nASS时间偏置：延后 " + setting->sub_offset.ToString() + " 厘秒" + cut_off;
 	/*
-	ASStext->Text = "\"G:\\Movie\\[SFEO-Raws] Haruchika Haruta & Chika (BD 1080P x264 FLAC)\\\
+	Subtext->Text = "\"G:\\Movie\\[SFEO-Raws] Haruchika Haruta & Chika (BD 1080P x264 FLAC)\\\
 [SFEO-Raws] Haruchika Haruta & Chika - 03 (BD 1080P x264 FLAC).ass\"\
 \"G:\\Movie\\[SFEO-Raws] Haruchika Haruta & Chika (BD 1080P x264 FLAC)\\\
 [SFEO-Raws] Haruchika Haruta & Chika - 01 (BD 1080P x264 FLAC).ass\"\
@@ -493,7 +493,7 @@ int BDMatch::MyForm::match_input()
 \"G:\\Movie\\[FLsnow&SumiSora][Haruchika][MKV][1080p]\\[FLsnow&SumiSora][Haruchika][01][x265_aac].mkv\"\
 \"G:\\Movie\\[FLsnow&SumiSora][Haruchika][MKV][1080p]\\[FLsnow&SumiSora][Haruchika][02][x265_aac].mkv\"";
 	*/
-	String ^ asstext_all = ASStext->Text;
+	String ^ asstext_all = Subtext->Text;
 	String ^ tvtext_all = TVtext->Text;
 	String ^ bdtext_all = BDtext->Text;
 	match_num = fin_match_num = 0;
@@ -772,7 +772,7 @@ int BDMatch::MyForm::match_input()
 		Result->Text += "\r\n总时间：" + spend.ToString() + "秒";
 	}
 	if (re >= 0) {
-		add_dropdown(ASStext, ASStext->Text);
+		add_dropdown(Subtext, Subtext->Text);
 		add_dropdown(TVtext, TVtext->Text);
 		add_dropdown(BDtext, BDtext->Text);
 		taskbar->ProgressState(TBPFLAG::TBPF_NOPROGRESS);
@@ -822,8 +822,8 @@ String ^ BDMatch::MyForm::return_regt(String ^ search)
 }
 int BDMatch::MyForm::match_control(bool val)
 {
-	ASStext->Enabled = val; TVtext->Enabled = val; BDtext->Enabled = val;
-	ASSfind->Enabled = val; TVfind->Enabled = val; BDfind->Enabled = val;
+	Subtext->Enabled = val; TVtext->Enabled = val; BDtext->Enabled = val;
+	Subfind->Enabled = val; TVfind->Enabled = val; BDfind->Enabled = val;
 	settings->Enabled = val;
 	if(val)Match->Text = "匹配";
 	else Match->Text = "停止";
@@ -901,7 +901,7 @@ System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::Event
 {
 	using namespace System::Threading::Tasks;
 	if (Match->Text == "匹配") {
-		if (ASStext->Text == "debug mode") {
+		if (Subtext->Text == "debug mode") {
 			debug_mode = !debug_mode;
 			Result->Text = debug_mode ? "调试模式打开。" : "调试模式关闭";
 			return System::Void();
@@ -1072,13 +1072,13 @@ System::Void BDMatch::MyForm::BDtext_DragDrop(System::Object ^ sender, System::W
 	return System::Void();
 }
 
-System::Void BDMatch::MyForm::ASSfind_Click(System::Object ^ sender, System::EventArgs ^ e)
+System::Void BDMatch::MyForm::Subfind_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
 	using namespace System::IO;
 	Stream^ myStream;
-	Filebrowse->Title = "获取ASS文件";
+	Filebrowse->Title = "获取字幕文件";
 	Filebrowse->FileName = "";
-	Filebrowse->Filter = "ASS Files|*.ass|All Files|*.*";
+	Filebrowse->Filter = "Subtitle Files|*.ass;*.srt|All Files|*.*";
 	Filebrowse->FilterIndex = 0;
 	Filebrowse->RestoreDirectory = true;
 	if (Filebrowse->ShowDialog() == System::Windows::Forms::DialogResult::OK)
@@ -1087,20 +1087,20 @@ System::Void BDMatch::MyForm::ASSfind_Click(System::Object ^ sender, System::Eve
 		{
 			using namespace System::Text::RegularExpressions;
 			if (Filebrowse->FileNames->Length > 1) {
-				ASStext->Text = "";
+				Subtext->Text = "";
 				for (int i = 0; i < Filebrowse->FileNames->Length; i++) {
-					ASStext->Text += "\"" + Filebrowse->FileNames[i] + "\"";
+					Subtext->Text += "\"" + Filebrowse->FileNames[i] + "\"";
 				}
 			}
 			else {
-				ASStext->Text = Filebrowse->FileName;
+				Subtext->Text = Filebrowse->FileName;
 			}
 			myStream->Close();
 		}
 	}
 	return System::Void();
 }
-System::Void BDMatch::MyForm::ASStext_DragEnter(System::Object ^ sender, System::Windows::Forms::DragEventArgs ^ e)
+System::Void BDMatch::MyForm::Subtext_DragEnter(System::Object ^ sender, System::Windows::Forms::DragEventArgs ^ e)
 {
 	if (e->Data->GetDataPresent(DataFormats::FileDrop) || e->Data->GetDataPresent(DataFormats::StringFormat))
 	{
@@ -1112,26 +1112,26 @@ System::Void BDMatch::MyForm::ASStext_DragEnter(System::Object ^ sender, System:
 	}
 	return System::Void();
 }
-System::Void BDMatch::MyForm::ASStext_DragDrop(System::Object ^ sender, System::Windows::Forms::DragEventArgs ^ e)
+System::Void BDMatch::MyForm::Subtext_DragDrop(System::Object ^ sender, System::Windows::Forms::DragEventArgs ^ e)
 {
 	using namespace System::Text::RegularExpressions;
 	using namespace System::IO;
 	if (e->Data->GetDataPresent(DataFormats::FileDrop)) {
 		array<String^>^files = (array<String^>^)e->Data->GetData(DataFormats::FileDrop);
 		if (files->Length > 1) {
-			ASStext->Text = "";
+			Subtext->Text = "";
 			for (int i = 0; i < files->Length; i++) {
-				ASStext->Text += "\"" + files[i] + "\"";
+				Subtext->Text += "\"" + files[i] + "\"";
 			}
 		}
 		else {
-			ASStext->Text = files[0];
+			Subtext->Text = files[0];
 		}
 	}
 	else
 		if (e->Data->GetDataPresent(DataFormats::StringFormat)) {
 			String^str = (String^)e->Data->GetData(DataFormats::StringFormat);
-			ASStext->Text = str;
+			Subtext->Text = str;
 		}
 	return System::Void();
 }
@@ -1214,15 +1214,15 @@ System::Void BDMatch::MyForm::Result_TextChanged(System::Object ^ sender, System
 System::Void BDMatch::MyForm::CompleteEdit_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
 	TextEditorPanel->Visible = false;
-	if (EditorLabel->Text == "ASS输入编辑") ASStext->Text = TextEditor->Text->Replace("\r\n", "");
+	if (EditorLabel->Text == "Sub输入编辑") Subtext->Text = TextEditor->Text->Replace("\r\n", "");
 	else if (EditorLabel->Text == "TV输入编辑") TVtext->Text = TextEditor->Text->Replace("\r\n", "");
 	else BDtext->Text = TextEditor->Text->Replace("\r\n", "");
 	return System::Void();
 }
 System::Void BDMatch::MyForm::ASSLabel_MouseDoubleClick(System::Object ^ sender, System::Windows::Forms::MouseEventArgs ^ e)
 {
-	EditorLabel->Text = "ASS输入编辑";
-	TextEditor->Text = ASStext->Text->Replace("\"\"", "\"\r\n\"");
+	EditorLabel->Text = "Sub输入编辑";
+	TextEditor->Text = Subtext->Text->Replace("\"\"", "\"\r\n\"");
 	TextEditorPanel->Visible = true;
 	return System::Void();
 }

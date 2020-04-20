@@ -8,7 +8,7 @@ namespace DataStruct {
 	{
 	public:
 		node();
-		int init_data(const int &num, char*& data_ptr);
+		int init_data(const int &num, char* data_ptr);
 		char read0(const int &pos);
 		char *getdata();
 		int sum();

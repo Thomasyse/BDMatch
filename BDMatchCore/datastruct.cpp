@@ -4,7 +4,7 @@
 DataStruct::node::node()
 {
 }
-int DataStruct::node::init_data(const int &num, char*& data_ptr)
+int DataStruct::node::init_data(const int &num, char* data_ptr)
 {
 	count = num;
 	data = data_ptr;

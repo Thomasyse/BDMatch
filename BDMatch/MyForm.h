@@ -63,10 +63,12 @@ namespace BDMatch {
 	private: System::Windows::Forms::Button^ Match;
 	private: System::Windows::Forms::Button^ TVfind;
 	private: System::Windows::Forms::Button^ BDfind;
-	private: System::Windows::Forms::Button^ ASSfind;
+	private: System::Windows::Forms::Button^ Subfind;
+
 	private: System::Windows::Forms::ComboBox^ TVtext;
 	private: System::Windows::Forms::ComboBox^ BDtext;
-	private: System::Windows::Forms::ComboBox^ ASStext;
+	private: System::Windows::Forms::ComboBox^ Subtext;
+
 	private: System::Windows::Forms::TextBox^ Result;
 
 	private: System::Windows::Forms::ProgressBar^  TotalProgress;
@@ -125,14 +127,14 @@ namespace BDMatch {
 			this->AllTablePanel = (gcnew System::Windows::Forms::TableLayoutPanel());
 			this->TotalProgress = (gcnew System::Windows::Forms::ProgressBar());
 			this->settings = (gcnew System::Windows::Forms::Label());
-			this->ASStext = (gcnew System::Windows::Forms::ComboBox());
+			this->Subtext = (gcnew System::Windows::Forms::ComboBox());
 			this->BDfind = (gcnew System::Windows::Forms::Button());
 			this->TVfind = (gcnew System::Windows::Forms::Button());
 			this->About = (gcnew System::Windows::Forms::Label());
 			this->BDLabel = (gcnew System::Windows::Forms::Label());
 			this->TVLabel = (gcnew System::Windows::Forms::Label());
 			this->ASSLabel = (gcnew System::Windows::Forms::Label());
-			this->ASSfind = (gcnew System::Windows::Forms::Button());
+			this->Subfind = (gcnew System::Windows::Forms::Button());
 			this->Match = (gcnew System::Windows::Forms::Button());
 			this->TVtext = (gcnew System::Windows::Forms::ComboBox());
 			this->BDtext = (gcnew System::Windows::Forms::ComboBox());
@@ -177,14 +179,14 @@ namespace BDMatch {
 				84)));
 			this->AllTablePanel->Controls->Add(this->TotalProgress, 0, 6);
 			this->AllTablePanel->Controls->Add(this->settings, 0, 4);
-			this->AllTablePanel->Controls->Add(this->ASStext, 1, 1);
+			this->AllTablePanel->Controls->Add(this->Subtext, 1, 1);
 			this->AllTablePanel->Controls->Add(this->BDfind, 3, 3);
 			this->AllTablePanel->Controls->Add(this->TVfind, 3, 2);
 			this->AllTablePanel->Controls->Add(this->About, 3, 4);
 			this->AllTablePanel->Controls->Add(this->BDLabel, 0, 3);
 			this->AllTablePanel->Controls->Add(this->TVLabel, 0, 2);
 			this->AllTablePanel->Controls->Add(this->ASSLabel, 0, 1);
-			this->AllTablePanel->Controls->Add(this->ASSfind, 3, 1);
+			this->AllTablePanel->Controls->Add(this->Subfind, 3, 1);
 			this->AllTablePanel->Controls->Add(this->Match, 2, 4);
 			this->AllTablePanel->Controls->Add(this->TVtext, 1, 2);
 			this->AllTablePanel->Controls->Add(this->BDtext, 1, 3);
@@ -240,21 +242,21 @@ namespace BDMatch {
 			this->settings->MouseEnter += gcnew System::EventHandler(this, &MyForm::settings_MouseEnter);
 			this->settings->MouseLeave += gcnew System::EventHandler(this, &MyForm::settings_MouseLeave);
 			// 
-			// ASStext
+			// Subtext
 			// 
-			this->ASStext->AllowDrop = true;
-			this->AllTablePanel->SetColumnSpan(this->ASStext, 2);
-			this->ASStext->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->ASStext->Font = (gcnew System::Drawing::Font(L"微软雅黑", 10.8F));
-			this->ASStext->FormattingEnabled = true;
-			this->ASStext->Location = System::Drawing::Point(115, 30);
-			this->ASStext->Margin = System::Windows::Forms::Padding(3, 6, 0, 0);
-			this->ASStext->MaxDropDownItems = 10;
-			this->ASStext->Name = L"ASStext";
-			this->ASStext->Size = System::Drawing::Size(1017, 38);
-			this->ASStext->TabIndex = 13;
-			this->ASStext->DragDrop += gcnew System::Windows::Forms::DragEventHandler(this, &MyForm::ASStext_DragDrop);
-			this->ASStext->DragEnter += gcnew System::Windows::Forms::DragEventHandler(this, &MyForm::ASStext_DragEnter);
+			this->Subtext->AllowDrop = true;
+			this->AllTablePanel->SetColumnSpan(this->Subtext, 2);
+			this->Subtext->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->Subtext->Font = (gcnew System::Drawing::Font(L"微软雅黑", 10.8F));
+			this->Subtext->FormattingEnabled = true;
+			this->Subtext->Location = System::Drawing::Point(115, 30);
+			this->Subtext->Margin = System::Windows::Forms::Padding(3, 6, 0, 0);
+			this->Subtext->MaxDropDownItems = 10;
+			this->Subtext->Name = L"Subtext";
+			this->Subtext->Size = System::Drawing::Size(1017, 38);
+			this->Subtext->TabIndex = 13;
+			this->Subtext->DragDrop += gcnew System::Windows::Forms::DragEventHandler(this, &MyForm::Subtext_DragDrop);
+			this->Subtext->DragEnter += gcnew System::Windows::Forms::DragEventHandler(this, &MyForm::Subtext_DragEnter);
 			// 
 			// BDfind
 			// 
@@ -345,19 +347,19 @@ namespace BDMatch {
 			this->ASSLabel->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
 			this->ASSLabel->MouseDoubleClick += gcnew System::Windows::Forms::MouseEventHandler(this, &MyForm::ASSLabel_MouseDoubleClick);
 			// 
-			// ASSfind
+			// Subfind
 			// 
-			this->ASSfind->Dock = System::Windows::Forms::DockStyle::Left;
-			this->ASSfind->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->Subfind->Dock = System::Windows::Forms::DockStyle::Left;
+			this->Subfind->Font = (gcnew System::Drawing::Font(L"微软雅黑", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
-			this->ASSfind->Location = System::Drawing::Point(1132, 29);
-			this->ASSfind->Margin = System::Windows::Forms::Padding(0, 5, 20, 2);
-			this->ASSfind->Name = L"ASSfind";
-			this->ASSfind->Size = System::Drawing::Size(43, 46);
-			this->ASSfind->TabIndex = 2;
-			this->ASSfind->Text = L"…";
-			this->ASSfind->UseVisualStyleBackColor = true;
-			this->ASSfind->Click += gcnew System::EventHandler(this, &MyForm::ASSfind_Click);
+			this->Subfind->Location = System::Drawing::Point(1132, 29);
+			this->Subfind->Margin = System::Windows::Forms::Padding(0, 5, 20, 2);
+			this->Subfind->Name = L"Subfind";
+			this->Subfind->Size = System::Drawing::Size(43, 46);
+			this->Subfind->TabIndex = 2;
+			this->Subfind->Text = L"…";
+			this->Subfind->UseVisualStyleBackColor = true;
+			this->Subfind->Click += gcnew System::EventHandler(this, &MyForm::Subfind_Click);
 			// 
 			// Match
 			// 
@@ -714,9 +716,10 @@ namespace BDMatch {
 	private: System::Void BDfind_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void BDtext_DragEnter(System::Object^  sender, System::Windows::Forms::DragEventArgs^  e);
 	private: System::Void BDtext_DragDrop(System::Object^  sender, System::Windows::Forms::DragEventArgs^  e);
-	private: System::Void ASSfind_Click(System::Object^  sender, System::EventArgs^  e);
-	private: System::Void ASStext_DragEnter(System::Object^  sender, System::Windows::Forms::DragEventArgs^  e);
-	private: System::Void ASStext_DragDrop(System::Object^  sender, System::Windows::Forms::DragEventArgs^  e);
+		   
+	private: System::Void Subfind_Click(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void Subtext_DragEnter(System::Object^  sender, System::Windows::Forms::DragEventArgs^  e);
+	private: System::Void Subtext_DragDrop(System::Object^  sender, System::Windows::Forms::DragEventArgs^  e);
 
 	private: System::Void Match_Click(System::Object^  sender, System::EventArgs^  e);
 
@@ -738,5 +741,5 @@ namespace BDMatch {
 	private: System::Void ASSLabel_MouseDoubleClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
 	private: System::Void TVLabel_MouseDoubleClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
 	private: System::Void BDLabel_MouseDoubleClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
-	};
+};
 }
