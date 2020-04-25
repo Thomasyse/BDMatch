@@ -2,9 +2,9 @@
 #include "headers/multithreading.h"
 #include <time.h>
 
-//A sample of command line usage
+//An example of command line usage
 /*
-int match{
+int match() {
 	std::atomic_flag *keep_processing = new std::atomic_flag;//cancel token
 	BDMatchCore *match_core = new BDMatchCore(keep_processing);
 	prog_func prog_ptr = nullptr;//function pointer to show progress: prog_func(int phase(0-3), double percent);

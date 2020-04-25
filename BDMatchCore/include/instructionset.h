@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+// No need for platform other than Windows
+
 #include <bitset>  
 #include <intrin.h>
 #include <array>

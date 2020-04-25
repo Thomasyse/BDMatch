@@ -1,4 +1,5 @@
 ﻿//{{NO_DEPENDENCIES}}
+// No need for platform other than Windows
 // Microsoft Visual C++ generated include file.
 // Used by BDMatchCore.rc
 

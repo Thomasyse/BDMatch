@@ -1,3 +1,4 @@
+// No need for platform other than Windows
 #include "include/BDMatchCoreAPI.h"
 #include "headers/BDMatchCore.h"
 #include "include/instructionset.h"

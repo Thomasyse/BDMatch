@@ -1,4 +1,5 @@
 #pragma once
+// No need for platform other than Windows
 #include <atomic>
 #include "headers/datastruct.h"
 #ifdef BDMATCHCORE_EXPORTS
