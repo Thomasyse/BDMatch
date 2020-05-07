@@ -1,66 +1,27 @@
-#pragma once
+ï»¿#pragma once
 #include<string>
 #include<vector>
+
+#include "targetver.h"
 
 enum class Lang_Type { General, Core, Decoder, Match_Sub };
 
 class language_pack {
 public:
-	std::string get_text(const Lang_Type &type, const int &index);
-	std::string u16_to_s(std::u16string& str);
-	template<typename T>
-	std::string to_u16string(T&& input);//only support ASCII characters!!
-	template<>
-	std::string to_u16string<const char*>(const char*&& input);//only support ASCII characters!!
-	template<>
-	std::string to_u16string<std::string>(std::string&& input);//only support ASCII characters!!
+	std::string get_text(const Lang_Type& type, const int& index);
 private:
-	std::vector<std::u16string> general_texts = { u"\r\n", u"  ", u"->", u"Ãë", u", "};
-	std::vector<std::u16string> match_core_texts = { u"TVÎÄ¼ş£º", u"BDÎÄ¼ş£º", u"   Ïì¶È£º", u"dB" , u"½âÂëÊ±¼ä£º", u"\r\n×ÖÄ»ÎÄ¼ş£º" };
-	std::vector<std::u16string> decoder_texts = { u"\r\nÎŞ·¨´ò¿ªÎÄ¼ş£¡", u"\r\nÎŞ·¨¶ÁÈ¡ÎÄ¼şÁ÷ĞÅÏ¢£¡", u"\r\nÎŞÒôÆµÁ÷£¡", u"\r\nÎŞ·¨ÕÒµ½ÒôÆµµÄ¶ÔÓ¦½âÂëÆ÷£¡",
-		u"\r\nÎŞ·¨´´½¨ÒôÆµµÄ½âÂëÆ÷ĞÅÏ¢£¡", u"\r\nÎŞ·¨»ñÈ¡ÒôÆµµÄ½âÂëÆ÷ĞÅÏ¢£¡", u"\r\nÎŞ·¨´ò¿ªÒôÆµµÄ¶ÔÓ¦½âÂëÆ÷£¡", u"\r\nÎŞ·¨´ò¿ªÒªĞ´ÈëµÄPCMÎÄ¼ş£¡",
-		u"\r\nÎŞ·¨¹¹½¨ÖØ²ÉÑù»·¾³£¡", u"\r\nÎŞ·¨³õÊ¼»¯ÖØ²ÉÑù»·¾³£¡", u"\r\nÎŞ·¨ÎªÒôÆµÖ¡·ÖÅäÄÚ´æ£¡", u"\r\nÎŞ·¨Ìá½»ÒôÆµÖÁ½âÂëÆ÷£¡", u"\r\nÒôÆµ½âÂë³ö´í£¡",
-		u"\r\nÎŞ·¨¼ÆËãÒôÆµÊı¾İ´óĞ¡£¡", u"\r\nÎŞ·¨ÎªÖØ²ÉÑùÊı¾İ·ÖÅäÄÚ´æ£¡", u"\r\nÖØ²ÉÑù´íÎó£¡", u"Hz -> ", u"Hz", u"    ÉùµÀ£º", u"    ×ÜÖ¡Êı£º",
-		u"    ¸ñÊ½£º", u"\r\n²ÉÑùÎ»Êı£º", u"bit -> ", u"bit    ²ÉÑùÂÊ£º", u"    ²ÉÑù¸ñÊ½£º", u"    ÑÓ³Ù£º",u"ms", u"\r\nÊä³ö½âÂëÒôÆµ£º", u"Òô¹ì±àºÅ£º",
-		u"    ÒôÆµ±àÂë£º" };
-	std::vector<std::u16string> match_texts = { u"\r\n¶ÁÈ¡×ÖÄ»ÎÄ¼şÊ§°Ü!", u"\r\nÊäÈë×ÖÄ»ÎÄ¼şÎŞĞ§£¡", u"\r\nĞÅÏ¢£ºµÚ", u"ĞĞÎª×¢ÊÍ£¬½«²»×÷´¦Àí¡£",
-		u"ĞĞÊ±³¤ÎªÁã£¬½«²»×÷´¦Àí¡£", u"\r\n¾¯¸æ£ºµÚ", u"ĞĞÊ±³¤¹ı³¤£¬½«²»×÷´¦Àí¡£", u"ĞĞ³¬¹ıÒôÆµ³¤¶È£¬½«²»×÷´¦Àí¡£", u"ĞĞÉùÒô¹ıĞ¡£¬½«²»×÷´¦Àí¡£",
-		u"\r\nĞÅÏ¢£ºÊ¹ÓÃ¿ìËÙÆ¥Åä¡£", u"\r\nAverage Found Index = ", u"%    ", u"Max Found Index= ", u"%\r\nMax Found Line= ", u"    Max Delta= ",
-		u"ĞĞ£¨ÓëµÚ", u"ĞĞÊ±¼äÏàÍ¬£©¿ÉÄÜ´æÔÚÆ¥Åä´íÎó!", u"ĞĞ¿ÉÄÜ´æÔÚÆ¥Åä´íÎó£ºÓëÇ°Ò»ĞĞ´ÎĞò²»Ò»ÖÂ£¡", u"ĞĞ¿ÉÄÜ´æÔÚÆ¥Åä´íÎó£ºÓëºóÒ»ĞĞ´ÎĞò²»Ò»ÖÂ£¡",
-		u"ĞĞ¿ÉÄÜ´æÔÚÆ¥Åä´íÎó£ºÓëÇ°ºóĞĞÊ±²î²»Ò»ÖÂ£¡", u"ĞĞºÍµÚ", u"ĞĞ·¢ÉúÎ¢Ğ¡ÖØµş£¬ÒÑ×Ô¶¯ĞŞÕı¡£", u"\r\n´ò¿ªÊä³ö×ÖÄ»ÎÄ¼şÊ§°Ü!", u"\r\nĞ´Èë×ÖÄ»ÎÄ¼şÊ§°Ü!",
-		u"\r\nÆ¥ÅäÊ±¼ä£º", u"\r\nDiffa Consistency = " };
+	std::vector<std::string> general_texts = { u8"\r\n", u8"  ", u8"->", u8"ç§’", u8", " };
+	std::vector<std::string> match_core_texts = { u8"TVæ–‡ä»¶ï¼š", u8"BDæ–‡ä»¶ï¼š", u8"   å“åº¦ï¼š", u8"dB" , u8"è§£ç æ—¶é—´ï¼š", u8"\r\nå­—å¹•æ–‡ä»¶ï¼š" };
+	std::vector<std::string> decoder_texts = { u8"\r\næ— æ³•æ‰“å¼€æ–‡ä»¶ï¼", u8"\r\næ— æ³•è¯»å–æ–‡ä»¶æµä¿¡æ¯ï¼", u8"\r\næ— éŸ³é¢‘æµï¼", u8"\r\næ— æ³•æ‰¾åˆ°éŸ³é¢‘çš„å¯¹åº”è§£ç å™¨ï¼",
+		u8"\r\næ— æ³•åˆ›å»ºéŸ³é¢‘çš„è§£ç å™¨ä¿¡æ¯ï¼", u8"\r\næ— æ³•è·å–éŸ³é¢‘çš„è§£ç å™¨ä¿¡æ¯ï¼", u8"\r\næ— æ³•æ‰“å¼€éŸ³é¢‘çš„å¯¹åº”è§£ç å™¨ï¼", u8"\r\næ— æ³•æ‰“å¼€è¦å†™å…¥çš„PCMæ–‡ä»¶ï¼",
+		u8"\r\næ— æ³•æ„å»ºé‡é‡‡æ ·ç¯å¢ƒï¼", u8"\r\næ— æ³•åˆå§‹åŒ–é‡é‡‡æ ·ç¯å¢ƒï¼", u8"\r\næ— æ³•ä¸ºéŸ³é¢‘å¸§åˆ†é…å†…å­˜ï¼", u8"\r\næ— æ³•æäº¤éŸ³é¢‘è‡³è§£ç å™¨ï¼", u8"\r\néŸ³é¢‘è§£ç å‡ºé”™ï¼",
+		u8"\r\næ— æ³•è®¡ç®—éŸ³é¢‘æ•°æ®å¤§å°ï¼", u8"\r\næ— æ³•ä¸ºé‡é‡‡æ ·æ•°æ®åˆ†é…å†…å­˜ï¼", u8"\r\né‡é‡‡æ ·é”™è¯¯ï¼", u8"Hz -> ", u8"Hz", u8"    å£°é“ï¼š", u8"    æ€»å¸§æ•°ï¼š",
+		u8"    æ ¼å¼ï¼š", u8"\r\né‡‡æ ·ä½æ•°ï¼š", u8"bit -> ", u8"bit    é‡‡æ ·ç‡ï¼š", u8"    é‡‡æ ·æ ¼å¼ï¼š", u8"    å»¶è¿Ÿï¼š",u8"ms", u8"\r\nè¾“å‡ºè§£ç éŸ³é¢‘ï¼š", u8"éŸ³è½¨ç¼–å·ï¼š",
+		u8"    éŸ³é¢‘ç¼–ç ï¼š" };
+	std::vector<std::string> match_texts = { u8"\r\nè¯»å–å­—å¹•æ–‡ä»¶å¤±è´¥!", u8"\r\nè¾“å…¥å­—å¹•æ–‡ä»¶æ— æ•ˆï¼", u8"\r\nä¿¡æ¯ï¼šç¬¬", u8"è¡Œä¸ºæ³¨é‡Šï¼Œå°†ä¸ä½œå¤„ç†ã€‚",
+		u8"è¡Œæ—¶é•¿ä¸ºé›¶ï¼Œå°†ä¸ä½œå¤„ç†ã€‚", u8"\r\nè­¦å‘Šï¼šç¬¬", u8"è¡Œæ—¶é•¿è¿‡é•¿ï¼Œå°†ä¸ä½œå¤„ç†ã€‚", u8"è¡Œè¶…è¿‡éŸ³é¢‘é•¿åº¦ï¼Œå°†ä¸ä½œå¤„ç†ã€‚", u8"è¡Œå£°éŸ³è¿‡å°ï¼Œå°†ä¸ä½œå¤„ç†ã€‚",
+		u8"\r\nä¿¡æ¯ï¼šä½¿ç”¨å¿«é€ŸåŒ¹é…ã€‚", u8"\r\nAverage Found Index = ", u8"%    ", u8"Max Found Index= ", u8"%\r\nMax Found Line= ", u8"    Max Delta= ",
+		u8"è¡Œï¼ˆä¸ç¬¬", u8"è¡Œæ—¶é—´ç›¸åŒï¼‰å¯èƒ½å­˜åœ¨åŒ¹é…é”™è¯¯!", u8"è¡Œå¯èƒ½å­˜åœ¨åŒ¹é…é”™è¯¯ï¼šä¸å‰ä¸€è¡Œæ¬¡åºä¸ä¸€è‡´ï¼", u8"è¡Œå¯èƒ½å­˜åœ¨åŒ¹é…é”™è¯¯ï¼šä¸åä¸€è¡Œæ¬¡åºä¸ä¸€è‡´ï¼",
+		u8"è¡Œå¯èƒ½å­˜åœ¨åŒ¹é…é”™è¯¯ï¼šä¸å‰åè¡Œæ—¶å·®ä¸ä¸€è‡´ï¼", u8"è¡Œå’Œç¬¬", u8"è¡Œå‘ç”Ÿå¾®å°é‡å ï¼Œå·²è‡ªåŠ¨ä¿®æ­£ã€‚", u8"\r\næ‰“å¼€è¾“å‡ºå­—å¹•æ–‡ä»¶å¤±è´¥!", u8"\r\nå†™å…¥å­—å¹•æ–‡ä»¶å¤±è´¥!",
+		u8"\r\nåŒ¹é…æ—¶é—´ï¼š", u8"\r\nDiffa Consistency = " };
 };
-
-template<typename T>
-inline std::string language_pack::to_u16string(T&& input)//only support ASCII characters!!
-{
-	std::string str = std::to_string(input);
-	std::string re = "";
-	for (auto& i : str) {
-		re += i;
-		re += '\0';
-	}
-	return re;
-}
-template<>
-inline std::string language_pack::to_u16string<const char*>(const char*&& input)//only support ASCII characters!!
-{
-	const char* ptr = input;
-	std::string re = "";
-	while (*ptr) {
-		re += *ptr;
-		re += '\0';
-		ptr++;
-	}
-	return re;
-}
-template<>
-inline std::string language_pack::to_u16string<std::string>(std::string&& input)//only support ASCII characters!!
-{
-	std::string re = "";
-	for (auto& i : input) {
-		re += i;
-		re += '\0';
-	}
-	return re;
-}

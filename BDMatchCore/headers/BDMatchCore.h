@@ -4,8 +4,8 @@
 #include "matching.h"
 #include "language_pack.h"
 
-typedef void(__stdcall* prog_func)(int, double);
-typedef void(__stdcall* feedback_func)(const char*, const long long len);
+typedef void(*prog_func)(int, double);
+typedef void(*feedback_func)(const char*, const long long len);
 
 class BDMatchCore {
 public:

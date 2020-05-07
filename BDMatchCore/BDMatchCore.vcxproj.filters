@@ -68,10 +68,18 @@
     <ClCompile Include="BDMatchCoreAPI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="CLI.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BDMatchCore.rc">
       <Filter>资源文件</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="makefile">
+      <Filter>源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

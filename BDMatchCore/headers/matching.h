@@ -3,14 +3,15 @@
 #include <atomic>
 #include <array>
 #include <vector>
-#include <string> 
+#include <string>
+#include <memory>
 #include "language_pack.h"
 
 namespace Matching {
 
 	using namespace DataStruct;
 
-	typedef void (__stdcall *prog_func)(int, double);
+	typedef void (*prog_func)(int, double);
 
 	class timeline
 	{
@@ -69,7 +70,7 @@ namespace Matching {
 	class Match {
 	public:
 		Match(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr);
-		~Match();
+		virtual ~Match();
 		int load_settings(const int &min_check_num0, const int &find_field0, const int &sub_offset0, 
 			const int &max_length0,
 			const bool &fast_match0, const bool &debug_mode0, const prog_func &prog_single0 = nullptr);

@@ -2,7 +2,7 @@
 
 std::string language_pack::get_text(const Lang_Type& type, const int& index)
 {
-	std::u16string str = u"";
+	std::string str = u8"";
 	switch (type) {
 	case Lang_Type::General:
 		str = general_texts[index];
@@ -19,15 +19,6 @@ std::string language_pack::get_text(const Lang_Type& type, const int& index)
 	default:
 		break;
 	}
-	return u16_to_s(str);
-}
-
-std::string language_pack::u16_to_s(std::u16string& str)
-{
-	const char* str_ptr = reinterpret_cast<const char*>(str.c_str());
-	size_t len = str.length();
-	std::string re = "";
-	re.append(str_ptr, len * 2);
-	return re;
+	return str;
 }
 

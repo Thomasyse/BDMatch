@@ -180,6 +180,9 @@
   <ItemGroup>
     <ClCompile Include="BDMatchCore.cpp" />
     <ClCompile Include="BDMatchCoreAPI.cpp" />
+    <ClCompile Include="CLI.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="datastruct.cpp" />
     <ClCompile Include="decoder.cpp" />
     <ClCompile Include="dllmain.cpp" />
@@ -188,6 +191,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BDMatchCore.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="makefile" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

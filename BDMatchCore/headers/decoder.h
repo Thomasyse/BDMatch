@@ -28,7 +28,7 @@ extern"C" {
 
 namespace Decode {
 
-	typedef void(__stdcall *prog_func)(int, double);
+	typedef void(*prog_func)(int, double);
 
 	struct FFmpeg
 	{
@@ -48,7 +48,7 @@ namespace Decode {
 	{
 	public:
 		Decode(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr);
-		~Decode();
+		virtual ~Decode();
 		int load_settings(const int &fft_num0, const bool &output_pcm0, const int &min_db0, 
 			const int &resamp_rate0, const int &prog_type0,	fftw_plan plan0, const prog_func &prog_single0 = nullptr);
 		int initialize(const std::string &file_name0);

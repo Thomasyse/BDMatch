@@ -2,55 +2,6 @@
 #include "headers/multithreading.h"
 #include <time.h>
 
-//An example of command line usage
-/*
-int match() {
-	std::atomic_flag *keep_processing = new std::atomic_flag;//cancel token
-	BDMatchCore *match_core = new BDMatchCore(keep_processing);
-	prog_func prog_ptr = nullptr;//function pointer to show progress: prog_func(int phase(0-3), double percent);
-	feedback_func feedback_ptr = nullptr;//function pointer to show feedback: feedback_func(const char* feedback_string);
-	match_core->load_interface(prog_ptr, feedback_ptr);
-	//Setteings(default value as below):
-	int isa_mode = 3;//ISA Mode:0 for none, 1 for SSE/SSE2/SSE4.1, 2 for AVX, 3 for AVX2.
-	int fft_num = 512;//FFT data size, larger for speed, smaller for precision
-	int min_db = -14;//volume(db) threshold for ignoring
-	bool output_pcm = false;//whether to output decoded wave
-	bool parallel_decode = false;//whether to decode paralleling, recommended true for Disk with good performance
-	bool vol_match = false;//whether to match the volume of BD to TV, recommended true for large volume difference between TV and BD
-	int min_check_num = 100;//check times for match results, larger for precision, smaller for speed
-	int find_field = 10;//range for searching the results(-xx -> +xx), with the unit of second
-	int sub_offset = 0;//offset of the timeline of the ass file, with the unit of centisecond
-	int max_length = 20;//the max length of the timeline to be matched, with the unit of second
-	bool match_ass = true;//whether to match the ass
-	bool fast_match = false;//whether to match fast but perhaps lose some pecision
-	bool debug_mode = false;//whether to show some debug info
-	match_core->load_settings(isa_mode,fft_num,min_db,output_pcm, parallel_decode, vol_match,
-		min_check_num, find_field, sub_offset, max_length,
-		match_ass, fast_match, debug_mode);
-	//decode
-	const char *tv_path = "TV file path";
-	const char *bd_path = "BD file path";
-	const char *sub_path = "subtitle file path";
-	const char *output_path = "output ASS file path";//"" for auto rename.
-	int re = 0;
-	re = match_core->decode(tv_path, bd_path);
-	if (re < 0) return re;
-	if (match_ass) {
-		re = match_core->match_1(sub_path);
-		if (re < 0) return re;
-		re = match_core->match_2(output_path);
-		if (re < 0) return re;
-		match_core->clear_match();
-	}
-	if (re < 0) {
-		if (re == -2)return -6;
-		else return -5;
-	}
-	delete keep_processing;
-	return 0;
-}
-*/
-
 BDMatchCore::BDMatchCore()
 {
 }
@@ -326,7 +277,7 @@ int BDMatchCore::feedback_tv(const std::string& tv_path)
 		feed_func(tv_path.substr(tv_path.find_last_of("\\") + 1).c_str(), -1);
 		feedback = lang_pack.get_text(Lang_Type::General, 0) + tv_decode->get_feedback();//"\r\n tv_feedback"
 		if (vol_match) {
-			std::string vol = lang_pack.to_u16string(10.0 * log10(tv_decode->get_avg_vol()));
+			std::string vol = std::to_string(10.0 * log10(tv_decode->get_avg_vol()));
 			vol = vol.substr(0, vol.find_last_of('.') + 6);
 			feedback += lang_pack.get_text(Lang_Type::Core, 2) + vol + lang_pack.get_text(Lang_Type::Core, 3);//"   响度：**.*dB"
 		}
@@ -344,9 +295,9 @@ int BDMatchCore::feedback_bd(const std::string& bd_path, const double& bd_pre_av
 		feed_func(bd_path.substr(bd_path.find_last_of("\\") + 1).c_str(), -1);
 		feedback = lang_pack.get_text(Lang_Type::General, 0) + bd_decode->get_feedback();//"\r\n bd_feedback"
 		if (vol_match) {
-			std::string vol = lang_pack.to_u16string(10.0 * log10(bd_pre_avg_vol));
+			std::string vol = std::to_string(10.0 * log10(bd_pre_avg_vol));
 			vol = vol.substr(0, vol.find_last_of('.') + 6);
-			std::string vol2 = lang_pack.to_u16string(10.0 * log10(bd_decode->get_avg_vol()));
+			std::string vol2 = std::to_string(10.0 * log10(bd_decode->get_avg_vol()));
 			vol2 = vol2.substr(0, vol2.find_last_of('.') + 6);
 			feedback += lang_pack.get_text(Lang_Type::Core, 2) + vol + lang_pack.get_text(Lang_Type::General, 2) +
 				vol2 + lang_pack.get_text(Lang_Type::Core, 3);//"   响度：**.*->**.*dB"
@@ -359,7 +310,7 @@ int BDMatchCore::feedback_time(const double& spend)
 {
 	if (feed_func) {
 		std::string feedback = "";
-		std::string spend_str = lang_pack.to_u16string(spend);
+		std::string spend_str = std::to_string(spend);
 		spend_str = spend_str.substr(0, spend_str.find_last_of('.') + 8);
 		feedback += lang_pack.get_text(Lang_Type::General, 0) + lang_pack.get_text(Lang_Type::Core, 4) +
 			spend_str + lang_pack.get_text(Lang_Type::General, 3);//"\r\n解码时间：**.***秒"

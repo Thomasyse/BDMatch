@@ -4,7 +4,48 @@
 #include <fstream>
 #include "headers/multithreading.h"
 
+//#define _NO_SVML_ // define if _mm(256)_log10_pd is not supported
+
 constexpr double MaxdB = 20.0;
+
+namespace Decode {
+	inline double m256d_f64(const __m256d& vec, const int& index)
+	{
+#ifndef _CLI_ // Windows
+		return vec.m256d_f64[index];
+#else // Other platforms
+		return reinterpret_cast<const double*>(&vec)[index];
+#endif 
+	}
+
+	inline __m128d _mm_log10_pd_cmpt(const __m128d& vec)
+	{
+#ifndef _NO_SVML_ // Platforms which support _mm_log10_pd
+		return _mm_log10_pd(vec);
+#else // Other platforms
+		__m128d re_vec = vec;
+		double* re_d = reinterpret_cast<double*>(&re_vec);
+		re_d[0] = log10(re_d[0]);
+		re_d[1] = log10(re_d[1]);
+		return re_vec;
+#endif 
+	}
+
+	inline __m256d _mm256_log10_pd_cmpt(const __m256d& vec)
+	{
+#ifndef _NO_SVML_ // Platforms which support _mm256_log10_pd
+		return _mm256_log10_pd(vec);
+#else // Other platforms
+		__m256d re_vec = vec;
+		double* re_d = reinterpret_cast<double*>(&re_vec);
+		re_d[0] = log10(re_d[0]);
+		re_d[1] = log10(re_d[1]);
+		re_d[2] = log10(re_d[2]);
+		re_d[3] = log10(re_d[3]);
+		return re_vec;
+#endif 
+	}
+}
 
 Decode::FFmpeg::~FFmpeg()
 {
@@ -30,7 +71,7 @@ Decode::FFmpeg::~FFmpeg()
 }
 
 Decode::Decode::Decode(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0)
-	:lang_pack(lang_pack0), keep_processing(keep_processing0) {
+	:keep_processing(keep_processing0), lang_pack(lang_pack0) {
 }
 Decode::Decode::~Decode()
 {
@@ -118,8 +159,8 @@ int Decode::Decode::initialize(const std::string & file_name0)
 		return return_val; // Failed to allocate the codec context
 	}
 
-	feedback = lang_pack.get_text(Lang_Type::Decoder, 28) + lang_pack.to_u16string(audio_stream) +//"音轨编号：**"
-		lang_pack.get_text(Lang_Type::Decoder, 29) + lang_pack.to_u16string(std::move(ffmpeg->codec->long_name));//"    音频编码：****"
+	feedback = lang_pack.get_text(Lang_Type::Decoder, 28) + std::to_string(audio_stream) +//"音轨编号：**"
+		lang_pack.get_text(Lang_Type::Decoder, 29) + ffmpeg->codec->long_name;//"    音频编码：****"
 
 	if (avcodec_open2(ffmpeg->codecfm, ffmpeg->codec, NULL) < 0)//将两者结合以便在下面的解码函数中调用pInCodec中的对应解码函数
 	{
@@ -215,11 +256,13 @@ int Decode::Decode::decode_audio() {
 	case AV_SAMPLE_FMT_S64P:
 		sample_type = 64;
 		break;
+	default:
+		break;
 	}
 	if (ffmpeg->codecfm->sample_fmt == AV_SAMPLE_FMT_FLT || ffmpeg->codecfm->sample_fmt == AV_SAMPLE_FMT_FLTP) sample_type = 1;
 	else if (ffmpeg->codecfm->sample_fmt == AV_SAMPLE_FMT_DBL || ffmpeg->codecfm->sample_fmt == AV_SAMPLE_FMT_DBLP) sample_type = 2;
 	//采样变量
-	int samplecount = 0, samplenum = 0;
+	int samplenum = 0;
 	c_min_db = 256.0 / (MaxdB - static_cast<double>(min_db));
 	//重采样变量2
 	ffmpeg->dst_data = nullptr;
@@ -424,18 +467,18 @@ int Decode::Decode::decode_audio() {
 	pool.wait();
 	//
 	std::string samp_rate_info = "";
-	if (resamp)samp_rate_info = lang_pack.to_u16string(sample_rate) + lang_pack.get_text(Lang_Type::Decoder, 16)
-		+ lang_pack.to_u16string(resamp_rate) + lang_pack.get_text(Lang_Type::Decoder, 17);//"***Hz -> ***Hz"
-	else samp_rate_info = lang_pack.to_u16string(sample_rate) + lang_pack.get_text(Lang_Type::Decoder, 17);//"***Hz"
-	std::string samp_format_info = lang_pack.to_u16string(std::move(av_get_sample_fmt_name(ffmpeg->codecfm->sample_fmt)));
+	if (resamp)samp_rate_info = std::to_string(sample_rate) + lang_pack.get_text(Lang_Type::Decoder, 16)
+		+ std::to_string(resamp_rate) + lang_pack.get_text(Lang_Type::Decoder, 17);//"***Hz -> ***Hz"
+	else samp_rate_info = std::to_string(sample_rate) + lang_pack.get_text(Lang_Type::Decoder, 17);//"***Hz"
+	std::string samp_format_info = av_get_sample_fmt_name(ffmpeg->codecfm->sample_fmt);
 	//samp_format_info = samp_format_info.replace(samp_format_info.find("AV_SAMPLE_FMT_"), 14, "");
-	feedback += lang_pack.get_text(Lang_Type::Decoder, 18) + lang_pack.to_u16string(channels) + lang_pack.get_text(Lang_Type::Decoder, 19) + lang_pack.to_u16string(count)
-		+ lang_pack.get_text(Lang_Type::Decoder, 20) + lang_pack.to_u16string(std::move(chfmt)) +    //"    声道：**    总帧数：***    格式：****"
-		lang_pack.get_text(Lang_Type::Decoder, 21) + lang_pack.to_u16string(bit_depth_raw) + lang_pack.get_text(Lang_Type::Decoder, 22) +
-		lang_pack.to_u16string(out_bit_depth) + lang_pack.get_text(Lang_Type::Decoder, 23) + samp_rate_info
+	feedback += lang_pack.get_text(Lang_Type::Decoder, 18) + std::to_string(channels) + lang_pack.get_text(Lang_Type::Decoder, 19) + std::to_string(count)
+		+ lang_pack.get_text(Lang_Type::Decoder, 20) + chfmt +    //"    声道：**    总帧数：***    格式：****"
+		lang_pack.get_text(Lang_Type::Decoder, 21) + std::to_string(bit_depth_raw) + lang_pack.get_text(Lang_Type::Decoder, 22) +
+		std::to_string(out_bit_depth) + lang_pack.get_text(Lang_Type::Decoder, 23) + samp_rate_info
 		+ lang_pack.get_text(Lang_Type::Decoder, 24) + samp_format_info;//"\r\n采样位数：**bit -> **bit    采样率：***   采样格式：****"
 	if (start_time != 0 && !audio_only)feedback += lang_pack.get_text(Lang_Type::Decoder, 25) +
-		lang_pack.to_u16string(start_time) + lang_pack.get_text(Lang_Type::Decoder, 26);//"    延迟：***ms"
+		std::to_string(start_time) + lang_pack.get_text(Lang_Type::Decoder, 26);//"    延迟：***ms"
 	//补充wav头信息
 	if (output_pcm) {
 		long pcmfilesize = static_cast<long>(pcm.tellp()) - 8;
@@ -451,7 +494,7 @@ int Decode::Decode::decode_audio() {
 		pcmfilesize -= 36;
 		pcm.write(reinterpret_cast<char*>(&pcmfilesize), 4);//pcm size
 		pcm.close();
-		feedback += lang_pack.get_text(Lang_Type::Decoder, 27) + lang_pack.to_u16string(std::move(file_name));//"\r\n输出解码音频：****"
+		feedback += lang_pack.get_text(Lang_Type::Decoder, 27) + file_name;//"\r\n输出解码音频：****"
 	}
 	//释放内存
 	return_val = 0;
@@ -723,7 +766,7 @@ int Decode::Decode_SSE::FD8(double * inseq, DataStruct::node * outseq)
 		seq1 = _mm_mul_pd(seq1, seq1);
 		seq2 = _mm_mul_pd(seq2, seq2);
 		__m128d temp = _mm_hadd_pd(seq1, seq2);
-		temp = _mm_log10_pd(temp);
+		temp = _mm_log10_pd_cmpt(temp);
 		temp = _mm_fmsub_pd(temp, const10, const_maxdb);
 		temp = _mm_fmadd_pd(temp, const_mindb, const127);
 		temp = _mm_min_pd(temp, const127);
@@ -775,7 +818,7 @@ int Decode::Decode_AVX::FD8(double * inseq, DataStruct::node * outseq)
 		seq1 = _mm256_mul_pd(seq1, seq1);
 		seq2 = _mm256_mul_pd(seq2, seq2);
 		__m256d temp = _mm256_hadd_pd(seq1, seq2);
-		temp = _mm256_log10_pd(temp);
+		temp = _mm256_log10_pd_cmpt(temp);
 		temp = _mm256_fmsub_pd(temp, const10, const_maxdb);
 		temp = _mm256_fmadd_pd(temp, const_mindb, const127);
 		temp = _mm256_max_pd(temp, constm128);
@@ -793,7 +836,7 @@ int Decode::Decode_AVX::FD8(double * inseq, DataStruct::node * outseq)
 	return 0;
 }
 
-inline int Decode::Decode_AVX2::transfer_audio_data_planar_float(uint8_t** const audiodata, 
+inline int Decode::Decode_AVX2::transfer_audio_data_planar_float(uint8_t** const audiodata,
 	double** const normalized_samples, double** const seqs, 
 	const int& nb_last, const int& nb_last_next, const int& length, const int& nb_samples)
 {
@@ -831,12 +874,12 @@ inline int Decode::Decode_AVX2::transfer_audio_data_planar_float(uint8_t** const
 				__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
 				__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
 				for (int j = 0; j < 4; j++)
-					if (j < remainder) *(tempd++) = tempd_1.m256d_f64[j];
-					else *(temp_seq++) = tempd_1.m256d_f64[j];
+					if (j < remainder) *(tempd++) = m256d_f64(tempd_1, j);
+					else *(temp_seq++) = m256d_f64(tempd_1, j);
 				remainder -= 4;
 				for (int j = 0; j < 4; j++)
-					if (j < remainder) *(tempd++) = tempd_2.m256d_f64[j];
-					else *(temp_seq++) = tempd_2.m256d_f64[j];
+					if (j < remainder) *(tempd++) = m256d_f64(tempd_2, j);
+					else *(temp_seq++) = m256d_f64(tempd_2, j);
 				tempf += 8;
 				threshold++;
 			}
@@ -886,7 +929,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_float(uint8_t** const
 		__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
 		double out;
 		for (int j = 0; j < 4; j++) {
-			out = tempd_1.m256d_f64[j];
+			out = m256d_f64(tempd_1, j);
 			normalized_samples[ch++][index] = out;
 			if (ch == channels) {
 				ch = 0;
@@ -894,7 +937,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_float(uint8_t** const
 			}
 		}
 		for (int j = 0; j < 4; j++) {
-			out = tempd_2.m256d_f64[j];
+			out = m256d_f64(tempd_2, j);
 			normalized_samples[ch++][index] = out;
 			if (ch == channels) {
 				ch = 0;
@@ -912,8 +955,8 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_float(uint8_t** const
 			__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
 			for (int j = 0; j < 8; j++) {
 				double out;
-				if (j < 4)out = tempd_1.m256d_f64[j];
-				else out = tempd_2.m256d_f64[j - 4];
+				if (j < 4)out = m256d_f64(tempd_1, j);
+				else out = m256d_f64(tempd_2, j - 4);
 				if (index < length) {
 					normalized_samples[ch++][index] = out;
 					if (ch == channels) {
@@ -940,7 +983,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_float(uint8_t** const
 			__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
 			double out;
 			for (int j = 0; j < 4; j++) {
-				out = tempd_1.m256d_f64[j];
+				out = m256d_f64(tempd_1, j);
 				seqs[ch++][index2] = out;
 				if (ch == channels) {
 					ch = 0;
@@ -948,7 +991,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_float(uint8_t** const
 				}
 			}
 			for (int j = 0; j < 4; j++) {
-				out = tempd_2.m256d_f64[j];
+				out = m256d_f64(tempd_2, j);
 				seqs[ch++][index2] = out;
 				if (ch == channels) {
 					ch = 0;
@@ -1007,7 +1050,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int16(uint8_t** const
 		tempd_2 = _mm256_mul_pd(tempd_2, const16);
 		double out;
 		for (int j = 0; j < 4; j++) {
-			out = tempd_1.m256d_f64[j];
+			out = m256d_f64(tempd_1, j);
 			normalized_samples[ch++][index] = out;
 			if (ch == channels) {
 				ch = 0;
@@ -1015,7 +1058,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int16(uint8_t** const
 			}
 		}
 		for (int j = 0; j < 4; j++) {
-			out = tempd_2.m256d_f64[j];
+			out = m256d_f64(tempd_2, j);
 			normalized_samples[ch++][index] = out;
 			if (ch == channels) {
 				ch = 0;
@@ -1037,8 +1080,8 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int16(uint8_t** const
 			tempd_2 = _mm256_mul_pd(tempd_2, const16);
 			for (int j = 0; j < 8; j++) {
 				double out;
-				if (j < 4)out = tempd_1.m256d_f64[j];
-				else out = tempd_2.m256d_f64[j - 4];
+				if (j < 4)out = m256d_f64(tempd_1, j);
+				else out = m256d_f64(tempd_2, j - 4);
 				if (index < length) {
 					normalized_samples[ch++][index] = out;
 					if (ch == channels) {
@@ -1069,7 +1112,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int16(uint8_t** const
 			tempd_2 = _mm256_mul_pd(tempd_2, const16);
 			double out;
 			for (int j = 0; j < 4; j++) {
-				out = tempd_1.m256d_f64[j];
+				out = m256d_f64(tempd_1, j);
 				seqs[ch++][index2] = out;
 				if (ch == channels) {
 					ch = 0;
@@ -1077,7 +1120,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int16(uint8_t** const
 				}
 			}
 			for (int j = 0; j < 4; j++) {
-				out = tempd_2.m256d_f64[j];
+				out = m256d_f64(tempd_2, j);
 				seqs[ch++][index2] = out;
 				if (ch == channels) {
 					ch = 0;
@@ -1137,7 +1180,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int24(uint8_t** const
 		tempd_2 = _mm256_mul_pd(tempd_2, const24);
 		double out;
 		for (int j = 0; j < 4; j++) {
-			out = tempd_1.m256d_f64[j];
+			out = m256d_f64(tempd_1, j);
 			normalized_samples[ch++][index] = out;
 			if (ch == channels) {
 				ch = 0;
@@ -1145,7 +1188,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int24(uint8_t** const
 			}
 		}
 		for (int j = 0; j < 4; j++) {
-			out = tempd_2.m256d_f64[j];
+			out = m256d_f64(tempd_2, j);
 			normalized_samples[ch++][index] = out;
 			if (ch == channels) {
 				ch = 0;
@@ -1167,8 +1210,8 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int24(uint8_t** const
 			tempd_2 = _mm256_mul_pd(tempd_2, const24);
 			for (int j = 0; j < 8; j++) {
 				double out;
-				if (j < 4)out = tempd_1.m256d_f64[j];
-				else out = tempd_2.m256d_f64[j - 4];
+				if (j < 4)out = m256d_f64(tempd_1, j);
+				else out = m256d_f64(tempd_2, j - 4);
 				if (index < length) {
 					normalized_samples[ch++][index] = out;
 					if (ch == channels) {
@@ -1199,7 +1242,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int24(uint8_t** const
 			tempd_2 = _mm256_mul_pd(tempd_2, const24);
 			double out;
 			for (int j = 0; j < 4; j++) {
-				out = tempd_1.m256d_f64[j];
+				out = m256d_f64(tempd_1, j);
 				seqs[ch++][index2] = out;
 				if (ch == channels) {
 					ch = 0;
@@ -1207,7 +1250,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int24(uint8_t** const
 				}
 			}
 			for (int j = 0; j < 4; j++) {
-				out = tempd_2.m256d_f64[j];
+				out = m256d_f64(tempd_2, j);
 				seqs[ch++][index2] = out;
 				if (ch == channels) {
 					ch = 0;
@@ -1266,7 +1309,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int32(uint8_t** const
 		tempd_2 = _mm256_mul_pd(tempd_2, const32);
 		double out;
 		for (int j = 0; j < 4; j++) {
-			out = tempd_1.m256d_f64[j];
+			out = m256d_f64(tempd_1, j);
 			normalized_samples[ch++][index] = out;
 			if (ch == channels) {
 				ch = 0;
@@ -1274,7 +1317,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int32(uint8_t** const
 			}
 		}
 		for (int j = 0; j < 4; j++) {
-			out = tempd_2.m256d_f64[j];
+			out = m256d_f64(tempd_2, j);
 			normalized_samples[ch++][index] = out;
 			if (ch == channels) {
 				ch = 0;
@@ -1295,8 +1338,8 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int32(uint8_t** const
 			tempd_2 = _mm256_mul_pd(tempd_2, const32);
 			for (int j = 0; j < 8; j++) {
 				double out;
-				if (j < 4)out = tempd_1.m256d_f64[j];
-				else out = tempd_2.m256d_f64[j - 4];
+				if (j < 4)out = m256d_f64(tempd_1, j);
+				else out = m256d_f64(tempd_2, j - 4);
 				if (index < length) {
 					normalized_samples[ch++][index] = out;
 					if (ch == channels) {
@@ -1326,7 +1369,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int32(uint8_t** const
 			tempd_2 = _mm256_mul_pd(tempd_2, const32);
 			double out;
 			for (int j = 0; j < 4; j++) {
-				out = tempd_1.m256d_f64[j];
+				out = m256d_f64(tempd_1, j);
 				seqs[ch++][index2] = out;
 				if (ch == channels) {
 					ch = 0;
@@ -1334,7 +1377,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int32(uint8_t** const
 				}
 			}
 			for (int j = 0; j < 4; j++) {
-				out = tempd_2.m256d_f64[j];
+				out = m256d_f64(tempd_2, j);
 				seqs[ch++][index2] = out;
 				if (ch == channels) {
 					ch = 0;
@@ -1452,7 +1495,7 @@ int Decode::Decode_AVX2::normalize(uint8_t** const& audiodata, double**& normali
 				tempd += 4;
 			}
 		}
-		total_vol += (sum256.m256d_f64[0] + sum256.m256d_f64[1] + sum256.m256d_f64[2] + sum256.m256d_f64[3]) / fft_num / channels;
+		total_vol += (m256d_f64(sum256, 0) + m256d_f64(sum256, 1) + m256d_f64(sum256, 2) + m256d_f64(sum256, 3)) / fft_num / channels;
 		if (vol_mode == 1) {
 			for (int ch = 0; ch < channels; ch++) {
 				fftw_free(normalized_samples[ch]);
@@ -1499,7 +1542,7 @@ int Decode::Decode_AVX2::FD8(double * inseq, DataStruct::node * outseq)
 		seq1 = _mm256_mul_pd(seq1, seq1);
 		seq2 = _mm256_mul_pd(seq2, seq2);
 		__m256d temp = _mm256_hadd_pd(seq1, seq2);
-		temp = _mm256_log10_pd(temp);
+		temp = _mm256_log10_pd_cmpt(temp);
 		temp = _mm256_fmsub_pd(temp, const10, const_maxdb);
 		temp = _mm256_fmadd_pd(temp, const_mindb, const127);
 		temp = _mm256_max_pd(temp, constm128);

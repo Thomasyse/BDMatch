@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#ifndef _CLI_
+
 // No need for platform other than Windows
 
 // 包括 SDKDDKVer.h 将定义可用的最高版本的 Windows 平台。
@@ -11,3 +13,5 @@
 #define _WIN32_WINNT 0x0601
 
 #include <SDKDDKVer.h>
+
+#endif
