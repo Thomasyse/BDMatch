@@ -18,7 +18,7 @@ For every timeline of the subtitles, the program will extract corresponding audi
 ## Usage
 For Windows users, the executable in [Releases](https://github.com/Thomasyse/BDMatch/releases) provides graphic interface.
 
-For users of other platforms, [BDMatchCore](/BDMatchCore), including the core functions of the project, can be modified and compiled into a command-line executable. A [makefile](/BDMatchCore/makefile) and [an example of CLI usage](/BDMatchCore/CLI.cpp) are provided.
+For users of other platforms, [BDMatchCore](/BDMatchCore), including the core functions of the project, can be modified and compiled into a command-line executable. A [makefile](/BDMatchCore/makefile) and an [example of CLI usage](/BDMatchCore/CLI.cpp) are provided.
 
 ## Requirements
 
