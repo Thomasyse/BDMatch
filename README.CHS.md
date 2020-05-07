@@ -19,7 +19,7 @@
 ## 用法
 对于 Windows 用户，[Releases](https://github.com/Thomasyse/BDMatch/releases) 中的可执行文件提供图形界面。
 
-对于其他平台的用户，可以修改 [BDMatchCore](/BDMatchCore)（包括项目的核心功能）并将其编译为命令行可执行文件。 一个 [makefile](/BDMatchCore/makefile) 和一个 [CLI示例](/BDMatchCore/CLI.cpp) 可供参考.
+对于其他平台的用户，可以修改 [BDMatchCore](/BDMatchCore)（包括项目的核心功能）并将其编译为命令行可执行文件。 一个 [makefile](/BDMatchCore/makefile) 和一个 [CLI示例](/BDMatchCore/CLI.cpp) 可供参考。
 
 ## 要求
 
