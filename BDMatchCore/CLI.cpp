@@ -25,29 +25,31 @@ int main(int argc, char* argv[]) {
 	//Setteings(default value as below):
 	std::vector<setting<bool>> bool_settings = { 
 		{false, "-opcm", "output decoded wave file"},
-		{false, "-para_dec", "parallel decode, recommended for disk with good performance"},
-		{false, "-vol_ma", "match the volume of BD to TV, strongly recommended for large volume difference between TV and BD"}, 
-		{false, "-nma_sub", "not to match the subtitle"}, 
-		{false, "-fast_ma", "match with calculation of some lines, fast but perhaps lose some pecision"}, 
+		{false, "-padec", "parallel decode, recommended for disk with good performance"},
+		{false, "-volma", "match the volume of BD to TV, strongly recommended for large volume difference between TV and BD"}, 
+		{false, "-nmasub", "not to match the subtitle"}, 
+		{false, "-fastma", "match with calculation of some lines, fast but perhaps lose some pecision"}, 
 		{false, "-debug", "show some debug info"} };
 	std::vector<setting<int>> int_settings = {
 		{3, "-isa", "ISA mode:0 for none, 1 for SSE/SSE2/SSE4.1, 2 for AVX, 3 for AVX2 (default: 3)"},
 		{512, "-fftn", "FFT window size, larger for speed, smaller for precision(uncertain), should be a power of 2 (default: 512)"},
 		{-14, "-mindb", "volume(db) threshold for noise filter(default: -14)"},
-		{100, "-min_chn", "check times for match results, larger(ie. 10000) for precision, smaller for speed (default: 100)"},
+		{100, "-minchn", "check times for match results, larger(ie. 10000) for precision, smaller for speed (default: 100)"},
 		{10, "-range", "range for searching the results(-xx -> +xx), with the unit of second (default: 10)"},
 		{0, "-offset", "offset of the timeline of the subtitle, with the unit of centisecond (default: 0)"},
-		{20, "-max_len", "the max length of the timeline to be matched, with the unit of second (default: 20)"} };
+		{20, "-maxlen", "the max length of the timeline to be matched, with the unit of second (default: 20)"} };
 	//help
-	if (std::string(argv[1]) == "-help") {
-		std::cout << "bdmatch TV_file_path BD_file_path subtitle_file_path [Options] " << std::endl << "Options:" << std::endl;
-		for (auto& i : bool_settings) std::cout << "\t" << i.flag << "\t" << i.tip << std::endl;
-		for (auto& i : int_settings) std::cout << "\t" << i.flag << "\t" << i.tip << std::endl;
-		std::cout << "\t" << "-o\toutput subtitle file path" << std::endl;
+	std::string help_s = "--help";
+	if (argc == 2 && std::string(argv[1]) == help_s) {
+		std::cout << "Usage:" << std::endl << 
+			"bdmatch TV_file BD_file subtitle_file [Options] " << std::endl << "Options:" << std::endl;
+		for (auto& i : bool_settings) std::cout << "\t" << i.flag << "\t\t" << i.tip << std::endl;
+		for (auto& i : int_settings) std::cout << "\t" << i.flag << " <arg>\t" << i.tip << std::endl;
+		std::cout << "\t" << "-o <file>\toutput subtitle file path" << std::endl;
 		return 0;
 	}
 	if (argc < 3) {
-		std::cout << "insufficient inputs, type 'bdmatch -help' for help." << std::endl;
+		std::cout << "insufficient inputs, type 'bdmatch " << help_s << "' for help." << std::endl;
 		return 0;
 	}
 	//file paths
@@ -69,13 +71,21 @@ int main(int argc, char* argv[]) {
 			if (str == s.flag) {
 				if (++i < argc)s.val = std::atoi(argv[i]);
 				else {
-					std::cout << "option value required, type 'bdmatch -help' for help." << std::endl;
+					std::cout << "option value required, type 'bdmatch " << help_s << "' for help." << std::endl;
 					return 0;
 				}
 				fin = true;
 			}
+		if (str == "-o") {
+			if (++i < argc)output_path = argv[i];
+			else {
+				std::cout << "option value required, type 'bdmatch " << help_s << "' for help." << std::endl;
+				return 0;
+			}
+			fin = true;
+		}
 		if (!fin) {
-			std::cout << "unsupported options, type 'bdmatch -help' for help." << std::endl;
+			std::cout << "unsupported options, type 'bdmatch " << help_s << "' for help." << std::endl;
 			return 0;
 		}
 	}

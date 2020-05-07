@@ -40,7 +40,8 @@ FFmpeg_libs = -l:libavcodec.so.58 -l:libavformat.so.58 -l:libavutil.so.56 -l:lib
 #verision: 3.3.7 or 3.3.8
 #In ubuntu 18.04, it can be fetched by:
 #sudo apt-get install libfftw3-dev
-fftw_headers =  fftw3.h
+fftw_include = include
+fftw_headers =  $(FFmpeg_include)/fftw3.h
 
 fftw_libs = -lfftw3
 
