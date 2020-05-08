@@ -22,12 +22,11 @@ namespace DataStruct {
 
 }
 
-enum class Decode_File { TV_Decode, BD_Decode };
-enum class Decode_Info { Channels, FFT_Samp_Num, Milisec, Samp_Rate, FFT_Num };
-enum class Sub_Type { ASS, SRT };
-
-namespace Matching {
-	constexpr int Timeline_Start_Time = 0;
-	constexpr int Timeline_End_Time = 1;
+namespace Decode {
+	enum class Decode_File { TV_Decode, BD_Decode };
+	enum class Decode_Info { Channels, FFT_Samp_Num, Milisec, Samp_Rate, FFT_Num };
 }
 
+namespace Match {
+	enum class Timeline_Time_Type { Start_Time, End_Time };
+}

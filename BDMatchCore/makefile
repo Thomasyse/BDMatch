@@ -62,14 +62,14 @@ decoder.o: $(headers)language_pack.h $(headers)datastruct.h $(headers)multithrea
 		   $(FFmpeg_headers) $(fftw_headers) $(headers)decoder.h
 	$(CXX) $(CXXFLAGS) -c -o decoder.o decoder.cpp
 
-# ==== Matching =====
-matching.o: $(headers)language_pack.h $(headers)datastruct.h $(headers)multithreading.h \
-			$(headers)matching.h
-	$(CXX) $(CXXFLAGS) -c -o matching.o matching.cpp
+# ==== Match =====
+match.o: $(headers)language_pack.h $(headers)datastruct.h $(headers)multithreading.h \
+			$(headers)match.h
+	$(CXX) $(CXXFLAGS) -c -o match.o match.cpp
 
 # ==== BDMatchCore =====
 bdmatchcore.o: $(headers)language_pack.h $(headers)multithreading.h \
-			   $(headers)decoder.h $(headers)matching.h \
+			   $(headers)decoder.h $(headers)match.h \
 			   $(headers)BDMatchCore.h
 	$(CXX) $(CXXFLAGS) -c -o bdmatchcore.o BDMatchCore.cpp
 
@@ -77,9 +77,9 @@ bdmatchcore.o: $(headers)language_pack.h $(headers)multithreading.h \
 bdmatch.o:
 	$(CXX) $(CXXFLAGS) -c -o bdmatch.o CLI.cpp
 
-bdmatch: bdmatch.o bdmatchcore.o matching.o decoder.o \
+bdmatch: bdmatch.o bdmatchcore.o match.o decoder.o \
 		 datastruct.o language_pack.o
 	$(CXX) -o bdmatch \
-	bdmatch.o bdmatchcore.o matching.o decoder.o \
+	bdmatch.o bdmatchcore.o match.o decoder.o \
 	datastruct.o language_pack.o \
 	-lc -lm -lpthread $(FFmpeg_libs) $(fftw_libs) $(STDLIB)

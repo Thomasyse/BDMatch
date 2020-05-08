@@ -12,7 +12,6 @@ BDMatchCore_API int BDMatchCoreAPI::new_BDMatchCore()
 {
 	if (!match_core) {
 		match_core.reset(new BDMatchCore);
-		match_core->initialize_cancel_token();
 		cal_ISA_mode();
 		CPU_Brand = InstructionSet::Brand();
 	}
@@ -66,17 +65,17 @@ BDMatchCore_API size_t BDMatchCoreAPI::get_nb_timeline()
 	return match_core->get_nb_timeline();
 }
 
-BDMatchCore_API int BDMatchCoreAPI::get_timeline(const int& index, const int& type)
+BDMatchCore_API int BDMatchCoreAPI::get_timeline(const int& index, const Match::Timeline_Time_Type& type)
 {
 	return match_core->get_timeline(index, type);
 }
 
-BDMatchCore_API int BDMatchCoreAPI::get_decode_info(const Decode_File& file, const Decode_Info& type)
+BDMatchCore_API int BDMatchCoreAPI::get_decode_info(const Decode::Decode_File& file, const Decode::Decode_Info& type)
 {
 	return match_core->get_decode_info(file, type);
 }
 
-BDMatchCore_API char** BDMatchCoreAPI::get_decode_spec(const Decode_File& file)
+BDMatchCore_API char** BDMatchCoreAPI::get_decode_spec(const Decode::Decode_File& file)
 {
 	return match_core->get_decode_spec(file);
 }

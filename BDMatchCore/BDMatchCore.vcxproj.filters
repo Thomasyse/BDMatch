@@ -33,9 +33,6 @@
     <ClInclude Include="headers\language_pack.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="headers\matching.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="headers\multithreading.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -45,11 +42,11 @@
     <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="headers\match.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="matching.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="datastruct.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -69,6 +66,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CLI.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="match.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

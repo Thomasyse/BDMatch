@@ -8,6 +8,8 @@ A simple example of command line usage of BDMatchCore
 #include <iostream>
 #include "headers/BDMatchCore.h"
 
+constexpr const char* version = "1.0.17";
+
 void print(const char* in, const long long len) {
 	std::cout << in;
 }
@@ -40,13 +42,22 @@ int main(int argc, char* argv[]) {
 		{20, "-maxlen", "the max length of the timeline to be matched, with the unit of second (default: 20)"} };
 	//help
 	std::string help_s = "--help";
-	if (argc == 2 && std::string(argv[1]) == help_s) {
-		std::cout << "Usage:" << std::endl << 
-			"bdmatch TV_file BD_file subtitle_file [Options] " << std::endl << "Options:" << std::endl;
-		for (auto& i : bool_settings) std::cout << "\t" << i.flag << "\t\t" << i.tip << std::endl;
-		for (auto& i : int_settings) std::cout << "\t" << i.flag << " <arg>\t" << i.tip << std::endl;
-		std::cout << "\t" << "-o <file>\toutput subtitle file path" << std::endl;
-		return 0;
+	if (argc == 2) {
+		if (argc == 2 && std::string(argv[1]) == help_s) {
+			std::cout << "Usage:" << std::endl <<
+				"bdmatch TV_file BD_file subtitle_file [Options]" << std::endl <<
+				"Verision:" << std::endl << "bdmatch -v" << std::endl <<
+				"Options:" << std::endl;
+			for (auto& i : bool_settings) std::cout << "\t" << i.flag << "\t\t" << i.tip << std::endl;
+			for (auto& i : int_settings) std::cout << "\t" << i.flag << " <arg>\t" << i.tip << std::endl;
+			std::cout << "\t" << "-o <file>\toutput subtitle file path" << std::endl;
+			return 0;
+		}
+		else if (std::string(argv[1]) == "-v") {
+			std::cout << "BDMatchCore" << std::endl << "Version " << version << std::endl <<
+				"Copyright (c) 2020, Thomasys" << std::endl;
+			return 0;
+		}
 	}
 	if (argc < 3) {
 		std::cout << "insufficient inputs, type 'bdmatch " << help_s << "' for help." << std::endl;
@@ -98,7 +109,6 @@ int main(int argc, char* argv[]) {
 		bool_settings[0].val, bool_settings[1].val, bool_settings[2].val,
 		int_settings[3].val, int_settings[4].val, int_settings[5].val, int_settings[6].val,
 		!bool_settings[3].val, bool_settings[4].val, bool_settings[5].val);
-	match_core->initialize_cancel_token();
 	//decode
 	int re = 0;
 	re = match_core->decode(tv_path, bd_path);

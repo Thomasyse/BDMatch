@@ -1,9 +1,9 @@
 ﻿//{{NO_DEPENDENCIES}}
-// No need for platform other than Windows
-// Microsoft Visual C++ generated include file.
-// Used by BDMatchCore.rc
+// Microsoft Visual C++ 生成的包含文件。
+// 供 BDMatchCore.rc 使用
+//
 
-// 新对象的下一组默认值
+// Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS

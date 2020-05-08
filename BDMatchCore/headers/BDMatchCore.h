@@ -1,11 +1,14 @@
 ﻿#pragma once
 #include <atomic>
+#include <chrono>
 #include "decoder.h"
-#include "matching.h"
+#include "match.h"
 #include "language_pack.h"
 
 typedef void(*prog_func)(int, double);
 typedef void(*feedback_func)(const char*, const long long len);
+
+enum class Procedure { Decode = 4, Match = 6 };
 
 class BDMatchCore {
 public:
@@ -22,21 +25,20 @@ public:
 	int match_2(const char* output_path0);
 	int clear_match();
 	size_t get_nb_timeline();
-	int get_timeline(const int& index, const int& type);
-	int get_decode_info(const Decode_File& file, const Decode_Info& type);
-	char** get_decode_spec(const Decode_File& file);
-	int initialize_cancel_token();
+	int get_timeline(const int& index, const Match::Timeline_Time_Type& type);
+	int get_decode_info(const Decode::Decode_File& file, const Decode::Decode_Info& type);
+	char** get_decode_spec(const Decode::Decode_File& file);
 	int start_process();
 	int stop_process();
 private:
 	language_pack lang_pack;//language pack
 	int feedback_tv(const std::string& tv_path);
 	int feedback_bd(const std::string& bd_path, const double& bd_pre_avg_vol);
-	int feedback_time(const double& spend);
+	int feedback_time(const Procedure& proc);
 	int feedback_match();
 	std::unique_ptr<Decode::Decode> tv_decode;
 	std::unique_ptr<Decode::Decode> bd_decode;
-	std::unique_ptr<Matching::Match> match;
+	std::unique_ptr<Match::Match> match;
 	std::shared_ptr<std::atomic_flag> keep_processing = nullptr;//multithreading cancel token
 	prog_func prog_back = nullptr;
 	feedback_func feed_func = nullptr;
@@ -53,4 +55,5 @@ private:
 	bool match_ass = true;
 	bool fast_match = false;
 	bool debug_mode = false;
+	std::chrono::time_point<std::chrono::high_resolution_clock> clock_start;
 }; 

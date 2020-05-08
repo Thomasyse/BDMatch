@@ -1,9 +1,8 @@
-﻿#include "headers/matching.h"
+﻿#include "headers/match.h"
 #include "headers/multithreading.h"
 #include <fstream>
 #include <regex> 
 #include <immintrin.h>
-#include <ctime>
 #include <cmath>
 
 constexpr int tvmax_num = 12;
@@ -14,7 +13,7 @@ using namespace DataStruct;
 using std::min;
 using std::max;
 
-Matching::timeline::timeline(int start0, int end0, bool iscom0,
+Match::timeline::timeline(int start0, int end0, bool iscom0,
 	const std::string &head0, const std::string &text0)
 {
 	start_ = start0;
@@ -23,69 +22,69 @@ Matching::timeline::timeline(int start0, int end0, bool iscom0,
 	head_ = head0;
 	former_text_ = text0;
 }
-int Matching::timeline::start()
+int Match::timeline::start()
 {
 	return start_;
 }
-int Matching::timeline::end()
+int Match::timeline::end()
 {
 	return end_;
 }
-int Matching::timeline::duration()
+int Match::timeline::duration()
 {
 	return end_ - start_;
 }
-bool Matching::timeline::iscom()
+bool Match::timeline::iscom()
 {
 	return iscom_;
 }
-std::string Matching::timeline::head()
+std::string Match::timeline::head()
 {
 	return head_;
 }
-std::string Matching::timeline::former_text()
+std::string Match::timeline::former_text()
 {
 	return former_text_;
 }
-int Matching::timeline::start(const int &start0)
+int Match::timeline::start(const int &start0)
 {
 	start_ = start0;
 	return 0;
 }
-int Matching::timeline::end(const int &end0)
+int Match::timeline::end(const int &end0)
 {
 	end_ = end0;
 	return 0;
 }
-int Matching::timeline::iscom(const bool &iscom0)
+int Match::timeline::iscom(const bool &iscom0)
 {
 	iscom_ = iscom0;
 	return 0;
 }
-int Matching::timeline::head(std::string &head0)
+int Match::timeline::head(std::string &head0)
 {
 	head_ = head0;
 	return 0;
 }
 
-Matching::bdsearch::bdsearch()
+Match::bdsearch::bdsearch()
 {
 }
-int Matching::bdsearch::reserve(const int &num)
+int Match::bdsearch::reserve(const int &num)
 {
 	bditem.reserve(num);
 	return 0;
 }
-int Matching::bdsearch::push(const int &time, const int &diff)
+int Match::bdsearch::push(const int &time, const int &diff)
 {
 	bditem.emplace_back(std::array<int, 2>({ time, diff }));
 	return 0;
 }
-int Matching::bdsearch::read(const int &pos)
+int Match::bdsearch::read(const int &pos)
 {
 	return bditem[pos][0];
 }
-int Matching::bdsearch::find(const int &searchnum, const int &retype)
+int Match::bdsearch::find(const int &searchnum, const int &retype)
 {
 	int index = 0;
 	for (auto &i : bditem) {
@@ -98,37 +97,37 @@ int Matching::bdsearch::find(const int &searchnum, const int &retype)
 	if (index >= bditem.size())index = -1;
 	return index;
 }
-int Matching::bdsearch::sort()
+int Match::bdsearch::sort()
 {
 	std::sort(bditem.begin(), bditem.end(), [](std::array<int, 2> &a, std::array<int, 2>&b) {
 		return a[1] < b[1];
 	});
 	return 0;
 }
-size_t Matching::bdsearch::size()
+size_t Match::bdsearch::size()
 {
 	return bditem.size();
 }
-int Matching::bdsearch::clear()
+int Match::bdsearch::clear()
 {
 	bditem.clear();
 	return 0;
 }
 
 
-Matching::se_re::se_re()
+Match::se_re::se_re()
 {
 }
-long long& Matching::se_re::operator[](const int & index)
+long long& Match::se_re::operator[](const int & index)
 {
 	return data[index];
 }
-Matching::se_re::se_re(se_re &in)
+Match::se_re::se_re(se_re &in)
 {
 	data[0] = in[0];
 	data[1] = in[1];
 }
-int Matching::se_re::init()
+int Match::se_re::init()
 {
 	data[0] = 922372036854775808;
 	data[1] = 0;
@@ -136,17 +135,17 @@ int Matching::se_re::init()
 }
 
 
-Matching::Match::Match(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0)
+Match::Match::Match(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0)
 	:keep_processing(keep_processing0), lang_pack(lang_pack0) {
 }
 
-Matching::Match::~Match()
+Match::Match::~Match()
 {
 	if (search_result)delete[] search_result;
 	search_result = nullptr;
 }
 
-int Matching::Match::load_settings(const int & min_check_num0, const int & find_field0, const int &sub_offset0,
+int Match::Match::load_settings(const int & min_check_num0, const int & find_field0, const int &sub_offset0,
 	const int &max_length0,
 	const bool & fast_match0, const bool & debug_mode0, const prog_func &prog_single0)
 {
@@ -160,14 +159,12 @@ int Matching::Match::load_settings(const int & min_check_num0, const int & find_
 	return 0;
 }
 
-int Matching::Match::load_decode_info(node ** const & tv_fft_data0, node ** const & bd_fft_data0,
+int Match::Match::load_decode_info(node ** const & tv_fft_data0, node ** const & bd_fft_data0,
 	const int & tv_ch0, const int & bd_ch0, const int & tv_fft_samp_num0, const int & bd_fft_samp_num0,
 	const int & tv_milisec0, const int & bd_milisec0, const int & tv_samp_rate, 
 	const std::string & tv_file_name0, const std::string & bd_file_name0, 
 	const bool & bd_audio_only0)
 {
-	startclock = clock();//timing
-	//fft data
 	tv_fft_data = tv_fft_data0;
 	bd_fft_data = bd_fft_data0;
 	fft_size = tv_fft_data[0][0].size();
@@ -204,7 +201,7 @@ int Matching::Match::load_decode_info(node ** const & tv_fft_data0, node ** cons
 	return 0;
 }
 
-int Matching::Match::load_sub(const std::string &sub_path0)
+int Match::Match::load_sub(const std::string &sub_path0)
 {
 	std::string ext_name = sub_path0.find_last_of('.') != std::string::npos ? 
 		sub_path0.substr(sub_path0.find_last_of('.')) : "";
@@ -217,7 +214,7 @@ int Matching::Match::load_sub(const std::string &sub_path0)
 	else return load_ass(sub_path0);
 	return 0;
 }
-int Matching::Match::load_srt(const std::string &srt_path0)
+int Match::Match::load_srt(const std::string &srt_path0)
 {
 	using std::ios, std::regex, std::ifstream, std::smatch, std::string;
 	feedback = "";
@@ -272,7 +269,7 @@ int Matching::Match::load_srt(const std::string &srt_path0)
 	}
 	return 0;
 }
-int Matching::Match::load_ass(const std::string &ass_path0)
+int Match::Match::load_ass(const std::string &ass_path0)
 {
 	using std::ios, std::regex, std::ifstream, std::smatch, std::string;
 	feedback = "";
@@ -341,7 +338,7 @@ int Matching::Match::load_ass(const std::string &ass_path0)
 	}
 	return 0;
 }
-int Matching::Match::add_timeline(const int &start, const int &end, const bool &iscom, const std::string &header, const std::string &text)
+int Match::Match::add_timeline(const int &start, const int &end, const bool &iscom, const std::string &header, const std::string &text)
 {
 	timeline_list.emplace_back(timeline(start, end, iscom, header, text));
 	if (iscom) {
@@ -413,7 +410,7 @@ int Matching::Match::add_timeline(const int &start, const int &end, const bool &
 	return 0;
 }
 
-int Matching::Match::match()
+int Match::Match::match()
 {
 	feedback = "";
 	//multithreading
@@ -575,13 +572,13 @@ int Matching::Match::match()
 			lang_pack.get_text(Lang_Type::Match_Sub, 13) + //"Max Found Index= ***%\r\nMax Found Line= "
 			std::to_string(deb_info.max_line) + lang_pack.get_text(Lang_Type::Match_Sub, 14) +
 			std::to_string(deb_info.max_delta) +//"***    Max Delta= ***"
-			lang_pack.get_text(Lang_Type::Match_Sub, 25) + std::to_string(deb_info.diffa_consis) +
+			lang_pack.get_text(Lang_Type::Match_Sub, 24) + std::to_string(deb_info.diffa_consis) +
 			lang_pack.get_text(Lang_Type::Match_Sub, 11);//"\r\nDiffa Consistency = ***%    "
 	}
 	return 0;
 }
 
-int Matching::Match::output(const std::string &output_path)
+int Match::Match::output(const std::string &output_path)
 {
 	using std::vector, std::string, std::fstream, std::ios;
 	feedback = "";
@@ -688,16 +685,10 @@ int Matching::Match::output(const std::string &output_path)
 		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 23);//"\r\n写入字幕文件失败!"
 		return -1;
 	}
-	long endclock = clock();
-	double spend = (double(endclock) - double(startclock)) / (double)CLOCKS_PER_SEC;
-	string spend_str = std::to_string(spend);
-	spend_str = spend_str.substr(0, spend_str.find_last_of('.') + 8);
-	feedback += lang_pack.get_text(Lang_Type::Match_Sub, 24) + spend_str + 
-		lang_pack.get_text(Lang_Type::General, 3);//"\r\n匹配时间：***秒"
 	if (prog_single)prog_single(3, 1.0);
 	return 0;
 }
-int Matching::Match::output()
+int Match::Match::output()
 {
 	std::string output_path;
 	switch (sub_type) {
@@ -717,17 +708,17 @@ int Matching::Match::output()
 	return 0;
 }
 
-long long Matching::Match::get_nb_timeline()
+long long Match::Match::get_nb_timeline()
 {
 	return nb_timeline;
 }
-int Matching::Match::get_timeline(const int &line, const int &type)
+int Match::Match::get_timeline(const int& line, const Timeline_Time_Type& type)
 {
 	switch (type) {
-	case Timeline_Start_Time:
+	case Timeline_Time_Type::Start_Time:
 		return timeline_list[line].start();
 		break;
-	case Timeline_End_Time:
+	case Timeline_Time_Type::End_Time:
 		return timeline_list[line].end();
 		break;
 	default:
@@ -735,12 +726,12 @@ int Matching::Match::get_timeline(const int &line, const int &type)
 	}
 	return 0;
 }
-std::string Matching::Match::get_feedback()
+std::string Match::Match::get_feedback()
 {
 	return feedback;
 }
 
-std::string Matching::Match::cs2time(const int &cs0)
+std::string Match::Match::cs2time(const int &cs0)
 {
 	int hh, mm, ss, cs;
 	cs = cs0;
@@ -776,7 +767,7 @@ std::string Matching::Match::cs2time(const int &cs0)
 	}
 	return timeout;
 }
-int Matching::Match::time2cs(const std::string &time)
+int Match::Match::time2cs(const std::string &time)
 {
 	using std::stoi;
 	int cs = 0;
@@ -800,7 +791,7 @@ int Matching::Match::time2cs(const std::string &time)
 	return cs;
 }
 
-int Matching::Match::caldiff(const int tv_start, const int se_start, const int se_end, const int min_check_num,
+int Match::Match::caldiff(const int tv_start, const int se_start, const int se_end, const int min_check_num,
 	const int check_field, se_re *re)
 {
 	se_re feedback;
@@ -847,7 +838,7 @@ int Matching::Match::caldiff(const int tv_start, const int se_start, const int s
 	*re = feedback;
 	return 0;
 }
-int Matching::Match_SSE::caldiff(const int tv_start, const int se_start, const int se_end, const int min_check_num,
+int Match::Match_SSE::caldiff(const int tv_start, const int se_start, const int se_end, const int min_check_num,
 	const int check_field, se_re *re)
 {
 	se_re feedback;
@@ -910,7 +901,7 @@ int Matching::Match_SSE::caldiff(const int tv_start, const int se_start, const i
 	*re = feedback;
 	return 0;
 }
-int Matching::Match_AVX2::caldiff(const int tv_start, const int se_start, const int se_end, const int min_check_num,
+int Match::Match_AVX2::caldiff(const int tv_start, const int se_start, const int se_end, const int min_check_num,
 	const int check_field, se_re *re)
 {
 	se_re feedback;

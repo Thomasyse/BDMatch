@@ -7,11 +7,13 @@
 #include <memory>
 #include "language_pack.h"
 
-namespace Matching {
+namespace Match {
 
 	using namespace DataStruct;
 
 	typedef void (*prog_func)(int, double);
+
+	enum class Sub_Type { ASS, SRT };
 
 	class timeline
 	{
@@ -84,7 +86,7 @@ namespace Matching {
 		int output(const std::string &output_path);//write and check results at specific address
 		int output();//write and check results at auto address
 		long long get_nb_timeline();//return num of timeline
-		int get_timeline(const int &line, const int &type);//return timeline info
+		int get_timeline(const int& line, const Timeline_Time_Type& type);//return timeline info
 		std::string get_feedback();//return timeline info
 	protected:
 		int load_ass(const std::string& ass_path0);//load ass file
@@ -99,7 +101,6 @@ namespace Matching {
 		prog_func prog_single = nullptr;//func_ptr for progress bar
 		std::shared_ptr<std::atomic_flag> const keep_processing;//multithreading cancel token
 		language_pack& lang_pack;//language pack
-		long startclock = 0;//timing
 		//sub info and data
 		Sub_Type sub_type = Sub_Type::ASS;
 		std::string sub_path;

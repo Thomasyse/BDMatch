@@ -170,7 +170,7 @@
     <ClInclude Include="headers\datastruct.h" />
     <ClInclude Include="headers\decoder.h" />
     <ClInclude Include="headers\language_pack.h" />
-    <ClInclude Include="headers\matching.h" />
+    <ClInclude Include="headers\match.h" />
     <ClInclude Include="headers\multithreading.h" />
     <ClInclude Include="headers\targetver.h" />
     <ClInclude Include="include\BDMatchCoreAPI.h" />
@@ -187,7 +187,7 @@
     <ClCompile Include="decoder.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="language_pack.cpp" />
-    <ClCompile Include="matching.cpp" />
+    <ClCompile Include="match.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BDMatchCore.rc" />

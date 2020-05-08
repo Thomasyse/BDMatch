@@ -5,7 +5,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.16"
+#define appversion "1.5.17"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -112,8 +112,8 @@ int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path)
 		bd_draw.line_num = nb_timeline;
 		LineSel->Maximum = nb_timeline;
 		for (int i = 0; i < nb_timeline; i++) {
-			tv_draw.time_list[i, 0] = BDMatchCoreAPI::get_timeline(i, Matching::Timeline_Start_Time);
-			tv_draw.time_list[i, 1] = BDMatchCoreAPI::get_timeline(i, Matching::Timeline_End_Time);
+			tv_draw.time_list[i, 0] = BDMatchCoreAPI::get_timeline(i, Match::Timeline_Time_Type::Start_Time);
+			tv_draw.time_list[i, 1] = BDMatchCoreAPI::get_timeline(i, Match::Timeline_Time_Type::End_Time);
 		}
 	}
 	//
@@ -125,8 +125,8 @@ int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path)
 	//绘图相关
 	if (setting->draw) {
 		for (int i = 0; i < nb_timeline; i++) {
-			bd_draw.time_list[i, 0] = BDMatchCoreAPI::get_timeline(i, Matching::Timeline_Start_Time);
-			bd_draw.time_list[i, 1] = BDMatchCoreAPI::get_timeline(i, Matching::Timeline_End_Time);
+			bd_draw.time_list[i, 0] = BDMatchCoreAPI::get_timeline(i, Match::Timeline_Time_Type::Start_Time);
+			bd_draw.time_list[i, 1] = BDMatchCoreAPI::get_timeline(i, Match::Timeline_Time_Type::End_Time);
 		}
 	}
 	BDMatchCoreAPI::clear_match();
@@ -165,18 +165,18 @@ int BDMatch::MyForm::draw_pre()
 int BDMatch::MyForm::draw_pre(const int &re)
 {
 	if (setting->draw && !re) {
-		tv_draw.spec = BDMatchCoreAPI::get_decode_spec(Decode_File::TV_Decode);
-		bd_draw.spec = BDMatchCoreAPI::get_decode_spec(Decode_File::BD_Decode);
-		tv_draw.num = BDMatchCoreAPI::get_decode_info(Decode_File::TV_Decode, Decode_Info::FFT_Samp_Num);
-		bd_draw.num = BDMatchCoreAPI::get_decode_info(Decode_File::BD_Decode, Decode_Info::FFT_Samp_Num);
-		tv_draw.ch = BDMatchCoreAPI::get_decode_info(Decode_File::TV_Decode, Decode_Info::Channels);
-		bd_draw.ch = BDMatchCoreAPI::get_decode_info(Decode_File::BD_Decode, Decode_Info::Channels);
-		tv_draw.milisec = BDMatchCoreAPI::get_decode_info(Decode_File::TV_Decode, Decode_Info::Milisec);
-		bd_draw.milisec = BDMatchCoreAPI::get_decode_info(Decode_File::BD_Decode, Decode_Info::Milisec);
-		tv_draw.fft_num = BDMatchCoreAPI::get_decode_info(Decode_File::TV_Decode, Decode_Info::FFT_Num);
-		bd_draw.fft_num = BDMatchCoreAPI::get_decode_info(Decode_File::BD_Decode, Decode_Info::FFT_Num);
-		tv_draw.ttf = BDMatchCoreAPI::get_decode_info(Decode_File::TV_Decode, Decode_Info::Samp_Rate) / (static_cast<double>(tv_draw.fft_num) * 100.0);
-		bd_draw.ttf = BDMatchCoreAPI::get_decode_info(Decode_File::TV_Decode, Decode_Info::Samp_Rate) / (static_cast<double>(bd_draw.fft_num) * 100.0);
+		tv_draw.spec = BDMatchCoreAPI::get_decode_spec(Decode::Decode_File::TV_Decode);
+		bd_draw.spec = BDMatchCoreAPI::get_decode_spec(Decode::Decode_File::BD_Decode);
+		tv_draw.num = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::FFT_Samp_Num);
+		bd_draw.num = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::FFT_Samp_Num);
+		tv_draw.ch = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Channels);
+		bd_draw.ch = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::Channels);
+		tv_draw.milisec = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Milisec);
+		bd_draw.milisec = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::Milisec);
+		tv_draw.fft_num = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::FFT_Num);
+		bd_draw.fft_num = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::FFT_Num);
+		tv_draw.ttf = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Samp_Rate) / (static_cast<double>(tv_draw.fft_num) * 100.0);
+		bd_draw.ttf = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Samp_Rate) / (static_cast<double>(bd_draw.fft_num) * 100.0);
 		ViewSel->SelectedIndex = 0;
 		ChSelect->SelectedIndex = 0;
 		ChSelect->Enabled = true;
@@ -890,7 +890,7 @@ void BDMatch::MyForm::feedback(const char* input, const long long len)
 	if (len > 0) {
 		array<Byte>^ bytes = gcnew array<Byte>(len);
 		Marshal::Copy(IntPtr((void*)input), bytes, 0, len);
-		Encoding^ encoder = Encoding::Unicode;
+		Encoding^ encoder = Encoding::UTF8;
 		Result->Text += encoder->GetString(bytes);
 	}
 	else if (len == -1) Result->Text += marshal_as<String^>(input);

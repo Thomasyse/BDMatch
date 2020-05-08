@@ -24,9 +24,9 @@ namespace BDMatchCoreAPI {
 	BDMatchCore_API int match_2(const char* output_path);
 	BDMatchCore_API int clear_match();
 	BDMatchCore_API size_t get_nb_timeline();
-	BDMatchCore_API int get_timeline(const int& index, const int& type);
-	BDMatchCore_API int get_decode_info(const Decode_File& file, const Decode_Info& type);
-	BDMatchCore_API char** get_decode_spec(const Decode_File& file);
+	BDMatchCore_API int get_timeline(const int& index, const Match::Timeline_Time_Type& type);
+	BDMatchCore_API int get_decode_info(const Decode::Decode_File& file, const Decode::Decode_Info& type);
+	BDMatchCore_API char** get_decode_spec(const Decode::Decode_File& file);
 	BDMatchCore_API int search_ISA_mode();
 	BDMatchCore_API const char* get_CPU_brand();
 	BDMatchCore_API int start_process();

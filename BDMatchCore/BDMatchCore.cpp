@@ -1,9 +1,10 @@
 ﻿#include "headers/BDMatchCore.h"
 #include "headers/multithreading.h"
-#include <time.h>
 
 BDMatchCore::BDMatchCore()
 {
+	keep_processing = std::make_shared<std::atomic_flag>();
+	keep_processing->test_and_set();
 }
 BDMatchCore::~BDMatchCore()
 {
@@ -50,7 +51,7 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 	std::string tv_path = tv_path0;
 	std::string bd_path = bd_path0;
 	if (prog_back)prog_back(0, 0);
-	long start = clock();//开始计时
+	clock_start = std::chrono::high_resolution_clock::now();//开始计时
 	//fftw设置
 	double* in = (double*)fftw_malloc(sizeof(double)*fft_num);
 	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*fft_num);
@@ -131,12 +132,9 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 			return re;
 		}
 	}
-	//输出解码时间
-	long end = clock();
-	double spend = (double(end) - double(start)) / (double)CLOCKS_PER_SEC;
 	feedback_tv(tv_path);
 	feedback_bd(bd_path, bd_pre_avg_vol);
-	feedback_time(spend);
+	feedback_time(Procedure::Decode);
 	fftw_destroy_plan(plan);
 	return 0;
 }
@@ -149,9 +147,10 @@ int BDMatchCore::match_1(const char *sub_path0)
 			keep_processing->clear();
 			return -2;
 		}
-		if (isa_mode == 0)match.reset(new Matching::Match(lang_pack, keep_processing));
-		else if (isa_mode <= 2)match.reset(new Matching::Match_SSE(lang_pack, keep_processing));
-		else if (isa_mode == 3)match.reset(new Matching::Match_AVX2(lang_pack, keep_processing));
+		clock_start = std::chrono::high_resolution_clock::now();//开始计时
+		if (isa_mode == 0)match.reset(new Match::Match(lang_pack, keep_processing));
+		else if (isa_mode <= 2)match.reset(new Match::Match_SSE(lang_pack, keep_processing));
+		else if (isa_mode == 3)match.reset(new Match::Match_AVX2(lang_pack, keep_processing));
 		int re = 0;
 		match->load_settings(min_check_num, find_field, sub_offset, max_length,
 			fast_match, debug_mode, prog_back);
@@ -192,6 +191,7 @@ int BDMatchCore::match_2(const char *output_path0)
 			re = match->output(output_path);
 		}
 		feedback_match();
+		feedback_time(Procedure::Match);
 		if (re < 0) return re;
 	}
 	return 0;
@@ -208,54 +208,52 @@ size_t BDMatchCore::get_nb_timeline()
 	if (match)return match->get_nb_timeline();
 	else return 0;
 }
-int BDMatchCore::get_timeline(const int & index, const int & type)
+int BDMatchCore::get_timeline(const int & index, const Match::Timeline_Time_Type& type)
 {
 	if (match)return match->get_timeline(index, type);
 	else return -1;
 }
 
-int BDMatchCore::get_decode_info(const Decode_File & file, const Decode_Info & type)
+int BDMatchCore::get_decode_info(const Decode::Decode_File & file, const Decode::Decode_Info & type)
 {
 	Decode::Decode *decode_ptr;
-	if (file == Decode_File::BD_Decode)decode_ptr = bd_decode.get();
+	if (file == Decode::Decode_File::BD_Decode)decode_ptr = bd_decode.get();
 	else decode_ptr = tv_decode.get();
 	if (!decode_ptr)return -1;
 	switch (type) {
-	case Decode_Info::Channels:
+	case Decode::Decode_Info::Channels:
 		return decode_ptr->get_channels();
 		break;
-	case Decode_Info::FFT_Samp_Num:
+	case Decode::Decode_Info::FFT_Samp_Num:
 		return decode_ptr->get_fft_samp_num();
 		break;
-	case Decode_Info::Milisec:
+	case Decode::Decode_Info::Milisec:
 		return decode_ptr->get_milisec();
 		break;
-	case Decode_Info::Samp_Rate:
+	case Decode::Decode_Info::Samp_Rate:
 		return decode_ptr->get_samp_rate();
 		break;
-	case Decode_Info::FFT_Num:
+	case Decode::Decode_Info::FFT_Num:
 		return decode_ptr->get_fft_num();
-		break;
-	default:
 		break;
 	}
 	return 0;
 }
-char ** BDMatchCore::get_decode_spec(const Decode_File & file)
+char ** BDMatchCore::get_decode_spec(const Decode::Decode_File & file)
 {
-	Decode::Decode *decode_ptr;
-	if (file == Decode_File::TV_Decode)decode_ptr = tv_decode.get();
-	else decode_ptr = bd_decode.get();
+	Decode::Decode* decode_ptr = nullptr;
+	switch (file) {
+	case Decode::Decode_File::TV_Decode:
+		decode_ptr = tv_decode.get();
+		break;
+	case Decode::Decode_File::BD_Decode:
+		decode_ptr = bd_decode.get();
+		break;
+	}
 	if (!decode_ptr)return nullptr;
 	else return decode_ptr->get_fft_spec();
 }
 
-int BDMatchCore::initialize_cancel_token()
-{
-	keep_processing = std::make_shared<std::atomic_flag>();
-	keep_processing->test_and_set();
-	return 0;
-}
 int BDMatchCore::start_process()
 {
 	keep_processing->test_and_set();
@@ -306,14 +304,15 @@ int BDMatchCore::feedback_bd(const std::string& bd_path, const double& bd_pre_av
 	}
 	return 0;
 }
-int BDMatchCore::feedback_time(const double& spend)
+int BDMatchCore::feedback_time(const Procedure& proc)
 {
 	if (feed_func) {
-		std::string feedback = "";
+		auto clock_end = std::chrono::high_resolution_clock::now();
+		double spend = std::chrono::duration<double>(clock_end - clock_start).count();
 		std::string spend_str = std::to_string(spend);
-		spend_str = spend_str.substr(0, spend_str.find_last_of('.') + 8);
-		feedback += lang_pack.get_text(Lang_Type::General, 0) + lang_pack.get_text(Lang_Type::Core, 4) +
-			spend_str + lang_pack.get_text(Lang_Type::General, 3);//"\r\n解码时间：**.***秒"
+		spend_str = spend_str.substr(0, spend_str.find_last_of('.') + 6);
+		std::string feedback = lang_pack.get_text(Lang_Type::Core, static_cast<int>(proc)) + spend_str +
+			lang_pack.get_text(Lang_Type::General, 3);//"\r\n解码（/匹配）时间：**.***秒"
 		feed_func(feedback.c_str(), feedback.length());
 	}
 	return 0;
