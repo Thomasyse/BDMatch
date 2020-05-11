@@ -32,4 +32,3 @@
 ### BDMatchCore 编译：
 1. FFmpeg 共享和开发构建
 2. fftw 共享和开发构建
-3. 带 AVX 指令集的 CPU
