@@ -102,7 +102,7 @@ BDMatchCore_API int BDMatchCoreAPI::stop_process()
 
 int BDMatchCoreAPI::cal_ISA_mode()
 {
-	if (InstructionSet::AVX2() && InstructionSet::AVX())ISA_mode = 3;
+	if (InstructionSet::AVX2() && InstructionSet::AVX() && InstructionSet::FMA())ISA_mode = 3;
 	else if (InstructionSet::AVX())ISA_mode = 2;
 	else if (InstructionSet::SSE41() && InstructionSet::SSE2() && InstructionSet::SSSE3())ISA_mode = 1;
 	else ISA_mode = 0;

@@ -767,8 +767,10 @@ int Decode::Decode_SSE::FD8(double * inseq, DataStruct::node * outseq)
 		seq2 = _mm_mul_pd(seq2, seq2);
 		__m128d temp = _mm_hadd_pd(seq1, seq2);
 		temp = _mm_log10_pd_cmpt(temp);
-		temp = _mm_fmsub_pd(temp, const10, const_maxdb);
-		temp = _mm_fmadd_pd(temp, const_mindb, const127);
+		temp = _mm_mul_pd(temp, const10);
+		temp = _mm_sub_pd(temp, const_maxdb);
+		temp = _mm_mul_pd(temp, const_mindb);
+		temp = _mm_add_pd(temp, const127);
 		temp = _mm_min_pd(temp, const127);
 		temp = _mm_max_pd(temp, constm128);
 		temp = _mm_round_pd(temp, _MM_FROUND_TO_NEAREST_INT);
@@ -819,8 +821,10 @@ int Decode::Decode_AVX::FD8(double * inseq, DataStruct::node * outseq)
 		seq2 = _mm256_mul_pd(seq2, seq2);
 		__m256d temp = _mm256_hadd_pd(seq1, seq2);
 		temp = _mm256_log10_pd_cmpt(temp);
-		temp = _mm256_fmsub_pd(temp, const10, const_maxdb);
-		temp = _mm256_fmadd_pd(temp, const_mindb, const127);
+		temp = _mm256_mul_pd(temp, const10);
+		temp = _mm256_sub_pd(temp, const_maxdb);
+		temp = _mm256_mul_pd(temp, const_mindb);
+		temp = _mm256_add_pd(temp, const127);
 		temp = _mm256_max_pd(temp, constm128);
 		temp = _mm256_min_pd(temp, const127);
 		temp = _mm256_round_pd(temp, _MM_FROUND_TO_NEAREST_INT);

@@ -57,6 +57,7 @@ namespace BDMatch {
 		unsigned int match_num = 0, fin_match_num = 0, matches_num = 0, fin_matches_num = 0;
 		String^ output_path = "";
 		bool debug_mode = false;
+		bool processing = false;
 		System::Threading::CancellationTokenSource^ cancel_source;
 		TaskBar *taskbar;
 

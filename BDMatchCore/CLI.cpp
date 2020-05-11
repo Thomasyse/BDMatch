@@ -8,7 +8,7 @@ A simple example of command line usage of BDMatchCore
 #include <iostream>
 #include "headers/BDMatchCore.h"
 
-constexpr const char* version = "1.0.17";
+constexpr const char* version = "1.0.18";
 
 void print(const char* in, const long long len) {
 	std::cout << in;

@@ -5,7 +5,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.17"
+#define appversion "1.5.18"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -789,7 +789,7 @@ int BDMatch::MyForm::search_ISA()
 	switch (ISA_mode)
 	{
 	case 3:
-		Result->Text += "：使用AVX、AVX2指令集加速。";
+		Result->Text += "：使用AVX、AVX2、FMA指令集加速。";
 		break;
 	case 2:
 		Result->Text += "：使用SSE2、SSSE3、SSE4.1、AVX指令集加速。";
@@ -825,8 +825,9 @@ int BDMatch::MyForm::match_control(bool val)
 	Subtext->Enabled = val; TVtext->Enabled = val; BDtext->Enabled = val;
 	Subfind->Enabled = val; TVfind->Enabled = val; BDfind->Enabled = val;
 	settings->Enabled = val;
-	if(val)Match->Text = "匹配";
+	if (val)Match->Text = "匹配";
 	else Match->Text = "停止";
+	processing = !val;
 	return 0;
 }
 
@@ -900,7 +901,7 @@ void BDMatch::MyForm::feedback(const char* input, const long long len)
 System::Void BDMatch::MyForm::Match_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
 	using namespace System::Threading::Tasks;
-	if (Match->Text == "匹配") {
+	if (!processing) {
 		if (Subtext->Text == "debug mode") {
 			debug_mode = !debug_mode;
 			Result->Text = debug_mode ? "调试模式打开。" : "调试模式关闭";
