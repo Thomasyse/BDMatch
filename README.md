@@ -31,4 +31,3 @@ For users of other platforms, [BDMatchCore](/BDMatchCore), including the core fu
 ### BDMatchCore Compilation:
 1. FFmpeg shared and dev builds
 2. fftw shared and dev builds
-3. CPU with AVX Instrinsics
