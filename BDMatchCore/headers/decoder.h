@@ -3,7 +3,6 @@
 #include <atomic>
 #include <string>
 #include <memory>
-#include <limits>
 #include "language_pack.h"
 extern"C" {
 #include "libavcodec/avcodec.h"
@@ -56,8 +55,8 @@ namespace Decode {
 		std::string get_feedback();
 		std::string get_file_name();
 		int get_return();
-		int get_fft_samp_num();
-		int get_milisec();
+		int64_t get_fft_samp_num();
+		int64_t get_milisec();
 		int get_channels();
 		int get_samp_rate();
 		int get_fft_num();
@@ -100,13 +99,13 @@ namespace Decode {
 		std::string file_name;
 		int out_bit_depth = 0;
 		int audio_stream = 0;
-		int milisec = 0;
-		int fft_samp_num = 0;
-		int e_fft_num = 0;
+		int64_t milisec = 0;
+		int64_t fft_samp_num = 0;
+		int64_t e_fft_num = 0;
 		int channels = 0;//audio channels
 		int data_channels = 0;//audio data channels
 		int real_ch = 0;//Planar: channels, Linear: 1
-		long long start_time = 0;
+		int64_t start_time = 0;
 		bool audio_only = false;
 		//sample info
 		int sample_type = 0;

@@ -1,7 +1,7 @@
 // No need for platform other than Windows
-#include "include/BDMatchCoreAPI.h"
 #include "headers/BDMatchCore.h"
 #include "include/instructionset.h"
+#include "include/BDMatchCoreAPI.h"
 
 std::unique_ptr<BDMatchCore> match_core;
 const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
@@ -65,12 +65,12 @@ BDMatchCore_API size_t BDMatchCoreAPI::get_nb_timeline()
 	return match_core->get_nb_timeline();
 }
 
-BDMatchCore_API int BDMatchCoreAPI::get_timeline(const int& index, const Match::Timeline_Time_Type& type)
+BDMatchCore_API int64_t BDMatchCoreAPI::get_timeline(const int& index, const Match::Timeline_Time_Type& type)
 {
 	return match_core->get_timeline(index, type);
 }
 
-BDMatchCore_API int BDMatchCoreAPI::get_decode_info(const Decode::Decode_File& file, const Decode::Decode_Info& type)
+BDMatchCore_API int64_t BDMatchCoreAPI::get_decode_info(const Decode::Decode_File& file, const Decode::Decode_Info& type)
 {
 	return match_core->get_decode_info(file, type);
 }

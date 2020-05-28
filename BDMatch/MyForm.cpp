@@ -5,7 +5,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.18"
+#define appversion "1.5.19"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -106,8 +106,8 @@ int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path)
 	int nb_timeline = static_cast<int>(BDMatchCoreAPI::get_nb_timeline());
 	//绘图相关
 	if (setting->draw) {
-		tv_draw.time_list = gcnew array<int, 2>(nb_timeline, 2);
-		bd_draw.time_list = gcnew array<int, 2>(nb_timeline, 2);
+		tv_draw.time_list = gcnew array<int64_t, 2>(nb_timeline, 2);
+		bd_draw.time_list = gcnew array<int64_t, 2>(nb_timeline, 2);
 		tv_draw.line_num = nb_timeline;
 		bd_draw.line_num = nb_timeline;
 		LineSel->Maximum = nb_timeline;
@@ -169,18 +169,18 @@ int BDMatch::MyForm::draw_pre(const int &re)
 		bd_draw.spec = BDMatchCoreAPI::get_decode_spec(Decode::Decode_File::BD_Decode);
 		tv_draw.num = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::FFT_Samp_Num);
 		bd_draw.num = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::FFT_Samp_Num);
-		tv_draw.ch = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Channels);
-		bd_draw.ch = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::Channels);
+		tv_draw.ch = static_cast<int>(BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Channels));
+		bd_draw.ch = static_cast<int>(BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::Channels));
 		tv_draw.milisec = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Milisec);
 		bd_draw.milisec = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::Milisec);
-		tv_draw.fft_num = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::FFT_Num);
-		bd_draw.fft_num = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::FFT_Num);
+		tv_draw.fft_num = static_cast<int>(BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::FFT_Num));
+		bd_draw.fft_num = static_cast<int>(BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::FFT_Num));
 		tv_draw.ttf = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Samp_Rate) / (static_cast<double>(tv_draw.fft_num) * 100.0);
 		bd_draw.ttf = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Samp_Rate) / (static_cast<double>(bd_draw.fft_num) * 100.0);
 		ViewSel->SelectedIndex = 0;
 		ChSelect->SelectedIndex = 0;
 		ChSelect->Enabled = true;
-		TimeRoll->Maximum = max(tv_draw.milisec, bd_draw.milisec);
+		TimeRoll->Maximum = static_cast<int>(max(tv_draw.milisec, bd_draw.milisec));
 		TimeRoll->Value = 0;
 		TimeRoll->Enabled = true;
 		if (setting->match_ass)ViewSel->Enabled = true;
@@ -203,8 +203,8 @@ int BDMatch::MyForm::draw_chart()
 {
 	using namespace System::Drawing;
 	Match->Enabled = false;
-	int maxsampnum = max(tv_draw.num, bd_draw.num);
-	int milisec = max(tv_draw.milisec, bd_draw.milisec);
+	int64_t maxsampnum = max(tv_draw.num, bd_draw.num);
+	int64_t milisec = max(tv_draw.milisec, bd_draw.milisec);
 	int offset = 0;
 	if (milisec < 10000) offset = 150;
 	else if (milisec < 100000)offset = 250;
@@ -212,11 +212,11 @@ int BDMatch::MyForm::draw_chart()
 	TimeRoll->TickFrequency = offset;
 	TimeRoll->LargeChange = offset;
 	TimeRoll->SmallChange = offset / 4;
-	int tvstart = 0, tvend = 0, bdstart = 0;
+	int64_t tvstart = 0, tvend = 0, bdstart = 0;
 	if (ViewSel->SelectedIndex == 0) {
-		tvstart = static_cast<int>(round((TimeRoll->Value - offset)* tv_draw.ttf));
-		tvend = static_cast<int>(round((TimeRoll->Value + offset)* tv_draw.ttf));
-		bdstart = static_cast<int>(round((TimeRoll->Value - offset)* bd_draw.ttf));
+		tvstart = static_cast<int64_t>(round((TimeRoll->Value - offset)* tv_draw.ttf));
+		tvend = static_cast<int64_t>(round((TimeRoll->Value + offset)* tv_draw.ttf));
+		bdstart = static_cast<int64_t>(round((TimeRoll->Value - offset)* bd_draw.ttf));
 		ChartTime->Text = ms2time(TimeRoll->Value);
 	}
 	else {
@@ -237,7 +237,7 @@ int BDMatch::MyForm::draw_chart()
 		else ChartTime->Text = ms2time(static_cast<int>(round(tv_draw.time_list[static_cast<int>(LineSel->Value) - 1, 0] / tv_draw.ttf)) + 1)
 			+ "\n" + ms2time(static_cast<int>(round(bd_draw.time_list[static_cast<int>(LineSel->Value) - 1, 0] / bd_draw.ttf)));
 	}
-	int duration = tvend - tvstart + 1;
+	int duration = static_cast<int>(tvend - tvstart + 1);
 
 	if (ChSelect->SelectedIndex > min(tv_draw.ch, bd_draw.ch) - 1) {
 		ChartTime->Text = "无该声道！";
@@ -286,8 +286,8 @@ int BDMatch::MyForm::draw_chart()
 				}
 			}
 		}
-		int bd_spec_offset = (x + bdstart) * bd_draw.fft_num / 2 + bd_draw.fft_num - 1;
-		int tv_spec_offset = (x + tvstart) * tv_draw.fft_num / 2 + tv_draw.fft_num / 2 - 1;
+		int64_t bd_spec_offset = (x + bdstart) * bd_draw.fft_num / 2 + bd_draw.fft_num - 1;
+		int64_t tv_spec_offset = (x + tvstart) * tv_draw.fft_num / 2 + tv_draw.fft_num / 2 - 1;
 		int pos_offset = 0;
 		for (y = 0; y < tv_draw.fft_num; y++) {
 			int color = -128;

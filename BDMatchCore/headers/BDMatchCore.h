@@ -6,7 +6,7 @@
 #include "language_pack.h"
 
 typedef void(*prog_func)(int, double);
-typedef void(*feedback_func)(const char*, const long long len);
+typedef void(*feedback_func)(const char*, const int64_t len);
 
 enum class Procedure { Decode = 4, Match = 6 };
 
@@ -25,8 +25,8 @@ public:
 	int match_2(const char* output_path0);
 	int clear_match();
 	size_t get_nb_timeline();
-	int get_timeline(const int& index, const Match::Timeline_Time_Type& type);
-	int get_decode_info(const Decode::Decode_File& file, const Decode::Decode_Info& type);
+	int64_t get_timeline(const int& index, const Match::Timeline_Time_Type& type);
+	int64_t get_decode_info(const Decode::Decode_File& file, const Decode::Decode_Info& type);
 	char** get_decode_spec(const Decode::Decode_File& file);
 	int start_process();
 	int stop_process();

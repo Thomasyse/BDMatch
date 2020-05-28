@@ -134,7 +134,7 @@ int Decode::Decode::initialize(const std::string & file_name0)
 	else if (audio_stream == 0) {
 		audio_only = true;
 	}
-	milisec = static_cast<int>(ceil(ffmpeg->filefm->duration / 10000));
+	milisec = static_cast<int64_t>(ffmpeg->filefm->duration / 10000);
 	ffmpeg->codec = avcodec_find_decoder(ffmpeg->filefm->streams[audio_stream]->codecpar->codec_id);//寻找解码器
 	if (!ffmpeg->codec)
 	{
@@ -262,7 +262,7 @@ int Decode::Decode::decode_audio() {
 	if (ffmpeg->codecfm->sample_fmt == AV_SAMPLE_FMT_FLT || ffmpeg->codecfm->sample_fmt == AV_SAMPLE_FMT_FLTP) sample_type = 1;
 	else if (ffmpeg->codecfm->sample_fmt == AV_SAMPLE_FMT_DBL || ffmpeg->codecfm->sample_fmt == AV_SAMPLE_FMT_DBLP) sample_type = 2;
 	//采样变量
-	int samplenum = 0;
+	int64_t samplenum = 0;
 	c_min_db = 256.0 / (MaxdB - static_cast<double>(min_db));
 	//重采样变量2
 	ffmpeg->dst_data = nullptr;
@@ -296,9 +296,9 @@ int Decode::Decode::decode_audio() {
 		}
 	}
 	else {
-		samplenum = static_cast<int>(ceil(sample_rate / 1000.0*ffmpeg->filefm->duration / 1000.0));
+		samplenum = static_cast<int64_t>(ceil(sample_rate / 1000.0 * ffmpeg->filefm->duration / 1000.0));
 	}
-	e_fft_num = static_cast<int>(ceil(samplenum / float(fft_num)));//estimated_fft_num
+	e_fft_num = static_cast<int64_t>(ceil(samplenum / static_cast<double>(fft_num)));//estimated_fft_num
 	//查询音频封装格式
 	ffmpeg->packet = av_packet_alloc();
 	std::string chfmt = "Packed";
@@ -320,7 +320,7 @@ int Decode::Decode::decode_audio() {
 			fft_data[i] = fft_data_mem + i * size_t(e_fft_num);
 			fft_spec[i] = fft_spec_mem + i * size_t(e_fft_num) * spectrum_size;
 			char* index = fft_spec[i];
-			for (int j = 0; j < e_fft_num; j++, index += spectrum_size) {
+			for (int64_t j = 0; j < e_fft_num; j++, index += spectrum_size) {
 				fft_data[i][j].init_data(spectrum_size, index);
 			}
 		}
@@ -427,9 +427,9 @@ int Decode::Decode::decode_audio() {
 				}
 				if (vol_mode != 1) {
 					if (nb_fft_sample > 0) {
-						int fft_index = fft_samp_num;
+						int64_t fft_index = fft_samp_num;
 						if (fft_index < e_fft_num) {
-							if (fft_index + nb_fft_sample > e_fft_num)nb_fft_sample = e_fft_num - fft_index;
+							if (fft_index + nb_fft_sample > e_fft_num)nb_fft_sample = static_cast<int>(e_fft_num - fft_index);
 							fft_samp_num += nb_fft_sample;
 							pool.execute(std::bind(&Decode::Decode::FFT, this, fft_data, normalized_samples, fft_index, nb_fft_sample));
 						}
@@ -514,11 +514,11 @@ int Decode::Decode::get_return()
 {
 	return return_val;
 }
-int Decode::Decode::get_fft_samp_num()
+int64_t Decode::Decode::get_fft_samp_num()
 {
 	return fft_samp_num;
 }
-int Decode::Decode::get_milisec()
+int64_t Decode::Decode::get_milisec()
 {
 	return milisec;
 }
@@ -627,7 +627,7 @@ int Decode::Decode::normalize(uint8_t ** const &audiodata, double **&normalized_
 			transfer_audio_data_planar<int>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 64:
-			transfer_audio_data_planar<long long>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int64_t>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		default:
 			break;
@@ -654,7 +654,7 @@ int Decode::Decode::normalize(uint8_t ** const &audiodata, double **&normalized_
 			transfer_audio_data_packed<int>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 64:
-			transfer_audio_data_packed<long long>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<int64_t>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		default:
 			break;
@@ -719,9 +719,9 @@ int Decode::Decode::FD8(double * inseq, DataStruct::node * outseq)
 		addx = 10.0 * log10(addx);
 		addx -= MaxdB;
 		addx *= c_min_db;
-		addx += 127.0;
-		addx = std::min(addx, 127.0);
-		addx = std::max(addx, -128.0);
+		addx += static_cast<double>(std::numeric_limits<char>::max());
+		addx = std::min(addx, static_cast<double>(std::numeric_limits<char>::max()));
+		addx = std::max(addx, static_cast<double>(std::numeric_limits<char>::min()));
 		addx = round(addx);
 		out[i] = static_cast<char>(addx);
 	}
@@ -758,8 +758,8 @@ int Decode::Decode_SSE::FD8(double * inseq, DataStruct::node * outseq)
 	__m128d const10 = _mm_set1_pd(10.0);
 	__m128d const_maxdb = _mm_set1_pd(MaxdB);
 	__m128d const_mindb = _mm_set1_pd(c_min_db);
-	__m128d const127 = _mm_set1_pd(127.0);
-	__m128d constm128 = _mm_set1_pd(-128.0);
+	__m128d const127 = _mm_set1_pd(static_cast<double>(std::numeric_limits<char>::max()));
+	__m128d constm128 = _mm_set1_pd(static_cast<double>(std::numeric_limits<char>::min()));
 	for (int i = 0; i < fft_num / 4; i++) {
 		__m128d seq1 = _mm_load_pd(inseq);
 		__m128d seq2 = _mm_load_pd(inseq + 2);
@@ -812,8 +812,8 @@ int Decode::Decode_AVX::FD8(double * inseq, DataStruct::node * outseq)
 	__m256d const10 = _mm256_set1_pd(10.0);
 	__m256d const_maxdb = _mm256_set1_pd(MaxdB);
 	__m256d const_mindb = _mm256_set1_pd(c_min_db);
-	__m256d const127 = _mm256_set1_pd(127.0);
-	__m256d constm128 = _mm256_set1_pd(-128.0);
+	__m256d const127 = _mm256_set1_pd(static_cast<double>(std::numeric_limits<char>::max())); // 127
+	__m256d constm128 = _mm256_set1_pd(static_cast<double>(std::numeric_limits<char>::min())); // -128
 	for (int i = 0; i < fft_num / 8; i++) {
 		__m256d seq1 = _mm256_load_pd(inseq);
 		__m256d seq2 = _mm256_load_pd(inseq + 4);
@@ -858,7 +858,8 @@ inline int Decode::Decode_AVX2::transfer_audio_data_planar_float(uint8_t** const
 		int threshold = nb_to_norm / 8;
 		int remainder = nb_to_norm % 8;
 		float* tempf = reinterpret_cast<float*>(audiodata[ch]);
-		double* tempd = normalized_samples[ch] + index;
+		double* tempd = nullptr;
+		if (normalized_samples)tempd = normalized_samples[ch] + index;
 		double* temp_seq = seqs[ch] + index2;
 		for (int i = 0; i < threshold; i++) {
 			__m256 temp256 = _mm256_load_ps(tempf);
@@ -1297,7 +1298,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int32(uint8_t** const
 	int ch = 0;
 	int* tempi32 = reinterpret_cast<int*>(audiodata[0]);
 	__m256i* temp256 = reinterpret_cast<__m256i*>(audiodata[0]);
-	__m256d const32 = _mm256_set1_pd(1.0 / 2147483647.0);
+	__m256d const32 = _mm256_set1_pd(1.0 / static_cast<double>(std::numeric_limits<int>::max()));
 	int avxlength = nb_samples * channels / 8;
 	int avx_last = (nb_samples * channels) % 8;
 	int nb_to_norm = std::max(length - nb_last, 0);
@@ -1394,14 +1395,14 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int32(uint8_t** const
 	}
 	for (int i = 0; i < avx_last; i++) {
 		if (index < length) {
-			normalized_samples[ch++][index] = static_cast<double>(*(tempi32++)) / 2147483647.0;
+			normalized_samples[ch++][index] = static_cast<double>(*(tempi32++)) / static_cast<double>(std::numeric_limits<int>::max());
 			if (ch == channels) {
 				ch = 0;
 				index++;
 			}
 		}
 		else {
-			seqs[ch++][index2] = static_cast<double>(*(tempi32++)) / 2147483647.0;
+			seqs[ch++][index2] = static_cast<double>(*(tempi32++)) / static_cast<double>(std::numeric_limits<int>::max());
 			if (ch == channels) {
 				ch = 0;
 				index2++;
@@ -1442,7 +1443,7 @@ int Decode::Decode_AVX2::normalize(uint8_t** const& audiodata, double**& normali
 			transfer_audio_data_planar<int>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 64:
-			transfer_audio_data_planar<long long>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int64_t>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		default:
 			break;
@@ -1469,7 +1470,7 @@ int Decode::Decode_AVX2::normalize(uint8_t** const& audiodata, double**& normali
 			transfer_audio_data_packed_int32(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
 			break;
 		case 64:
-			transfer_audio_data_packed<long long>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<int64_t>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		default:
 			break;
@@ -1538,8 +1539,8 @@ int Decode::Decode_AVX2::FD8(double * inseq, DataStruct::node * outseq)
 	__m256d const10 = _mm256_set1_pd(10.0);
 	__m256d const_maxdb = _mm256_set1_pd(MaxdB);
 	__m256d const_mindb = _mm256_set1_pd(c_min_db);
-	__m256d const127 = _mm256_set1_pd(127.0);
-	__m256d constm128 = _mm256_set1_pd(-128.0);
+	__m256d const127 = _mm256_set1_pd(static_cast<double>(std::numeric_limits<char>::max())); // 127
+	__m256d constm128 = _mm256_set1_pd(static_cast<double>(std::numeric_limits<char>::min())); // -128
 	for (int i = 0; i < fft_num / 8; i++) {
 		__m256d seq1 = _mm256_load_pd(inseq);
 		__m256d seq2 = _mm256_load_pd(inseq + 4);

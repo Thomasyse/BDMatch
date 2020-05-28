@@ -1,4 +1,7 @@
 #pragma once
+
+#define _EXPORT_
+
 // No need for platform other than Windows
 #include <atomic>
 #include "headers/datastruct.h"
@@ -9,7 +12,7 @@
 #endif
 
 typedef void(__stdcall* prog_func)(int, double);
-typedef void(__stdcall* feedback_func)(const char*, const long long len);
+typedef void(__stdcall* feedback_func)(const char*, const int64_t len);
 
 namespace BDMatchCoreAPI {
 	BDMatchCore_API int new_BDMatchCore();
@@ -24,8 +27,8 @@ namespace BDMatchCoreAPI {
 	BDMatchCore_API int match_2(const char* output_path);
 	BDMatchCore_API int clear_match();
 	BDMatchCore_API size_t get_nb_timeline();
-	BDMatchCore_API int get_timeline(const int& index, const Match::Timeline_Time_Type& type);
-	BDMatchCore_API int get_decode_info(const Decode::Decode_File& file, const Decode::Decode_Info& type);
+	BDMatchCore_API int64_t get_timeline(const int& index, const Match::Timeline_Time_Type& type);
+	BDMatchCore_API int64_t get_decode_info(const Decode::Decode_File& file, const Decode::Decode_Info& type);
 	BDMatchCore_API char** get_decode_spec(const Decode::Decode_File& file);
 	BDMatchCore_API int search_ISA_mode();
 	BDMatchCore_API const char* get_CPU_brand();

@@ -3,6 +3,7 @@
 #include "Settings.h"
 #pragma unmanaged
 #include "headers/user interface.h"
+#include <cstdint>
 #pragma managed
 
 namespace BDMatch {
@@ -40,14 +41,14 @@ namespace BDMatch {
 			}
 		}
 	private: ref struct drawpara {
-		int num = 0;
+		int64_t num = 0;
 		int ch = 0;
-		int milisec = 0;
-		int line_num = 0;
+		int64_t milisec = 0;
+		int64_t line_num = 0;
 		int fft_num = 0;
 		double ttf = 1.0;//Time to Frequency
 		char** spec = nullptr;
-		array<int, 2>^ time_list = nullptr;
+		array<int64_t, 2>^ time_list = nullptr;
 	};
 	private:
 		SettingVals ^ setting = gcnew SettingVals;

@@ -208,13 +208,13 @@ size_t BDMatchCore::get_nb_timeline()
 	if (match)return match->get_nb_timeline();
 	else return 0;
 }
-int BDMatchCore::get_timeline(const int & index, const Match::Timeline_Time_Type& type)
+int64_t BDMatchCore::get_timeline(const int & index, const Match::Timeline_Time_Type& type)
 {
 	if (match)return match->get_timeline(index, type);
 	else return -1;
 }
 
-int BDMatchCore::get_decode_info(const Decode::Decode_File & file, const Decode::Decode_Info & type)
+int64_t BDMatchCore::get_decode_info(const Decode::Decode_File & file, const Decode::Decode_Info & type)
 {
 	Decode::Decode *decode_ptr;
 	if (file == Decode::Decode_File::BD_Decode)decode_ptr = bd_decode.get();

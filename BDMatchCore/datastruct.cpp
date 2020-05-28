@@ -22,7 +22,7 @@ char * DataStruct::node::getdata()
 
 int DataStruct::node::sum()
 {
-	if (sumval == -2147483647) {
+	if (sumval == std::numeric_limits<int>::min()) {
 		sumval = 0;
 		for (int i = 0; i < count; i++) {
 			sumval += data[i];

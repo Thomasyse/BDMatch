@@ -1,9 +1,11 @@
 ﻿#pragma once
 
 #include "targetver.h"
+#include <limits>
+#include <cstdint>
 
+#ifndef _EXPORT_
 namespace DataStruct {
-
 	class node
 	{
 	public:
@@ -17,10 +19,10 @@ namespace DataStruct {
 	private:
 		char *data = nullptr;
 		int count = 0;
-		int sumval = -2147483647;
+		int sumval = std::numeric_limits<int>::min();
 	};
-
 }
+#endif
 
 namespace Decode {
 	enum class Decode_File { TV_Decode, BD_Decode };
