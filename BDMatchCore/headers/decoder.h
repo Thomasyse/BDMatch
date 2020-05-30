@@ -78,7 +78,7 @@ namespace Decode {
 			const int& nb_last, const int& nb_last_next, const int& length);
 		virtual int normalize(uint8_t ** const &audiodata, double ** &normalized_samples, double ** &seqs, 
 			int &nb_last, const int &nb_samples);
-		virtual int FFT(DataStruct::node** nodes, double** in, int fft_index, const int nb_fft);
+		int FFT(DataStruct::node** nodes, double** in, int fft_index, const int nb_fft);
 		virtual int FD8(double* inseq, DataStruct::node* outseq);
 		std::shared_ptr<std::atomic_flag> const keep_processing;//multithreading cancel token
 		//language pack
@@ -129,7 +129,6 @@ namespace Decode {
 	public:
 		Decode_SSE(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr)
 			:Decode(lang_pack0, keep_processing0) {}
-		int FFT(DataStruct::node** nodes, double** in, int fft_index, const int nb_fft);
 		int FD8(double* inseq, DataStruct::node* outseq);
 	};
 
@@ -137,27 +136,27 @@ namespace Decode {
 	public:
 		Decode_AVX(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr)
 			:Decode(lang_pack0, keep_processing0) {}
-		int FFT(DataStruct::node** nodes, double** in, int fft_index, const int nb_fft);
-		int FD8(double* inseq, DataStruct::node* outseq);
+		int transfer_audio_data_planar_float(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+			const int& nb_last, const int& nb_last_next, const int& length, const int& nb_samples);
+		int transfer_audio_data_packed_float(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+			const int& nb_last, const int& length, const int& nb_samples);
+		virtual int normalize(uint8_t** const& audiodata, double**& normalized_samples, double**& seqs,
+			int& nb_last, const int& nb_samples);
+		virtual int FD8(double* inseq, DataStruct::node* outseq);
 	};
 
-	class Decode_AVX2 :public Decode {
+	class Decode_AVX2 :public Decode_AVX {
 	public:
 		Decode_AVX2(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr)
-			:Decode(lang_pack0, keep_processing0) {}
-		inline int transfer_audio_data_planar_float(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
-			const int& nb_last, const int& nb_last_next, const int& length, const int& nb_samples);
-		inline int transfer_audio_data_packed_float(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+			:Decode_AVX(lang_pack0, keep_processing0) {}
+		int transfer_audio_data_packed_int16(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
 			const int& nb_last, const int& length, const int& nb_samples);
-		inline int transfer_audio_data_packed_int16(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+		int transfer_audio_data_packed_int24(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
 			const int& nb_last, const int& length, const int& nb_samples);
-		inline int transfer_audio_data_packed_int24(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
-			const int& nb_last, const int& length, const int& nb_samples);
-		inline int transfer_audio_data_packed_int32(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+		int transfer_audio_data_packed_int32(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
 			const int& nb_last, const int& length, const int& nb_samples);
 		int normalize(uint8_t ** const &audiodata, double ** &normalized_samples, double ** &seqs,
 			int &nb_last, const int &nb_samples);
-		int FFT(DataStruct::node** nodes, double** in, int fft_index, const int nb_fft);
 		int FD8(double* inseq, DataStruct::node* outseq);
 	};
 

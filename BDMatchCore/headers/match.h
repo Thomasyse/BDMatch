@@ -89,8 +89,8 @@ namespace Match {
 		int64_t get_timeline(const int& line, const Timeline_Time_Type& type);//return timeline info
 		std::string get_feedback();//return timeline info
 	protected:
-		int load_ass(const std::string& ass_path0);//load ass file
-		int load_srt(const std::string& srt_path0);//load srt file
+		int load_ass();//load ass file
+		int load_srt();//load srt file
 		int add_timeline(const int64_t& start, const int64_t& end, const bool& iscom,
 			const std::string& header, const std::string& text);//add and check timeline
 		std::string cs2time(const int &cs0);

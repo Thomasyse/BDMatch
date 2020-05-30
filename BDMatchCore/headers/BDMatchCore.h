@@ -21,7 +21,7 @@ public:
 		const int& min_check_num0 = 100, const int& find_field0 = 10, const int& sub_offset0 = 0, const int& max_length0 = 20,
 		const bool& match_ass0 = true, const bool& fast_match0 = false, const bool& debug_mode0 = false);
 	int decode(const char* tv_path0, const char* bd_path0);
-	int match_1(const char* sub_path0);
+	int match_1(const char* sub_path0, const char* encoded_tv_path0 = nullptr, const char* encoded_bd_path0 = nullptr);
 	int match_2(const char* output_path0);
 	int clear_match();
 	size_t get_nb_timeline();

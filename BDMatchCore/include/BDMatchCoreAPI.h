@@ -23,7 +23,7 @@ namespace BDMatchCoreAPI {
 		const int& min_check_num = 100, const int& find_field = 10, const int& sub_offset = 0, const int& max_length = 20,
 		const bool& match_ass = true, const bool& fast_match = false, const bool& debug_mode = false);
 	BDMatchCore_API int decode(const char* tv_path, const char* bd_path);
-	BDMatchCore_API int match_1(const char* sub_path);
+	BDMatchCore_API int match_1(const char* sub_path, const char* encoded_tv_path = nullptr, const char* encoded_bd_path = nullptr);
 	BDMatchCore_API int match_2(const char* output_path);
 	BDMatchCore_API int clear_match();
 	BDMatchCore_API size_t get_nb_timeline();

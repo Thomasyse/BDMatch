@@ -46,10 +46,8 @@ int BDMatchCore::load_settings(const int &isa_mode0, const int &fft_num0, const 
 	return 0;
 }
 
-int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
+int BDMatchCore::decode(const char* tv_path, const char* bd_path)
 {
-	std::string tv_path = tv_path0;
-	std::string bd_path = bd_path0;
 	if (prog_back)prog_back(0, 0);
 	clock_start = std::chrono::high_resolution_clock::now();//开始计时
 	//fftw设置
@@ -139,10 +137,17 @@ int BDMatchCore::decode(const char* tv_path0, const char* bd_path0)
 	return 0;
 }
 
-int BDMatchCore::match_1(const char *sub_path0)
+int BDMatchCore::match_1(const char *sub_path0, const char* encoded_tv_path, const char* encoded_bd_path)
 {
-	std::string sub_path = sub_path0;
 	if (match_ass) {
+		std::string sub_path(sub_path0);
+		// read tv and bd paths
+		const char* tv_file_name,* bd_file_name;
+		if (encoded_tv_path)tv_file_name = encoded_tv_path;
+		else tv_file_name = tv_decode->get_file_name().c_str();
+		if (encoded_bd_path)bd_file_name = encoded_bd_path;
+		else bd_file_name = bd_decode->get_file_name().c_str();
+		//
 		if (!keep_processing->test_and_set()) {
 			keep_processing->clear();
 			return -2;
@@ -157,7 +162,7 @@ int BDMatchCore::match_1(const char *sub_path0)
 		match->load_decode_info(tv_decode->get_fft_data(), bd_decode->get_fft_data(),
 			tv_decode->get_channels(), bd_decode->get_channels(), tv_decode->get_fft_samp_num(), bd_decode->get_fft_samp_num(),
 			tv_decode->get_milisec(), bd_decode->get_milisec(), tv_decode->get_samp_rate(),
-			tv_decode->get_file_name(), bd_decode->get_file_name(), bd_decode->get_audio_only());
+			tv_file_name, bd_file_name, bd_decode->get_audio_only());
 		re = match->load_sub(sub_path);
 		if (feed_func) {
 			std::string tmp = lang_pack.get_text(Lang_Type::Core, 5);
@@ -186,7 +191,7 @@ int BDMatchCore::match_2(const char *output_path0)
 		else if (re < 0) {
 			return re;
 		}
-		if (output_path == "")re = match->output();
+		if (output_path.empty())re = match->output();
 		else {
 			re = match->output(output_path);
 		}

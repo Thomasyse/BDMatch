@@ -203,22 +203,25 @@ int Match::Match::load_decode_info(node ** const & tv_fft_data0, node ** const &
 
 int Match::Match::load_sub(const std::string &sub_path0)
 {
-	std::string ext_name = sub_path0.find_last_of('.') != std::string::npos ? 
-		sub_path0.substr(sub_path0.find_last_of('.')) : "";
+	sub_path = sub_path0;
+	std::string ext_name = sub_path.find_last_of('.') != std::string::npos ? 
+		sub_path.substr(sub_path.find_last_of('.')) : "";
 	std::transform(ext_name.begin(), ext_name.end(), ext_name.begin(),
 		[](unsigned char c) { return std::tolower(c); });
 	if (ext_name == ".srt") {
 		sub_type = Sub_Type::SRT;
-		return load_srt(sub_path0);
+		return load_srt();
 	}
-	else return load_ass(sub_path0);
+	else {
+		sub_type = Sub_Type::ASS;
+		return load_ass();
+	}
 	return 0;
 }
-int Match::Match::load_srt(const std::string &srt_path0)
+int Match::Match::load_srt()
 {
 	using std::ios, std::regex, std::ifstream, std::smatch, std::string;
 	feedback = "";
-	sub_path = srt_path0;
 	ifstream tv_srt_file(sub_path, ios::binary | ios::ate);
 	if (!tv_srt_file.is_open()) {
 		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 0);//"\r\n读取字幕文件失败!"
@@ -269,11 +272,10 @@ int Match::Match::load_srt(const std::string &srt_path0)
 	}
 	return 0;
 }
-int Match::Match::load_ass(const std::string &ass_path0)
+int Match::Match::load_ass()
 {
 	using std::ios, std::regex, std::ifstream, std::smatch, std::string;
 	feedback = "";
-	sub_path = ass_path0;
 	ifstream tv_ass_file(sub_path, ios::binary | ios::ate);
 	if (!tv_ass_file.is_open()) {
 		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 0);//"\r\n读取字幕文件失败!"
@@ -344,8 +346,8 @@ int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const b
 	if (iscom) {
 		tv_time.emplace_back(-1);
 		bd_time.emplace_back(-1);
-		timeline_list[size_t(nb_timeline) - 1].start(-1);
-		timeline_list[size_t(nb_timeline) - 1].end(-1);
+		timeline_list.back().start(-1);
+		timeline_list.back().end(-1);
 		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 2) + std::to_string(nb_timeline) +
 			lang_pack.get_text(Lang_Type::Match_Sub, 3);//"\r\n信息：第***行为注释，将不作处理。"
 		return -1;
@@ -353,8 +355,8 @@ int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const b
 	if (end <= start) {
 		tv_time.emplace_back(-1);
 		bd_time.emplace_back(-1);
-		timeline_list[size_t(nb_timeline) - 1].start(-1);
-		timeline_list[size_t(nb_timeline) - 1].end(-1);
+		timeline_list.back().start(-1);
+		timeline_list.back().end(-1);
 		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 2) + std::to_string(nb_timeline) +
 			lang_pack.get_text(Lang_Type::Match_Sub, 4);//"\r\n信息：第***行时长为零，将不作处理。"
 		return -1;
@@ -362,8 +364,8 @@ int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const b
 	if (double(end) - double(start) > max_length * 100.0 * t2f) {
 		tv_time.emplace_back(-1);
 		bd_time.emplace_back(-1);
-		timeline_list[size_t(nb_timeline) - 1].start(-1);
-		timeline_list[size_t(nb_timeline) - 1].end(-1);
+		timeline_list.back().start(-1);
+		timeline_list.back().end(-1);
 		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + std::to_string(nb_timeline) +
 			lang_pack.get_text(Lang_Type::Match_Sub, 6);//"\r\n警告：第***行时长过长，将不作处理。"
 		return -1;
@@ -371,8 +373,8 @@ int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const b
 	if (end >= tv_fft_samp_num || (end - find_range) > bd_fft_samp_num) {
 		tv_time.emplace_back(-1);
 		bd_time.emplace_back(-1);
-		timeline_list[size_t(nb_timeline) - 1].start(-1);
-		timeline_list[size_t(nb_timeline) - 1].end(-1);
+		timeline_list.back().start(-1);
+		timeline_list.back().end(-1);
 		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + std::to_string(nb_timeline) +
 			lang_pack.get_text(Lang_Type::Match_Sub, 7);//"\r\n警告：第***行超过音频长度，将不作处理。"
 		return -1;
@@ -386,8 +388,8 @@ int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const b
 	if (maxdb <= -128) {
 		tv_time.emplace_back(-1);
 		bd_time.emplace_back(-1);
-		timeline_list[size_t(nb_timeline) - 1].start(-1);
-		timeline_list[size_t(nb_timeline) - 1].end(-1);
+		timeline_list.back().start(-1);
+		timeline_list.back().end(-1);
 		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + std::to_string(nb_timeline) +
 			lang_pack.get_text(Lang_Type::Match_Sub, 8);//"\r\n警告：第***行声音过小，将不作处理。"
 		return -1;

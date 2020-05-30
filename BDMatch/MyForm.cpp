@@ -5,7 +5,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.19"
+#define appversion "1.5.20"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -63,19 +63,35 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	BDMatchCoreAPI::load_settings(-1, fft_num, min_db, output_pcm, parallel_decode, vol_match,
 		min_check_num, find_field, sub_offset, max_length,
 		match_ass, fast_match, debug_mode0);
-	//decode
+	//convert tv, bd and sub paths to local coding
 	marshal_context convert;
 	const char* tv_path = convert.marshal_as<const char*>(tvtext);
 	const char* bd_path = convert.marshal_as<const char*>(bdtext);
 	const char* sub_path = convert.marshal_as<const char*>(asstext);
 	const char* output_path0 = convert.marshal_as<const char*>(output_path);
+	//convert tv paths to UTF-8
+	UTF8Encoding^ utf8 = gcnew UTF8Encoding;
+	array<Byte>^ encoded_tv_path = utf8->GetBytes(tvtext);
+	int tv_path_size = Marshal::SizeOf(encoded_tv_path[0]) * encoded_tv_path->Length;
+	IntPtr tv_pnt = Marshal::AllocHGlobal(tv_path_size + 1);
+	Marshal::Copy(encoded_tv_path, 0, tv_pnt, encoded_tv_path->Length);
+	char* tv_path_ptr = static_cast<char*>(tv_pnt.ToPointer());
+	tv_path_ptr[tv_path_size] = 0;
+	//convert bd paths to UTF-8
+	array<Byte>^ encoded_bd_path = utf8->GetBytes(bdtext);
+	int bd_path_size = Marshal::SizeOf(encoded_bd_path[0]) * encoded_bd_path->Length;
+	IntPtr bd_pnt = Marshal::AllocHGlobal(bd_path_size + 1);
+	Marshal::Copy(encoded_bd_path, 0, bd_pnt, encoded_bd_path->Length);
+	char* bd_path_ptr = static_cast<char*>(bd_pnt.ToPointer());
+	bd_path_ptr[bd_path_size] = 0;
+	//decode
 	re = BDMatchCoreAPI::decode(tv_path, bd_path);
 	if (re < 0) {
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;
 	}
 	if (setting->match_ass) {
-		re = write_ass(sub_path, output_path0);
+		re = write_ass(sub_path, output_path0, tv_path_ptr, bd_path_ptr);
 	}
 	else {
 		prog_single(3, 0);
@@ -90,15 +106,17 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 	}
 	gch1.Free();
 	gch2.Free();
+	Marshal::FreeHGlobal(tv_pnt);
+	Marshal::FreeHGlobal(bd_pnt);
 	prog_single(0, 0);
 	return 0;
 }
 
-int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path)
+int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path, const char* encoded_tv_path, const char* encoded_bd_path)
 {
 	//
 	int re = 0;
-	re = BDMatchCoreAPI::match_1(sub_path);
+	re = BDMatchCoreAPI::match_1(sub_path, encoded_tv_path, encoded_bd_path);
 	if (re < 0) {
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;

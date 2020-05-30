@@ -596,6 +596,7 @@ int Decode::Decode::clear_ffmpeg()
 }
 
 
+
 int Decode::Decode::normalize(uint8_t ** const &audiodata, double **&normalized_samples, double **& seqs, int &nb_last, const int &nb_samples)
 {
 	int nb_last_next = (nb_samples + nb_last) % fft_num;
@@ -683,57 +684,8 @@ int Decode::Decode::normalize(uint8_t ** const &audiodata, double **&normalized_
 }
 int Decode::Decode::FFT(DataStruct::node ** nodes, double ** in, int fft_index, const int nb_fft)
 {
-	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*fft_num);
-	double *out_d = (double*)fftw_malloc(sizeof(double)*fft_num / 2);
 	int fi_m = nb_fft * fft_num;
-	for (int fi = 0; fi < fi_m; fi += fft_num) {
-		for (int ch = 0; ch < data_channels; ch++) {
-			fftw_execute_dft_r2c(plan, in[ch] + fi, out);
-			for (int i = 0; i < fft_num / 2; i++) {
-				double real = *(out + i)[0];
-				double imag = *(out + i)[1];
-				out_d[i] = real * real + imag * imag;
-			}
-			FD8(out_d, nodes[ch] + fft_index);
-		}
-		fft_index++;
-	}
-	fftw_free(out);
-	fftw_free(out_d);
-	for (int ch = 0; ch < channels; ch++) {
-		fftw_free(in[ch]);
-		in[ch] = nullptr;
-	}
-	delete[] in;
-	in = nullptr;
-	out = nullptr;
-	out_d = nullptr;
-	sub_prog_back(prog_type, static_cast<double>(nb_fft));
-	return 0;
-}
-int Decode::Decode::FD8(double * inseq, DataStruct::node * outseq)
-{
-	char *out = outseq->getdata();
-	for (int i = 0; i < outseq->size(); i++) {
-		double addx = inseq[i];
-		addx = 10.0 * log10(addx);
-		addx -= MaxdB;
-		addx *= c_min_db;
-		addx += static_cast<double>(std::numeric_limits<char>::max());
-		addx = std::min(addx, static_cast<double>(std::numeric_limits<char>::max()));
-		addx = std::max(addx, static_cast<double>(std::numeric_limits<char>::min()));
-		addx = round(addx);
-		out[i] = static_cast<char>(addx);
-	}
-	out = nullptr;
-	return 0;
-}
-
-
-int Decode::Decode_SSE::FFT(DataStruct::node ** nodes, double ** in, int fft_index, const int nb_fft)
-{
-	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*fft_num);
-	int fi_m = nb_fft * fft_num;
+	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * fft_num);
 	for (int fi = 0; fi < fi_m; fi += fft_num) {
 		for (int ch = 0; ch < data_channels; ch++) {
 			fftw_execute_dft_r2c(plan, in[ch] + fi, out);
@@ -752,6 +704,25 @@ int Decode::Decode_SSE::FFT(DataStruct::node ** nodes, double ** in, int fft_ind
 	sub_prog_back(prog_type, static_cast<double>(nb_fft));
 	return 0;
 }
+int Decode::Decode::FD8(double * inseq, DataStruct::node * outseq)
+{
+	char *out = outseq->getdata();
+	for (int i = 0; i < fft_num; i += 2) {
+		double addx = inseq[i] * inseq[i] + inseq[i + 1] * inseq[i + 1];
+		addx = 10.0 * log10(addx);
+		addx -= MaxdB;
+		addx *= c_min_db;
+		addx += static_cast<double>(std::numeric_limits<char>::max());
+		addx = std::min(addx, static_cast<double>(std::numeric_limits<char>::max()));
+		addx = std::max(addx, static_cast<double>(std::numeric_limits<char>::min()));
+		addx = round(addx);
+		*(out++) = static_cast<char>(addx);
+	}
+	out = nullptr;
+	return 0;
+}
+
+
 int Decode::Decode_SSE::FD8(double * inseq, DataStruct::node * outseq)
 {
 	char *out = outseq->getdata();
@@ -784,63 +755,8 @@ int Decode::Decode_SSE::FD8(double * inseq, DataStruct::node * outseq)
 	return 0;
 }
 
-int Decode::Decode_AVX::FFT(DataStruct::node ** nodes, double ** in, int fft_index, const int nb_fft)
-{
-	int fi_m = nb_fft * fft_num;
-	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*fft_num);
-	for (int fi = 0; fi < fi_m; fi += fft_num) {
-		for (int ch = 0; ch < data_channels; ch++) {
-			fftw_execute_dft_r2c(plan, in[ch] + fi, out);
-			FD8(reinterpret_cast<double*>(out), nodes[ch] + fft_index);
-		}
-		fft_index++;
-	}
-	fftw_free(out);
-	for (int ch = 0; ch < channels; ch++) {
-		fftw_free(in[ch]);
-		in[ch] = nullptr;
-	}
-	delete[] in;
-	in = nullptr;
-	out = nullptr;
-	sub_prog_back(prog_type, static_cast<double>(nb_fft));
-	return 0;
-}
-int Decode::Decode_AVX::FD8(double * inseq, DataStruct::node * outseq)
-{
-	char *out = outseq->getdata();
-	__m256d const10 = _mm256_set1_pd(10.0);
-	__m256d const_maxdb = _mm256_set1_pd(MaxdB);
-	__m256d const_mindb = _mm256_set1_pd(c_min_db);
-	__m256d const127 = _mm256_set1_pd(static_cast<double>(std::numeric_limits<char>::max())); // 127
-	__m256d constm128 = _mm256_set1_pd(static_cast<double>(std::numeric_limits<char>::min())); // -128
-	for (int i = 0; i < fft_num / 8; i++) {
-		__m256d seq1 = _mm256_load_pd(inseq);
-		__m256d seq2 = _mm256_load_pd(inseq + 4);
-		seq1 = _mm256_mul_pd(seq1, seq1);
-		seq2 = _mm256_mul_pd(seq2, seq2);
-		__m256d temp = _mm256_hadd_pd(seq1, seq2);
-		temp = _mm256_log10_pd_cmpt(temp);
-		temp = _mm256_mul_pd(temp, const10);
-		temp = _mm256_sub_pd(temp, const_maxdb);
-		temp = _mm256_mul_pd(temp, const_mindb);
-		temp = _mm256_add_pd(temp, const127);
-		temp = _mm256_max_pd(temp, constm128);
-		temp = _mm256_min_pd(temp, const127);
-		temp = _mm256_round_pd(temp, _MM_FROUND_TO_NEAREST_INT);
-		__m128i temp_int = _mm256_cvtpd_epi32(temp);
-		out[0] = static_cast<char>(_mm_extract_epi8(temp_int, 0));
-		out[2] = static_cast<char>(_mm_extract_epi8(temp_int, 4));
-		out[1] = static_cast<char>(_mm_extract_epi8(temp_int, 8));
-		out[3] = static_cast<char>(_mm_extract_epi8(temp_int, 12));
-		inseq += 8;
-		out += 4;
-	}
-	out = nullptr;
-	return 0;
-}
 
-inline int Decode::Decode_AVX2::transfer_audio_data_planar_float(uint8_t** const audiodata,
+int Decode::Decode_AVX::transfer_audio_data_planar_float(uint8_t** const audiodata,
 	double** const normalized_samples, double** const seqs, 
 	const int& nb_last, const int& nb_last_next, const int& length, const int& nb_samples)
 {
@@ -908,7 +824,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_planar_float(uint8_t** const
 	}
 	return 0;
 }
-inline int Decode::Decode_AVX2::transfer_audio_data_packed_float(uint8_t** const audiodata, 
+int Decode::Decode_AVX::transfer_audio_data_packed_float(uint8_t** const audiodata, 
 	double** const normalized_samples, double** const seqs, 
 	const int& nb_last, const int& length, const int& nb_samples)
 {
@@ -1024,7 +940,143 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_float(uint8_t** const
 	}
 	return 0;
 }
-inline int Decode::Decode_AVX2::transfer_audio_data_packed_int16(uint8_t** const audiodata, 
+
+int Decode::Decode_AVX::normalize(uint8_t** const& audiodata, double**& normalized_samples, double**& seqs, int& nb_last, const int& nb_samples)
+{
+	int nb_last_next = (nb_samples + nb_last) % fft_num;
+	int length = nb_samples + nb_last - nb_last_next;
+	int nb_fft_samples = length / fft_num;
+	if (length > 0) {
+		normalized_samples = new double* [channels];
+		for (int ch = 0; ch < channels; ch++)normalized_samples[ch] = (double*)fftw_malloc(sizeof(double) * length);
+	}
+	if (real_ch == channels)
+		switch (sample_type)
+		{
+		case 1:
+			transfer_audio_data_planar_float(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length, nb_samples);
+			break;
+		case 2:
+			transfer_audio_data_planar<double>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 8:
+			transfer_audio_data_planar<char>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 16:
+			transfer_audio_data_planar<short>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 24:
+			transfer_audio_data_planar<int, 24>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 32:
+			transfer_audio_data_planar<int>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 64:
+			transfer_audio_data_planar<int64_t>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		default:
+			break;
+		}
+	else
+		switch (sample_type)
+		{
+		case 1:
+			transfer_audio_data_packed_float(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			break;
+		case 2:
+			transfer_audio_data_packed<double>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 8:
+			transfer_audio_data_packed<char>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		case 16:
+			transfer_audio_data_packed<short>(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			break;
+		case 24:
+			transfer_audio_data_packed<int, 24>(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			break;
+		case 32:
+			transfer_audio_data_packed<int>(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			break;
+		case 64:
+			transfer_audio_data_packed<int64_t>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			break;
+		default:
+			break;
+		}
+	nb_last = nb_last_next;
+	//响度计算和匹配
+	if (vol_mode >= 0 && length > 0) {
+		int avxlength = length / 4;
+		if (vol_coef != 0.0) {
+			__m256d vol_vect = _mm256_set1_pd(vol_coef);
+			for (int ch = 0; ch < channels; ch++) {
+				double* tempd = normalized_samples[ch];
+				for (int i = 0; i < avxlength; i++) {
+					__m256d temp256 = _mm256_load_pd(tempd);
+					temp256 = _mm256_mul_pd(temp256, vol_vect);
+					_mm256_store_pd(tempd, temp256);
+					tempd += 4;
+				}
+			}
+		}
+		__m256d sum256 = _mm256_set1_pd(0.0);
+		for (int ch = 0; ch < channels; ch++) {
+			double* tempd = normalized_samples[ch];
+			for (int i = 0; i < avxlength; i++) {
+				__m256d temp256 = _mm256_load_pd(tempd);
+				temp256 = _mm256_mul_pd(temp256, temp256);
+				sum256 = _mm256_add_pd(temp256, sum256);
+				tempd += 4;
+			}
+		}
+		total_vol += (m256d_f64(sum256, 0) + m256d_f64(sum256, 1) + m256d_f64(sum256, 2) + m256d_f64(sum256, 3)) / fft_num / channels;
+		if (vol_mode == 1) {
+			for (int ch = 0; ch < channels; ch++) {
+				fftw_free(normalized_samples[ch]);
+				normalized_samples[ch] = nullptr;
+			}
+			delete[] normalized_samples;
+		}
+	}
+	return nb_fft_samples;
+}
+int Decode::Decode_AVX::FD8(double* inseq, DataStruct::node* outseq)
+{
+	char* out = outseq->getdata();
+	__m256d const10 = _mm256_set1_pd(10.0);
+	__m256d const_maxdb = _mm256_set1_pd(MaxdB);
+	__m256d const_mindb = _mm256_set1_pd(c_min_db);
+	__m256d const127 = _mm256_set1_pd(static_cast<double>(std::numeric_limits<char>::max())); // 127
+	__m256d constm128 = _mm256_set1_pd(static_cast<double>(std::numeric_limits<char>::min())); // -128
+	for (int i = 0; i < fft_num / 8; i++) {
+		__m256d seq1 = _mm256_load_pd(inseq);
+		__m256d seq2 = _mm256_load_pd(inseq + 4);
+		seq1 = _mm256_mul_pd(seq1, seq1);
+		seq2 = _mm256_mul_pd(seq2, seq2);
+		__m256d temp = _mm256_hadd_pd(seq1, seq2);
+		temp = _mm256_log10_pd_cmpt(temp);
+		temp = _mm256_mul_pd(temp, const10);
+		temp = _mm256_sub_pd(temp, const_maxdb);
+		temp = _mm256_mul_pd(temp, const_mindb);
+		temp = _mm256_add_pd(temp, const127);
+		temp = _mm256_max_pd(temp, constm128);
+		temp = _mm256_min_pd(temp, const127);
+		temp = _mm256_round_pd(temp, _MM_FROUND_TO_NEAREST_INT);
+		__m128i temp_int = _mm256_cvtpd_epi32(temp);
+		out[0] = static_cast<char>(_mm_extract_epi8(temp_int, 0));
+		out[2] = static_cast<char>(_mm_extract_epi8(temp_int, 4));
+		out[1] = static_cast<char>(_mm_extract_epi8(temp_int, 8));
+		out[3] = static_cast<char>(_mm_extract_epi8(temp_int, 12));
+		inseq += 8;
+		out += 4;
+	}
+	out = nullptr;
+	return 0;
+}
+
+
+int Decode::Decode_AVX2::transfer_audio_data_packed_int16(uint8_t** const audiodata, 
 	double** const normalized_samples, double** const seqs, 
 	const int& nb_last, const int& length, const int& nb_samples)
 {
@@ -1154,7 +1206,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int16(uint8_t** const
 	}
 	return 0;
 }
-inline int Decode::Decode_AVX2::transfer_audio_data_packed_int24(uint8_t** const audiodata, 
+int Decode::Decode_AVX2::transfer_audio_data_packed_int24(uint8_t** const audiodata, 
 	double** const normalized_samples, double** const seqs, 
 	const int& nb_last, const int& length, const int& nb_samples)
 {
@@ -1284,7 +1336,7 @@ inline int Decode::Decode_AVX2::transfer_audio_data_packed_int24(uint8_t** const
 	}
 	return 0;
 }
-inline int Decode::Decode_AVX2::transfer_audio_data_packed_int32(uint8_t** const audiodata, 
+int Decode::Decode_AVX2::transfer_audio_data_packed_int32(uint8_t** const audiodata, 
 	double** const normalized_samples, double** const seqs, 
 	const int& nb_last, const int& length, const int& nb_samples)
 {
@@ -1510,28 +1562,6 @@ int Decode::Decode_AVX2::normalize(uint8_t** const& audiodata, double**& normali
 		}
 	}
 	return nb_fft_samples;
-}
-int Decode::Decode_AVX2::FFT(DataStruct::node ** nodes, double ** in, int fft_index, const int nb_fft)
-{
-	int fi_m = nb_fft * fft_num;
-	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*fft_num);
-	for (int fi = 0; fi < fi_m; fi += fft_num) {
-		for (int ch = 0; ch < data_channels; ch++) {
-			fftw_execute_dft_r2c(plan, in[ch] + fi, out);
-			FD8(reinterpret_cast<double*>(out), nodes[ch] + fft_index);
-		}
-		fft_index++;
-	}
-	fftw_free(out);
-	for (int ch = 0; ch < channels; ch++) {
-		fftw_free(in[ch]);
-		in[ch] = nullptr;
-	}
-	delete[] in;
-	in = nullptr;
-	out = nullptr;
-	sub_prog_back(prog_type, static_cast<double>(nb_fft));
-	return 0;
 }
 int Decode::Decode_AVX2::FD8(double * inseq, DataStruct::node * outseq)
 {

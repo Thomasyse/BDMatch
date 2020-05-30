@@ -695,7 +695,8 @@ namespace BDMatch {
 	private:
 		int match(String^ ASSText, String^ TVText, String^ BDText);
 		int draw_pre(); 
-		int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path);
+		int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path, 
+			const char* encoded_tv_path, const char* encoded_bd_path);
 		int draw_pre(const int &re);
 		int draw_chart();
 		String ^ ms2time(int ms);

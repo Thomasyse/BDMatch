@@ -45,9 +45,9 @@ BDMatchCore_API int BDMatchCoreAPI::decode(const char* tv_path, const char* bd_p
 	return match_core->decode(tv_path, bd_path);
 }
 
-BDMatchCore_API int BDMatchCoreAPI::match_1(const char* sub_path)
+BDMatchCore_API int BDMatchCoreAPI::match_1(const char* sub_path, const char* encoded_tv_path, const char* encoded_bd_path)
 {
-	return match_core->match_1(sub_path);
+	return match_core->match_1(sub_path, encoded_tv_path, encoded_bd_path);
 }
 
 BDMatchCore_API int BDMatchCoreAPI::match_2(const char* output_path)
