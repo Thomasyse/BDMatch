@@ -74,7 +74,7 @@ public:
 	template <class F>
 	void execute_batch(std::vector<F> &batch) {
 		std::lock_guard<std::mutex> lk(data_->mtx_);
-		for(auto &task : batch)
+		for (auto &task : batch)
 		{
 			data_->tasks_.emplace_back(task);
 		}

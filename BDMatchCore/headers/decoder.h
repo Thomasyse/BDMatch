@@ -28,6 +28,14 @@ namespace Decode {
 
 	typedef void(*prog_func)(int, double);
 
+	template <typename T, int type>
+	concept Normalizable = (type == 0 || (std::is_same<T, int>::value && type == 24)) && 
+		requires (T v) {
+			static_cast<double>(v);
+			std::numeric_limits<T>::max();
+		}
+	;
+
 	struct FFmpeg
 	{
 	public:
@@ -72,9 +80,11 @@ namespace Decode {
 		int clear_ffmpeg();
 		int clear_normalized_samples(double** normalized_samples);
 		template <typename T, int type = 0>
+			requires Normalizable<T, type>
 		int transfer_audio_data_planar(uint8_t** const audiodata, double** const normalized_samples, double** const seqs, 
 			const int& nb_last, const int& nb_last_next, const int& length);
 		template <typename T, int type = 0>
+			requires Normalizable<T, type>
 		int transfer_audio_data_packed(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
 			const int& nb_last, const int& nb_last_next, const int& length);
 		virtual int normalize(uint8_t ** const &audiodata, double ** &normalized_samples, double ** &seqs, 
@@ -161,150 +171,152 @@ namespace Decode {
 		virtual int FD8(double* inseq, DataStruct::Spec_Node* outseq);
 	};
 
-}
+	template<typename T, int type>
+		requires Normalizable<T, type>
+	inline int Decode::Decode::transfer_audio_data_planar(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+		const int& nb_last, const int& nb_last_next, const int& length)
+	{
+		int index2 = 0;
+		if (length > 0) {
+			for (int ch = 0; ch < channels; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		}
+		else index2 = nb_last;
+		for (int ch = 0; ch < channels; ch++) {
+			T* tempT = reinterpret_cast<T*>(audiodata[ch]);
+			int k = 0;
+			for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempT[k]) / static_cast<double>(std::numeric_limits<T>::max());
+			for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempT[k]) / static_cast<double>(std::numeric_limits<T>::max());
+		}
+		return 0;
+	}
+	template<> inline int Decode::Decode::transfer_audio_data_planar<double>(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+		const int& nb_last, const int& nb_last_next, const int& length) {
+		int index2 = 0;
+		if (length > 0) {
+			for (int ch = 0; ch < channels; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		}
+		else index2 = nb_last;
+		for (int ch = 0; ch < channels; ch++) {
+			double* tempd = reinterpret_cast<double*>(audiodata[ch]);
+			int k = 0;
+			for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = tempd[k];
+			for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = tempd[k];
+		}
+		return 0;
+	}
+	template<> inline int Decode::Decode::transfer_audio_data_planar<float>(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+		const int& nb_last, const int& nb_last_next, const int& length) {
+		int index2 = 0;
+		if (length > 0) {
+			for (int ch = 0; ch < channels; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		}
+		else index2 = nb_last;
+		for (int ch = 0; ch < channels; ch++) {
+			float* tempf = reinterpret_cast<float*>(audiodata[ch]);
+			int k = 0;
+			for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempf[k]);
+			for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempf[k]);
+		}
+		return 0;
+	}
+	template<> inline int Decode::Decode::transfer_audio_data_planar<int, 24>(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+		const int& nb_last, const int& nb_last_next, const int& length) {
+		int index2 = 0;
+		if (length > 0) {
+			for (int ch = 0; ch < channels; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		}
+		else index2 = nb_last;
+		for (int ch = 0; ch < channels; ch++) {
+			int* tempi = reinterpret_cast<int*>(audiodata[ch]);
+			int k = 0;
+			for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
+			for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
+		}
+		return 0;
+	}
 
-template<typename T, int type>
-inline int Decode::Decode::transfer_audio_data_planar(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
-	const int& nb_last, const int& nb_last_next, const int& length)
-{
-	int index2 = 0;
-	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+	template<typename T, int type>
+		requires Normalizable<T, type>
+	int inline Decode::Decode::transfer_audio_data_packed(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+		const int& nb_last, const int& nb_last_next, const int& length)
+	{
+		T* tempT = reinterpret_cast<T*>(audiodata[0]);
+		int index = 0, index2 = 0;
+		if (length > 0) {
+			for (int ch = 0; ch < channels; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		}
+		else index2 = nb_last;
+		for (int i = nb_last; i < length; i++)
+			for (int ch = 0; ch < channels; ch++, index++) {
+				normalized_samples[ch][i] = static_cast<double>(tempT[index]) / static_cast<double>(std::numeric_limits<T>::max());
+			}
+		for (int i = index2; i < nb_last_next; i++)
+			for (int ch = 0; ch < channels; ch++, index++) {
+				seqs[ch][i] = static_cast<double>(tempT[index]) / static_cast<double>(std::numeric_limits<T>::max());
+			}
+		return 0;
 	}
-	else index2 = nb_last;
-	for (int ch = 0; ch < channels; ch++) {
-		T* tempT = reinterpret_cast<T*>(audiodata[ch]);
-		int k = 0;
-		for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempT[k]) / static_cast<double>(std::numeric_limits<T>::max());
-		for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempT[k]) / static_cast<double>(std::numeric_limits<T>::max());
+	template<> inline int Decode::Decode::transfer_audio_data_packed<float>(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+		const int& nb_last, const int& nb_last_next, const int& length) {
+		float* tempf = reinterpret_cast<float*>(audiodata[0]);
+		int index = 0, index2 = 0;
+		if (length > 0) {
+			for (int ch = 0; ch < channels; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		}
+		else index2 = nb_last;
+		for (int i = nb_last; i < length; i++)
+			for (int ch = 0; ch < channels; ch++, index++) {
+				normalized_samples[ch][i] = static_cast<double>(tempf[index]);
+			}
+		for (int i = index2; i < nb_last_next; i++)
+			for (int ch = 0; ch < channels; ch++, index++) {
+				seqs[ch][i] = static_cast<double>(tempf[index]);
+			}
+		return 0;
 	}
-	return 0;
-}
-template<> inline int Decode::Decode::transfer_audio_data_planar<double>(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
-	const int& nb_last, const int& nb_last_next, const int& length) {
-	int index2 = 0;
-	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+	template<> inline int Decode::Decode::transfer_audio_data_packed<double>(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+		const int& nb_last, const int& nb_last_next, const int& length) {
+		double* tempd = reinterpret_cast<double*>(audiodata[0]);
+		int index = 0, index2 = 0;
+		if (length > 0) {
+			for (int ch = 0; ch < channels; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		}
+		else index2 = nb_last;
+		for (int i = nb_last; i < length; i++)
+			for (int ch = 0; ch < channels; ch++, index++) {
+				normalized_samples[ch][i] = tempd[index];
+			}
+		for (int i = index2; i < nb_last_next; i++)
+			for (int ch = 0; ch < channels; ch++, index++) {
+				seqs[ch][i] = tempd[index];
+			}
+		return 0;
 	}
-	else index2 = nb_last;
-	for (int ch = 0; ch < channels; ch++) {
-		double* tempd = reinterpret_cast<double*>(audiodata[ch]);
-		int k = 0;
-		for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = tempd[k];
-		for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = tempd[k];
+	template<> inline int Decode::Decode::transfer_audio_data_packed<int, 24>(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
+		const int& nb_last, const int& nb_last_next, const int& length) {
+		int* tempi = reinterpret_cast<int*>(audiodata[0]);
+		int index = 0, index2 = 0;
+		if (length > 0) {
+			for (int ch = 0; ch < channels; ch++)
+				for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		}
+		else index2 = nb_last;
+		for (int i = nb_last; i < length; i++)
+			for (int ch = 0; ch < channels; ch++, index++) {
+				normalized_samples[ch][i] = static_cast<double>(tempi[index] >> 8) / 8388607.0;
+			}
+		for (int i = index2; i < nb_last_next; i++)
+			for (int ch = 0; ch < channels; ch++, index++) {
+				seqs[ch][i] = static_cast<double>(tempi[index] >> 8) / 8388607.0;
+			}
+		return 0;
 	}
-	return 0;
-}
-template<> inline int Decode::Decode::transfer_audio_data_planar<float>(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
-	const int& nb_last, const int& nb_last_next, const int& length) {
-	int index2 = 0;
-	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-	}
-	else index2 = nb_last;
-	for (int ch = 0; ch < channels; ch++) {
-		float* tempf = reinterpret_cast<float*>(audiodata[ch]);
-		int k = 0;
-		for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempf[k]);
-		for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempf[k]);
-	}
-	return 0;
-}
-template<> inline int Decode::Decode::transfer_audio_data_planar<int, 24>(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
-	const int& nb_last, const int& nb_last_next, const int& length) {
-	int index2 = 0;
-	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-	}
-	else index2 = nb_last;
-	for (int ch = 0; ch < channels; ch++) {
-		int* tempi = reinterpret_cast<int*>(audiodata[ch]);
-		int k = 0;
-		for (int i = nb_last; i < length; i++, k++)normalized_samples[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
-		for (int i = index2; i < nb_last_next; i++, k++)seqs[ch][i] = static_cast<double>(tempi[k] >> 8) / 8388607.0;
-	}
-	return 0;
-}
 
-template<typename T, int type>
-int inline Decode::Decode::transfer_audio_data_packed(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
-	const int& nb_last, const int& nb_last_next, const int& length)
-{
-	T* tempT = reinterpret_cast<T*>(audiodata[0]);
-	int index = 0, index2 = 0;
-	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-	}
-	else index2 = nb_last;
-	for (int i = nb_last; i < length; i++)
-		for (int ch = 0; ch < channels; ch++, index++) {
-			normalized_samples[ch][i] = static_cast<double>(tempT[index]) / static_cast<double>(std::numeric_limits<T>::max());
-		}
-	for (int i = index2; i < nb_last_next; i++)
-		for (int ch = 0; ch < channels; ch++, index++) {
-			seqs[ch][i] = static_cast<double>(tempT[index]) / static_cast<double>(std::numeric_limits<T>::max());
-		}
-	return 0;
-}
-template<> inline int Decode::Decode::transfer_audio_data_packed<float>(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
-	const int& nb_last, const int& nb_last_next, const int& length) {
-	float* tempf = reinterpret_cast<float*>(audiodata[0]);
-	int index = 0, index2 = 0;
-	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-	}
-	else index2 = nb_last;
-	for (int i = nb_last; i < length; i++)
-		for (int ch = 0; ch < channels; ch++, index++) {
-			normalized_samples[ch][i] = static_cast<double>(tempf[index]);
-		}
-	for (int i = index2; i < nb_last_next; i++)
-		for (int ch = 0; ch < channels; ch++, index++) {
-			seqs[ch][i] = static_cast<double>(tempf[index]);
-		}
-	return 0;
-}
-template<> inline int Decode::Decode::transfer_audio_data_packed<double>(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
-	const int& nb_last, const int& nb_last_next, const int& length) {
-	double* tempd = reinterpret_cast<double*>(audiodata[0]);
-	int index = 0, index2 = 0;
-	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-	}
-	else index2 = nb_last;
-	for (int i = nb_last; i < length; i++)
-		for (int ch = 0; ch < channels; ch++, index++) {
-			normalized_samples[ch][i] = tempd[index];
-		}
-	for (int i = index2; i < nb_last_next; i++)
-		for (int ch = 0; ch < channels; ch++, index++) {
-			seqs[ch][i] = tempd[index];
-		}
-	return 0;
-}
-template<> inline int Decode::Decode::transfer_audio_data_packed<int, 24>(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
-	const int& nb_last, const int& nb_last_next, const int& length) {
-	int* tempi = reinterpret_cast<int*>(audiodata[0]);
-	int index = 0, index2 = 0;
-	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-	}
-	else index2 = nb_last;
-	for (int i = nb_last; i < length; i++)
-		for (int ch = 0; ch < channels; ch++, index++) {
-			normalized_samples[ch][i] = static_cast<double>(tempi[index] >> 8) / 8388607.0;
-		}
-	for (int i = index2; i < nb_last_next; i++)
-		for (int ch = 0; ch < channels; ch++, index++) {
-			seqs[ch][i] = static_cast<double>(tempi[index] >> 8) / 8388607.0;
-		}
-	return 0;
 }

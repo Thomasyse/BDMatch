@@ -99,7 +99,7 @@ int64_t Match::BDSearch::find(const int &searchnum, const int &retype)
 }
 int Match::BDSearch::sort()
 {
-	std::sort(bditem.begin(), bditem.end(), [](std::array<int64_t, 2> &a, std::array<int64_t, 2>&b) {
+	std::sort(bditem.begin(), bditem.end(), [](std::array<int64_t, 2> &a, std::array<int64_t, 2> &b) {
 		return a[1] < b[1];
 	});
 	return 0;
