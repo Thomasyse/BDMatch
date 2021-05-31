@@ -5,7 +5,7 @@
 
 std::unique_ptr<BDMatchCore> match_core;
 const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
-int ISA_mode = 0;
+ISA_Mode ISA_mode = ISA_Mode::No_SIMD;
 std::string CPU_Brand = "";
 
 BDMatchCore_API int BDMatchCoreAPI::new_BDMatchCore()
@@ -33,7 +33,7 @@ BDMatchCore_API int BDMatchCoreAPI::load_settings(const int& isa_mode0, const in
 	const int& min_check_num, const int& find_field, const int& sub_offset, const int& max_length,
 	const bool& match_ass, const bool& fast_match, const bool& debug_mode)
 {
-	if (isa_mode0 >= 0)ISA_mode = isa_mode0;
+	if (isa_mode0 >= 0)ISA_mode = static_cast<ISA_Mode>(isa_mode0);
 	return match_core->load_settings(ISA_mode, fft_num, min_db, 
 		output_pcm, parallel_decode, vol_match, 
 		min_check_num, find_field, sub_offset, max_length,
@@ -80,7 +80,7 @@ BDMatchCore_API char** BDMatchCoreAPI::get_decode_spec(const Decode::Decode_File
 	return match_core->get_decode_spec(file);
 }
 
-BDMatchCore_API int BDMatchCoreAPI::search_ISA_mode()
+BDMatchCore_API ISA_Mode BDMatchCoreAPI::search_ISA_mode()
 {
 	return ISA_mode;
 }
@@ -102,10 +102,10 @@ BDMatchCore_API int BDMatchCoreAPI::stop_process()
 
 int BDMatchCoreAPI::cal_ISA_mode()
 {
-	if (InstructionSet::AVX2() && InstructionSet::AVX() && InstructionSet::FMA())ISA_mode = 3;
-	else if (InstructionSet::AVX())ISA_mode = 2;
-	else if (InstructionSet::SSE41() && InstructionSet::SSE2() && InstructionSet::SSSE3())ISA_mode = 1;
-	else ISA_mode = 0;
+	if (InstructionSet::AVX2() && InstructionSet::AVX() && InstructionSet::FMA())ISA_mode = ISA_Mode::AVX2_FMA;
+	else if (InstructionSet::AVX())ISA_mode = ISA_Mode::AVX;
+	else if (InstructionSet::SSE41() && InstructionSet::SSE2() && InstructionSet::SSSE3())ISA_mode = ISA_Mode::SSE;
+	else ISA_mode = ISA_Mode::No_SIMD;
 	return 0;
 }
 

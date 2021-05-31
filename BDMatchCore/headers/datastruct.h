@@ -6,10 +6,10 @@
 
 #ifndef _EXPORT_
 namespace DataStruct {
-	class node
+	class Spec_Node
 	{
 	public:
-		node();
+		Spec_Node();
 		int init_data(const int &num, char* data_ptr);
 		char read0(const int &pos);
 		char *getdata();
@@ -32,3 +32,5 @@ namespace Decode {
 namespace Match {
 	enum class Timeline_Time_Type { Start_Time, End_Time };
 }
+
+enum class ISA_Mode { No_SIMD = 0, SSE = 1, AVX = 2, AVX2_FMA = 3 };

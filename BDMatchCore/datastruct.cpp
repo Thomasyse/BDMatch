@@ -1,26 +1,26 @@
 ﻿#include "headers/datastruct.h"
 #include <algorithm>  
 
-DataStruct::node::node()
+DataStruct::Spec_Node::Spec_Node()
 {
 }
-int DataStruct::node::init_data(const int &num, char* data_ptr)
+int DataStruct::Spec_Node::init_data(const int &num, char* data_ptr)
 {
 	count = num;
 	data = data_ptr;
 	return 0;
 }
-char DataStruct::node::read0(const int &pos)
+char DataStruct::Spec_Node::read0(const int &pos)
 {
 	return data[pos];
 }
 
-char * DataStruct::node::getdata()
+char * DataStruct::Spec_Node::getdata()
 {
 	return data;
 }
 
-int DataStruct::node::sum()
+int DataStruct::Spec_Node::sum()
 {
 	if (sumval == std::numeric_limits<int>::min()) {
 		sumval = 0;
@@ -30,14 +30,14 @@ int DataStruct::node::sum()
 	}
 	return sumval;
 }
-char DataStruct::node::maxv()
+char DataStruct::Spec_Node::maxv()
 {
 	char max = *data;
 	for (int i = 1; i < count; i++)
 		if (data[i] > max)max = data[i];
 	return max;
 }
-int DataStruct::node::size()
+int DataStruct::Spec_Node::size()
 {
 	return count;
 }

@@ -5,32 +5,29 @@
 #include <functional>
 #include <queue>
 #include <thread>
+#include <stop_token>
 
 #include "targetver.h"
 
 class fixed_thread_pool {
 public:
-	explicit fixed_thread_pool(size_t thread_count, std::shared_ptr<std::atomic_flag> keep_processing0 = nullptr)
+	explicit fixed_thread_pool(size_t thread_count, std::stop_source &stop_src)
 		: data_(std::make_shared<data>()) {
-		data_->keep_processing = keep_processing0;
 		for (size_t i = 0; i < thread_count; ++i) {
-			std::thread([data = data_] {
+			std::jthread([stop_tk = stop_src.get_token(), data = data_] {
 				std::unique_lock<std::mutex> lk(data->mtx_);
 				for (;;) {
 					if (!data->tasks_.empty()) {
-						if (data->keep_processing && !data->keep_processing->test_and_set()) {
-							while (!data->tasks_.empty()) {
-								data->tasks_.pop();
-								data->task_num_--;
-							}
-							data->keep_processing->clear();
+						if (stop_tk.stop_requested()) {
+							data->tasks_.clear();
+							data->task_num_ = 0;
 							if (data->task_num_ == 0)data->fin_.notify_one();
 							lk.unlock();
 							lk.lock();
 						}
 						else {
 							auto current = std::move(data->tasks_.front());
-							data->tasks_.pop();
+							data->tasks_.pop_front();
 							lk.unlock();
 							current();
 							lk.lock();
@@ -68,7 +65,7 @@ public:
 	void execute(F&& task) {
 		{
 			std::lock_guard<std::mutex> lk(data_->mtx_);
-			data_->tasks_.emplace(std::forward<F>(task));
+			data_->tasks_.emplace_back(std::forward<F>(task));
 		}
 		data_->task_num_++;
 		data_->cond_.notify_one();
@@ -79,7 +76,7 @@ public:
 		std::lock_guard<std::mutex> lk(data_->mtx_);
 		for(auto &task : batch)
 		{
-			data_->tasks_.emplace(task);
+			data_->tasks_.emplace_back(task);
 		}
 		data_->task_num_ += batch.size();
 		data_->cond_.notify_all();
@@ -87,7 +84,7 @@ public:
 
 	void wait() {
 		std::unique_lock<std::mutex> lk(data_->mtx_);
-		if (data_->task_num_ > 0) data_->fin_.wait(lk);
+		if (data_->task_num_ > 0)data_->fin_.wait(lk);
 		lk.unlock();
 	}
 
@@ -97,9 +94,8 @@ private:
 		std::condition_variable cond_;
 		std::condition_variable fin_;
 		std::atomic<size_t> task_num_ = 0;
-		std::shared_ptr<std::atomic_flag> keep_processing = nullptr;
 		bool is_shutdown_ = false;
-		std::queue<std::function<void()>> tasks_;
+		std::deque<std::function<void()>> tasks_;
 	};
 	std::shared_ptr<data> data_;
 };

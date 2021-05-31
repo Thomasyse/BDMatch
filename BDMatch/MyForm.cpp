@@ -5,7 +5,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.20"
+#define appversion "1.5.21"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -22,7 +22,7 @@ int main(array<System::String^>^args)
 	return 0;
 }
 
-int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
+int BDMatch::MyForm::match(String^ sub_text, String^ tv_text, String^ bd_text)
 {
 	using namespace System::IO;
 	using namespace System::Text;
@@ -65,20 +65,20 @@ int BDMatch::MyForm::match(String^ asstext, String^ tvtext, String^ bdtext)
 		match_ass, fast_match, debug_mode0);
 	//convert tv, bd and sub paths to local coding
 	marshal_context convert;
-	const char* tv_path = convert.marshal_as<const char*>(tvtext);
-	const char* bd_path = convert.marshal_as<const char*>(bdtext);
-	const char* sub_path = convert.marshal_as<const char*>(asstext);
+	const char* tv_path = convert.marshal_as<const char*>(tv_text);
+	const char* bd_path = convert.marshal_as<const char*>(bd_text);
+	const char* sub_path = convert.marshal_as<const char*>(sub_text);
 	const char* output_path0 = convert.marshal_as<const char*>(output_path);
 	//convert tv paths to UTF-8
 	UTF8Encoding^ utf8 = gcnew UTF8Encoding;
-	array<Byte>^ encoded_tv_path = utf8->GetBytes(tvtext);
+	array<Byte>^ encoded_tv_path = utf8->GetBytes(tv_text);
 	int tv_path_size = Marshal::SizeOf(encoded_tv_path[0]) * encoded_tv_path->Length;
 	IntPtr tv_pnt = Marshal::AllocHGlobal(tv_path_size + 1);
 	Marshal::Copy(encoded_tv_path, 0, tv_pnt, encoded_tv_path->Length);
 	char* tv_path_ptr = static_cast<char*>(tv_pnt.ToPointer());
 	tv_path_ptr[tv_path_size] = 0;
 	//convert bd paths to UTF-8
-	array<Byte>^ encoded_bd_path = utf8->GetBytes(bdtext);
+	array<Byte>^ encoded_bd_path = utf8->GetBytes(bd_text);
 	int bd_path_size = Marshal::SizeOf(encoded_bd_path[0]) * encoded_bd_path->Length;
 	IntPtr bd_pnt = Marshal::AllocHGlobal(bd_path_size + 1);
 	Marshal::Copy(encoded_bd_path, 0, bd_pnt, encoded_bd_path->Length);
@@ -803,18 +803,19 @@ int BDMatch::MyForm::search_ISA()
 {
 	using namespace msclr::interop;
 	Result->Text += marshal_as<String^>(BDMatchCoreAPI::get_CPU_brand());
-	int ISA_mode = BDMatchCoreAPI::search_ISA_mode();
+	ISA_Mode ISA_mode = BDMatchCoreAPI::search_ISA_mode();
 	switch (ISA_mode)
 	{
-	case 3:
+	case ISA_Mode::AVX2_FMA:
 		Result->Text += "：使用AVX、AVX2、FMA指令集加速。";
 		break;
-	case 2:
+	case ISA_Mode::AVX:
 		Result->Text += "：使用SSE2、SSSE3、SSE4.1、AVX指令集加速。";
 		break;
-	case 1:
+	case ISA_Mode::SSE:
 		Result->Text += "：使用SSE2、SSSE3、SSE4.1指令集加速。";
 		break;
+	case ISA_Mode::No_SIMD:
 	default:
 		Result->Text += "：不使用增强指令集加速。";
 		break;

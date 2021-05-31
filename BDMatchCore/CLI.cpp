@@ -8,7 +8,7 @@ A simple example of command line usage of BDMatchCore
 #include <iostream>
 #include "headers/BDMatchCore.h"
 
-constexpr const char* version = "1.0.20";
+constexpr const char* version = "1.0.21";
 
 void print(const char* in, const int64_t len) {
 	std::cout << in;
@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
 		{false, "-fastma", "match with calculation of some lines, fast but perhaps lose some pecision"}, 
 		{false, "-debug", "show some debug info"} };
 	std::vector<setting<int>> int_settings = {
-		{3, "-isa", "ISA mode:0 for none, 1 for SSE/SSE2/SSE4.1, 2 for AVX, 3 for AVX2 (default: 3)"},
+		{3, "-isa", "ISA mode:0 for no SIMD, 1 for SSE/SSE2/SSE4.1, 2 for AVX, 3 for AVX2 (default: 3)"},
 		{512, "-fftn", "FFT window size, larger for speed, smaller for precision(uncertain), should be a power of 2 (default: 512)"},
 		{-14, "-mindb", "volume(db) threshold for noise filter(default: -14)"},
 		{100, "-minchn", "check times for match results, larger(ie. 10000) for precision, smaller for speed (default: 100)"},
@@ -105,10 +105,11 @@ int main(int argc, char* argv[]) {
 	prog_func prog_ptr = nullptr;//function pointer to show progress: prog_func(int phase(0-3), double percent);
 	feedback_func feedback_ptr = print;//function pointer to show feedback: feedback_func(const char* feedback_string);
 	match_core->load_interface(prog_ptr, feedback_ptr);
-	match_core->load_settings(int_settings[0].val, int_settings[1].val, int_settings[2].val,
+	match_core->load_settings(static_cast<ISA_Mode>(int_settings[0].val), int_settings[1].val, int_settings[2].val,
 		bool_settings[0].val, bool_settings[1].val, bool_settings[2].val,
 		int_settings[3].val, int_settings[4].val, int_settings[5].val, int_settings[6].val,
 		!bool_settings[3].val, bool_settings[4].val, bool_settings[5].val);
+	match_core->start_process();
 	//decode
 	int re = 0;
 	re = match_core->decode(tv_path, bd_path);

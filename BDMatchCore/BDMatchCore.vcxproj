@@ -94,17 +94,19 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;BDMATCHCORE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)fftw\include;$(SolutionDir)ffmpeg-4.2.2-win64-dev\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)fftw\include;$(SolutionDir)ffmpeg-4.3-win64-dev\include</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;postproc.lib;swresample.lib;swscale.lib;fftw3.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)ffmpeg-4.2.2-win64-dev\lib;$(SolutionDir)fftw\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;fftw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)ffmpeg-4.3-win64-dev\lib;$(SolutionDir)fftw\lib</AdditionalLibraryDirectories>
+      <Profile>true</Profile>
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)ffmpeg-4.1-win64-dev\lib;$(SolutionDir)fftw\lib</AdditionalLibraryDirectories>
@@ -133,14 +135,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;BDMATCHCORE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)fftw\include;$(SolutionDir)ffmpeg-4.2.2-win64-dev\include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)fftw\include;$(SolutionDir)ffmpeg-4.3-win64-dev\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;postproc.lib;swresample.lib;swscale.lib;fftw3.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)ffmpeg-4.2.2-win64-dev\lib;$(SolutionDir)fftw\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;fftw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)ffmpeg-4.3-win64-dev\lib;$(SolutionDir)fftw\lib</AdditionalLibraryDirectories>
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)ffmpeg-4.1-win64-dev\lib;$(SolutionDir)fftw\lib</AdditionalLibraryDirectories>
@@ -163,6 +166,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

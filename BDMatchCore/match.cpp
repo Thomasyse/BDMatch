@@ -13,8 +13,8 @@ using namespace DataStruct;
 using std::min;
 using std::max;
 
-Match::timeline::timeline(const int64_t& start0, const int64_t& end0, const bool& iscom0,
-	const std::string &head0, const std::string &text0)
+Match::Timeline::Timeline(const int64_t& start0, const int64_t& end0, const bool& iscom0,
+	const std::string_view &head0, const std::string_view &text0)
 {
 	start_ = start0;
 	end_ = end0;
@@ -22,69 +22,69 @@ Match::timeline::timeline(const int64_t& start0, const int64_t& end0, const bool
 	head_ = head0;
 	former_text_ = text0;
 }
-int64_t Match::timeline::start()
+int64_t Match::Timeline::start()
 {
 	return start_;
 }
-int64_t Match::timeline::end()
+int64_t Match::Timeline::end()
 {
 	return end_;
 }
-int64_t Match::timeline::duration()
+int64_t Match::Timeline::duration()
 {
 	return end_ - start_;
 }
-bool Match::timeline::iscom()
+bool Match::Timeline::iscom()
 {
 	return iscom_;
 }
-std::string Match::timeline::head()
+std::string_view Match::Timeline::head()
 {
 	return head_;
 }
-std::string Match::timeline::former_text()
+std::string_view Match::Timeline::former_text()
 {
 	return former_text_;
 }
-int Match::timeline::start(const int64_t&start0)
+int Match::Timeline::start(const int64_t&start0)
 {
 	start_ = start0;
 	return 0;
 }
-int Match::timeline::end(const int64_t&end0)
+int Match::Timeline::end(const int64_t&end0)
 {
 	end_ = end0;
 	return 0;
 }
-int Match::timeline::iscom(const bool &iscom0)
+int Match::Timeline::iscom(const bool &iscom0)
 {
 	iscom_ = iscom0;
 	return 0;
 }
-int Match::timeline::head(std::string &head0)
+int Match::Timeline::head(std::string_view &head0)
 {
 	head_ = head0;
 	return 0;
 }
 
-Match::bdsearch::bdsearch()
+Match::BDSearch::BDSearch()
 {
 }
-int Match::bdsearch::reserve(const int &num)
+int Match::BDSearch::reserve(const int &num)
 {
 	bditem.reserve(num);
 	return 0;
 }
-int Match::bdsearch::push(const int64_t& time, const int64_t& diff)
+int Match::BDSearch::push(const int64_t& time, const int64_t& diff)
 {
 	bditem.emplace_back(std::array<int64_t, 2>({ time, diff }));
 	return 0;
 }
-int64_t Match::bdsearch::read(const size_t &pos)
+int64_t Match::BDSearch::read(const size_t &pos)
 {
 	return bditem[pos][0];
 }
-int64_t Match::bdsearch::find(const int &searchnum, const int &retype)
+int64_t Match::BDSearch::find(const int &searchnum, const int &retype)
 {
 	int index = 0;
 	for (auto &i : bditem) {
@@ -97,37 +97,37 @@ int64_t Match::bdsearch::find(const int &searchnum, const int &retype)
 	if (index >= bditem.size())index = -1;
 	return index;
 }
-int Match::bdsearch::sort()
+int Match::BDSearch::sort()
 {
 	std::sort(bditem.begin(), bditem.end(), [](std::array<int64_t, 2> &a, std::array<int64_t, 2>&b) {
 		return a[1] < b[1];
 	});
 	return 0;
 }
-size_t Match::bdsearch::size()
+size_t Match::BDSearch::size()
 {
 	return bditem.size();
 }
-int Match::bdsearch::clear()
+int Match::BDSearch::clear()
 {
 	bditem.clear();
 	return 0;
 }
 
 
-Match::se_re::se_re()
+Match::Se_Re::Se_Re()
 {
 }
-int64_t& Match::se_re::operator[](const int & index)
+int64_t& Match::Se_Re::operator[](const int & index)
 {
 	return data[index];
 }
-Match::se_re::se_re(se_re &in)
+Match::Se_Re::Se_Re(Se_Re &in)
 {
 	data[0] = in[0];
 	data[1] = in[1];
 }
-int Match::se_re::init()
+int Match::Se_Re::init()
 {
 	data[0] = 922372036854775808;
 	data[1] = 0;
@@ -135,8 +135,8 @@ int Match::se_re::init()
 }
 
 
-Match::Match::Match(language_pack& lang_pack0, std::shared_ptr<std::atomic_flag> keep_processing0)
-	:keep_processing(keep_processing0), lang_pack(lang_pack0) {
+Match::Match::Match(Language_Pack& lang_pack0, std::stop_source& stop_src0)
+	:stop_src(stop_src0), lang_pack(lang_pack0) {
 }
 
 Match::Match::~Match()
@@ -159,10 +159,10 @@ int Match::Match::load_settings(const int & min_check_num0, const int & find_fie
 	return 0;
 }
 
-int Match::Match::load_decode_info(node ** const & tv_fft_data0, node ** const & bd_fft_data0,
+int Match::Match::load_decode_info(Spec_Node ** const & tv_fft_data0, Spec_Node ** const & bd_fft_data0,
 	const int & tv_ch0, const int & bd_ch0, const int64_t& tv_fft_samp_num0, const int64_t& bd_fft_samp_num0,
 	const int64_t& tv_milisec0, const int64_t& bd_milisec0, const int & tv_samp_rate,
-	const std::string & tv_file_name0, const std::string & bd_file_name0, 
+	const std::string_view & tv_file_name0, const std::string_view & bd_file_name0, 
 	const bool & bd_audio_only0)
 {
 	tv_fft_data = tv_fft_data0;
@@ -201,11 +201,11 @@ int Match::Match::load_decode_info(node ** const & tv_fft_data0, node ** const &
 	return 0;
 }
 
-int Match::Match::load_sub(const std::string &sub_path0)
+int Match::Match::load_sub(const std::string_view &sub_path0)
 {
 	sub_path = sub_path0;
 	std::string ext_name = sub_path.find_last_of('.') != std::string::npos ? 
-		sub_path.substr(sub_path.find_last_of('.')) : "";
+		sub_path.substr(sub_path.find_last_of('.')).data() : "";
 	std::transform(ext_name.begin(), ext_name.end(), ext_name.begin(),
 		[](unsigned char c) { return std::tolower(c); });
 	if (ext_name == ".srt") {
@@ -221,10 +221,10 @@ int Match::Match::load_sub(const std::string &sub_path0)
 int Match::Match::load_srt()
 {
 	using std::ios, std::regex, std::ifstream, std::smatch, std::string;
-	feedback = "";
-	ifstream tv_srt_file(sub_path, ios::binary | ios::ate);
+	feedback.clear();
+	ifstream tv_srt_file(sub_path.data(), ios::binary | ios::ate);
 	if (!tv_srt_file.is_open()) {
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 0);//"\r\n读取字幕文件失败!"
+		feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Match_Sub_Error, 0));//"\r\n错误：读取字幕文件失败!"
 		return -1;
 	}
 	auto srt_file_size = tv_srt_file.tellg();
@@ -234,13 +234,13 @@ int Match::Match::load_srt()
 	tv_srt_file.close();
 	while (tv_sub_text.find("\r\n") != string::npos)tv_sub_text = tv_sub_text.replace(tv_sub_text.find("\r\n"), 2, "\n");
 	if (tv_sub_text.find(" --> ") == std::string::npos) {
-		tv_sub_text = "";
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 1);//"\r\n输入字幕文件无效！"
+		tv_sub_text.clear();
+		feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Match_Sub_Error, 1));//"\r\n错误：输入字幕文件无效！"
 		return -1;
 	}
-	head = "";
+	head.clear();
 	content = tv_sub_text;
-	tv_sub_text = "";
+	tv_sub_text.clear();
 	// 00:00:39,770 --> 00:00:41,880
 	regex timeline_regex(
 		"\\n[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3} --> [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\\n");
@@ -275,10 +275,10 @@ int Match::Match::load_srt()
 int Match::Match::load_ass()
 {
 	using std::ios, std::regex, std::ifstream, std::smatch, std::string;
-	feedback = "";
-	ifstream tv_ass_file(sub_path, ios::binary | ios::ate);
+	feedback.clear();
+	ifstream tv_ass_file(sub_path.data(), ios::binary | ios::ate);
 	if (!tv_ass_file.is_open()) {
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 0);//"\r\n读取字幕文件失败!"
+		feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Match_Sub_Error, 0));//"\r\n错误：读取字幕文件失败!"
 		return -1;
 	}
 	auto ass_file_size = tv_ass_file.tellg();
@@ -289,21 +289,19 @@ int Match::Match::load_ass()
 	while (tv_sub_text.find("\r\n") != string::npos)tv_sub_text = tv_sub_text.replace(tv_sub_text.find("\r\n"), 2, "\n");
 	size_t event_pos = tv_sub_text.find("\n[Events]\n");
 	if (event_pos == std::string::npos) {
-		tv_sub_text = "";
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 1);//"\r\n输入字幕文件无效！"
+		tv_sub_text.clear();
+		feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Match_Sub_Error, 1));//"\r\n错误：输入字幕文件无效！"
 		return -1;
 	}
 	event_pos += 2;
 	head = tv_sub_text.substr(0, event_pos);
 	content = tv_sub_text.substr(event_pos);
-	tv_sub_text = "";
+	tv_sub_text.clear();
 	regex regex_audio_file("Audio ((File)|(URI)): .*?\\n");
 	regex regex_video_file("Video File: .*?\\n");
-	head = regex_replace(head, regex_audio_file,
-		"Audio File: " + bd_file_name + "\n");
+	head = regex_replace(head, regex_audio_file, "Audio File: " + bd_file_name + "\n");
 	if (bd_audio_only)head = regex_replace(head, regex_video_file, "");
-	else head = regex_replace(head, regex_video_file,
-		"Video File: " + bd_file_name + "\n");
+	else head = regex_replace(head, regex_video_file, "Video File: " + bd_file_name + "\n");
 	//: 0,0:22:38.77,0:22:43.35
 	regex timeline_regex(
 		"\\n[a-zA-Z]+: [0-9],[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},");
@@ -340,16 +338,17 @@ int Match::Match::load_ass()
 	}
 	return 0;
 }
-int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const bool& iscom, const std::string& header, const std::string& text)
+int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const bool& iscom, 
+	const std::string_view& header, const std::string_view& text)
 {
-	timeline_list.emplace_back(timeline(start, end, iscom, header, text));
+	timeline_list.emplace_back(Timeline(start, end, iscom, header, text));
 	if (iscom) {
 		tv_time.emplace_back(-1);
 		bd_time.emplace_back(-1);
 		timeline_list.back().start(-1);
 		timeline_list.back().end(-1);
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 2) + std::to_string(nb_timeline) +
-			lang_pack.get_text(Lang_Type::Match_Sub, 3);//"\r\n信息：第***行为注释，将不作处理。"
+		feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 0), 
+			std::format(lang_pack.get_text(Lang_Type::Match_Sub_Info, 0), nb_timeline));//"\r\n信息：第***行为注释，将不作处理。"
 		return -1;
 	}
 	if (end <= start) {
@@ -357,8 +356,8 @@ int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const b
 		bd_time.emplace_back(-1);
 		timeline_list.back().start(-1);
 		timeline_list.back().end(-1);
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 2) + std::to_string(nb_timeline) +
-			lang_pack.get_text(Lang_Type::Match_Sub, 4);//"\r\n信息：第***行时长为零，将不作处理。"
+		feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 0),
+			std::format(lang_pack.get_text(Lang_Type::Match_Sub_Info, 1), nb_timeline));//"\r\n信息：第***行时长为零，将不作处理。"
 		return -1;
 	}
 	if (double(end) - double(start) > max_length * 100.0 * t2f) {
@@ -366,8 +365,8 @@ int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const b
 		bd_time.emplace_back(-1);
 		timeline_list.back().start(-1);
 		timeline_list.back().end(-1);
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + std::to_string(nb_timeline) +
-			lang_pack.get_text(Lang_Type::Match_Sub, 6);//"\r\n警告：第***行时长过长，将不作处理。"
+		feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 1),
+			std::format(lang_pack.get_text(Lang_Type::Match_Sub_Warning, 0), nb_timeline));//"\r\n警告：第***行时长过长，将不作处理。"
 		return -1;
 	}
 	if (end >= tv_fft_samp_num || (end - find_range) > bd_fft_samp_num) {
@@ -375,8 +374,8 @@ int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const b
 		bd_time.emplace_back(-1);
 		timeline_list.back().start(-1);
 		timeline_list.back().end(-1);
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + std::to_string(nb_timeline) +
-			lang_pack.get_text(Lang_Type::Match_Sub, 7);//"\r\n警告：第***行超过音频长度，将不作处理。"
+		feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 1),
+			std::format(lang_pack.get_text(Lang_Type::Match_Sub_Warning, 1), nb_timeline));//"\r\n警告：第***行超过音频长度，将不作处理。"
 		return -1;
 	}
 	int maxdb = -128;
@@ -390,8 +389,8 @@ int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const b
 		bd_time.emplace_back(-1);
 		timeline_list.back().start(-1);
 		timeline_list.back().end(-1);
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + std::to_string(nb_timeline) +
-			lang_pack.get_text(Lang_Type::Match_Sub, 8);//"\r\n警告：第***行声音过小，将不作处理。"
+		feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 1),
+			std::format(lang_pack.get_text(Lang_Type::Match_Sub_Warning, 2), nb_timeline));//"\r\n警告：第***行声音过小，将不作处理。"
 		return -1;
 	}
 	bool existed = false;
@@ -414,18 +413,19 @@ int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const b
 
 int Match::Match::match()
 {
-	feedback = "";
+	feedback.clear();
 	//multithreading
 	std::vector<std::function<int()>> tasks;
 	tasks.reserve(nb_tasks);
-	fixed_thread_pool pool(nb_threads, keep_processing);
+	fixed_thread_pool pool(nb_threads, stop_src);
 	//search vars
-	search_result = new se_re[nb_tasks];
+	search_result = new Se_Re[nb_tasks];
 	//fast matching parameters
 	int64_t offset = 0; int64_t fivesec = 0; int64_t lastlinetime = 0;
 	if (fast_match) {
 		fivesec = static_cast<int64_t>(500 * t2f);
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 9);//"\r\n信息：使用快速匹配。"
+		feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 0),
+			lang_pack.get_text(Lang_Type::Match_Sub_Info, 2));//"\r\n信息：使用快速匹配。"
 	}
 	for (int64_t i = 0; i < nb_timeline; i++) {
 		if (tv_time[i] >= 0) {
@@ -494,7 +494,7 @@ int Match::Match::match()
 			else if (fast_match)min_check_num_cal = min_check_num / 2 * 3;
 			int64_t check_field = min_check_num_cal * interval;
 			diffa[2] = min_check_num_cal;
-			se_re *se_re_ptr = search_result;
+			Se_Re *se_re_ptr = search_result;
 			for (size_t j = 0; j < nb_tasks; j++) {
 				size_t se_start = j * nb_per_task;
 				se_re_ptr->init();
@@ -535,11 +535,9 @@ int Match::Match::match()
 				deb_info.nb_line++;
 				int64_t delta1 = bd_se.find(besttime, 1);
 				if (delta1 > deb_info.max_delta)deb_info.max_delta = delta1;
-				feedback += lang_pack.get_text(Lang_Type::General, 0) + std::to_string(i + 1)
-					+ lang_pack.get_text(Lang_Type::General, 4) + std::to_string(delta1);//"\r\n i, delta"
+				feedback += std::format("\r\n{}, {}", i + 1, delta1);//"\r\n i, delta"
 				if (minsum == diffa[0])deb_info.diffa_consis++;
-				else feedback += lang_pack.get_text(Lang_Type::General, 4) + std::to_string(minsum)
-						+ lang_pack.get_text(Lang_Type::General, 4) + std::to_string(diffa[0]);//", minsum, diffa[0]"
+				else feedback += std::format(", {}, {}", minsum, diffa[0]);//", minsum, diffa[0]"
 				double foundindex = bd_se.find(besttime, 0) / (double)find_num;
 				deb_info.ave_index = deb_info.ave_index + foundindex;
 				if (foundindex > deb_info.max_index && duration > 75 * interval) {
@@ -553,8 +551,7 @@ int Match::Match::match()
 				lastlinetime = tv_time[i];
 			}
 		}
-		if (keep_processing && !keep_processing->test_and_set()) {
-			keep_processing->clear();
+		if (stop_src.stop_requested()) {
 			delete[] search_result;
 			search_result = nullptr;
 			return -2;
@@ -568,22 +565,21 @@ int Match::Match::match()
 		deb_info.ave_index *= 100.0 / static_cast<double>(deb_info.nb_line);
 		deb_info.max_index *= 100.0;
 		deb_info.diffa_consis *= 100.0 / static_cast<double>(deb_info.nb_line);
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 10) + std::to_string(deb_info.ave_index) +
-			lang_pack.get_text(Lang_Type::Match_Sub, 11) + //"\r\nAverage Found Index = ***%    "
-			lang_pack.get_text(Lang_Type::Match_Sub, 12) + std::to_string(deb_info.max_index) +
-			lang_pack.get_text(Lang_Type::Match_Sub, 13) + //"Max Found Index= ***%\r\nMax Found Line= "
-			std::to_string(deb_info.max_line) + lang_pack.get_text(Lang_Type::Match_Sub, 14) +
-			std::to_string(deb_info.max_delta) +//"***    Max Delta= ***"
-			lang_pack.get_text(Lang_Type::Match_Sub, 24) + std::to_string(deb_info.diffa_consis) +
-			lang_pack.get_text(Lang_Type::Match_Sub, 11);//"\r\nDiffa Consistency = ***%    "
+		feedback += std::format("\r\n{1}{0}{2}\r\n{3}{0}{4}\r\n{5}", lang_pack.get_text(Lang_Type::General, 5),
+			std::format(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 0), deb_info.ave_index),  //"\r\nAverage Found Index = ***%    "
+			std::format(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 1), deb_info.max_index),  //"Max Found Index = ***%\r\n"
+			std::format(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 2), deb_info.max_line),   //"Max Found Line = ***    "
+			std::format(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 3), deb_info.max_delta),  //"Max Delta= ***\r\n"
+			std::format(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 4), deb_info.diffa_consis)//"Diffa Consistency = ***%"
+			);
 	}
 	return 0;
 }
 
-int Match::Match::output(const std::string &output_path)
+int Match::Match::output(const std::string_view &output_path)
 {
 	using std::vector, std::string, std::fstream, std::ios;
-	feedback = "";
+	feedback.clear();
 	//check feedbacks
 	vector<int64_t>time_diff(nb_timeline);
 	vector<int>check_feedbacks(nb_timeline);
@@ -602,9 +598,8 @@ int Match::Match::output(const std::string &output_path)
 			int check_feedback = check_feedbacks[line_num];
 			check_feedbacks[i] = check_feedback;
 			if (check_feedback > 0)
-				feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + std::to_string(i + 1) +
-				lang_pack.get_text(Lang_Type::Match_Sub, 15) + std::to_string(line_num + 1) + 
-				lang_pack.get_text(Lang_Type::Match_Sub, 16);//"\r\n警告：第***行（与第***行时间相同）可能存在匹配错误!";
+				feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 1),
+					std::format(lang_pack.get_text(Lang_Type::Match_Sub_Warning, 3), i + 1, line_num + 1));//"\r\n警告：第***行（与第***行时间相同）可能存在匹配错误!";
 			continue;
 		}
 		int temp = 0;
@@ -624,16 +619,16 @@ int Match::Match::output(const std::string &output_path)
 		}
 		switch (check) {
 		case 1:
-			feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + std::to_string(i + 1) +
-				lang_pack.get_text(Lang_Type::Match_Sub, 17);//"\r\n警告：第***行可能存在匹配错误：与前一行次序不一致！"
+			feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 1),
+				std::format(lang_pack.get_text(Lang_Type::Match_Sub_Warning, 4), i + 1));//"\r\n警告：第***行可能存在匹配错误：与前一行次序不一致！"
 			break;
 		case 2:
-			feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + std::to_string(i + 1) + 
-				lang_pack.get_text(Lang_Type::Match_Sub, 18);//"\r\n警告：第***行可能存在匹配错误：与后一行次序不一致！"
+			feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 1),
+				std::format(lang_pack.get_text(Lang_Type::Match_Sub_Warning, 5), i + 1));//"\r\n警告：第***行可能存在匹配错误：与后一行次序不一致！"
 			break;
 		case 3:
-			feedback += lang_pack.get_text(Lang_Type::Match_Sub, 5) + std::to_string(i + 1) + 
-				lang_pack.get_text(Lang_Type::Match_Sub, 19);//"\r\n警告：第***行可能存在匹配错误：与前后行时差不一致！"
+			feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 1),
+				std::format(lang_pack.get_text(Lang_Type::Match_Sub_Warning, 6), i + 1));//"\r\n警告：第***行可能存在匹配错误：与前后行时差不一致！"
 			break;
 		}
 		check_feedbacks[i] = check;
@@ -648,9 +643,8 @@ int Match::Match::output(const std::string &output_path)
 				if (i < nb_timeline - 1 && timeline_list[i].end() > bd_time[i + 1]
 					&& (timeline_list[i].end() - bd_time[i + 1]) <= overlap_interval) {
 					timeline_list[i].end(bd_time[i + 1]);
-					feedback += lang_pack.get_text(Lang_Type::Match_Sub, 2) + std::to_string(i + 1) +
-						lang_pack.get_text(Lang_Type::Match_Sub, 20) +	std::to_string(i + 2) +
-						lang_pack.get_text(Lang_Type::Match_Sub, 21);//"\r\n信息：第***行和第***行发生微小重叠，已自动修正。";
+					feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 0),
+						std::format(lang_pack.get_text(Lang_Type::Match_Sub_Info, 3), i + 1, i + 2));//"\r\n信息：第***行和第***行发生微小重叠，已自动修正。";
 				}
 			}
 			else {
@@ -659,18 +653,20 @@ int Match::Match::output(const std::string &output_path)
 			}
 			int start = static_cast<int>(round(static_cast<double>(timeline_list[i].start()) * f2t));
 			int end = static_cast<int>(round(static_cast<double>(timeline_list[i].end()) * f2t));
-			string replacetext, former_text;
+			string replacetext;
+			std::string_view former_text;
 			switch (sub_type) {
 			case Sub_Type::ASS:
-				replacetext = timeline_list[i].head() + cs2time(start) + "," + cs2time(end) + ",";
+				replacetext = std::format("{}{},{},", timeline_list[i].head(), cs2time(start), cs2time(end));
 				break;
 			case Sub_Type::SRT:
-				replacetext = "\n" + cs2time(start) + " --> " + cs2time(end) + "\n";
+				replacetext = std::format("\n{} --> {}\n", cs2time(start), cs2time(end));
+				break;
 			default:
 				break;
 			}
 			former_text = timeline_list[i].former_text();
-			content = content.replace(content.find(former_text), former_text.length(), replacetext);
+			content = content.replace(content.find(former_text), former_text.size(), replacetext);
 		}
 		else {
 			timeline_list[i].start(-1);
@@ -678,13 +674,13 @@ int Match::Match::output(const std::string &output_path)
 		}
 	}
 	//write file
-	fstream output_file(output_path, ios::out | ios::trunc);
+	fstream output_file(output_path.data(), ios::out | ios::trunc);
 	if (!output_file.is_open()) {
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 22);//"\r\n打开输出字幕文件失败!"
+		feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Match_Sub_Error, 2));//"\r\n错误：打开输出字幕文件失败!"
 		return -1;
 	}
 	if (!(output_file << head + content)) {
-		feedback += lang_pack.get_text(Lang_Type::Match_Sub, 23);//"\r\n写入字幕文件失败!"
+		feedback += std::format(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Match_Sub_Error, 3));//"\r\n错误：写入字幕文件失败!"
 		return -1;
 	}
 	if (prog_single)prog_single(3, 1.0);
@@ -693,17 +689,25 @@ int Match::Match::output(const std::string &output_path)
 int Match::Match::output()
 {
 	std::string output_path;
+	std::string_view sub_filename = sub_path.substr(0, sub_path.find_last_of('.'));
 	switch (sub_type) {
 	case Sub_Type::ASS:
-		output_path = sub_path.substr(0, sub_path.find_last_of('.')) + ".matched.ass";
+		output_path.reserve(sub_filename.size() + 13);
+		output_path = std::format("{}{}", sub_filename, ".matched.ass");
 		break;
 	case Sub_Type::SRT:
-		output_path = sub_path.substr(0, sub_path.find_last_of('.')) + ".matched.srt";
+		output_path.reserve(sub_filename.size() + 13);
+		output_path = std::format("{}{}", sub_filename, ".matched.srt");
 		break;
 	default:
-		output_path = sub_path.find_last_of('.') != std::string::npos ?
-			sub_path.substr(0, sub_path.find_last_of('.')) + ".matched" + sub_path.substr(sub_path.find_last_of('.'))
-			: sub_path + ".matched";
+		output_path.reserve(sub_path.size() + 9);
+		if (sub_path.find_last_of('.') != std::string::npos) {
+			output_path = std::format("{}{}{}", sub_filename, ".matched",
+				sub_path.substr(sub_path.find_last_of('.')));
+		}
+		else {
+			output_path = std::format("{}{}", sub_filename, ".matched");
+		}
 		break;
 	}
 	output(output_path);
@@ -728,7 +732,7 @@ int64_t Match::Match::get_timeline(const int& line, const Timeline_Time_Type& ty
 	}
 	return 0;
 }
-std::string Match::Match::get_feedback()
+std::string_view Match::Match::get_feedback()
 {
 	return feedback;
 }
@@ -743,7 +747,7 @@ std::string Match::Match::cs2time(const int &cs0)
 	cs -= mm * 6000;
 	ss = cs / 100;
 	cs -= ss * 100;
-	std::string timeout = "";
+	std::string timeout;
 	switch (sub_type) {
 	case Sub_Type::ASS:
 		timeout += std::to_string(hh) + ":";
@@ -769,22 +773,22 @@ std::string Match::Match::cs2time(const int &cs0)
 	}
 	return timeout;
 }
-int Match::Match::time2cs(const std::string &time)
+int Match::Match::time2cs(const std::string_view &time)
 {
 	using std::stoi;
 	int cs = 0;
 	switch (sub_type) {
 	case Sub_Type::ASS:
-		cs += stoi(time.substr(0, 1)) * 360000;
-		cs += stoi(time.substr(2, 2)) * 6000;
-		cs += stoi(time.substr(5, 2)) * 100;
-		cs += stoi(time.substr(8, 2));
+		cs += stoi(time.substr(0, 1).data()) * 360000;
+		cs += stoi(time.substr(2, 2).data()) * 6000;
+		cs += stoi(time.substr(5, 2).data()) * 100;
+		cs += stoi(time.substr(8, 2).data());
 		break;
 	case Sub_Type::SRT:
-		cs += stoi(time.substr(0, 2)) * 360000;
-		cs += stoi(time.substr(3, 2)) * 6000;
-		cs += stoi(time.substr(6, 2)) * 100;
-		cs += stoi(time.substr(9, 2));
+		cs += stoi(time.substr(0, 2).data()) * 360000;
+		cs += stoi(time.substr(3, 2).data()) * 6000;
+		cs += stoi(time.substr(6, 2).data()) * 100;
+		cs += stoi(time.substr(9, 2).data());
 		break;
 	default:
 		break;
@@ -794,9 +798,9 @@ int Match::Match::time2cs(const std::string &time)
 }
 
 int Match::Match::caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int min_check_num,
-	const int64_t check_field, se_re* re)
+	const int64_t check_field, Se_Re* re)
 {
-	se_re feedback;
+	Se_Re feedback;
 	if (diffa[2] <= 0) {
 		*re = feedback;
 		return -1;
@@ -841,9 +845,9 @@ int Match::Match::caldiff(const int64_t tv_start, const size_t se_start, const s
 	return 0;
 }
 int Match::Match_SSE::caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int min_check_num,
-	const int64_t check_field, se_re* re)
+	const int64_t check_field, Se_Re* re)
 {
-	se_re feedback;
+	Se_Re feedback;
 	if (diffa[2] <= 0) {
 		*re = feedback;
 		return -1;
@@ -904,9 +908,9 @@ int Match::Match_SSE::caldiff(const int64_t tv_start, const size_t se_start, con
 	return 0;
 }
 int Match::Match_AVX2::caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int min_check_num,
-	const int64_t check_field, se_re* re)
+	const int64_t check_field, Se_Re* re)
 {
-	se_re feedback;
+	Se_Re feedback;
 	if (diffa[2] <= 0) {
 		*re = feedback;
 		return -1;

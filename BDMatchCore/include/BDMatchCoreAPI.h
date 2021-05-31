@@ -3,7 +3,6 @@
 #define _EXPORT_
 
 // No need for platform other than Windows
-#include <atomic>
 #include "headers/datastruct.h"
 #ifdef BDMATCHCORE_EXPORTS
 #define BDMatchCore_API  __declspec( dllexport )
@@ -30,7 +29,7 @@ namespace BDMatchCoreAPI {
 	BDMatchCore_API int64_t get_timeline(const int& index, const Match::Timeline_Time_Type& type);
 	BDMatchCore_API int64_t get_decode_info(const Decode::Decode_File& file, const Decode::Decode_Info& type);
 	BDMatchCore_API char** get_decode_spec(const Decode::Decode_File& file);
-	BDMatchCore_API int search_ISA_mode();
+	BDMatchCore_API ISA_Mode search_ISA_mode();
 	BDMatchCore_API const char* get_CPU_brand();
 	BDMatchCore_API int start_process();
 	BDMatchCore_API int stop_process();

@@ -693,7 +693,7 @@ namespace BDMatch {
 		void feedback(const char* input, const long long len);
 
 	private:
-		int match(String^ ASSText, String^ TVText, String^ BDText);
+		int match(String^ sub_text, String^ tv_text, String^ bd_text);
 		int draw_pre(); 
 		int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path, 
 			const char* encoded_tv_path, const char* encoded_bd_path);

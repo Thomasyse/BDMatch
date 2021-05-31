@@ -1,5 +1,5 @@
 CXX = clang++
-CXXFLAGS = -Wall -O2 -D_CLI_ -D_NO_SVML_ -std=c++17 -mavx2 -mfma
+CXXFLAGS = -Wall -O2 -D_CLI_ -D_NO_SVML_ -std=c++20 -mavx2 -mfma
 
 ifeq ($(CXX), clang++)
 CXXFLAGS += -stdlib=libc++
