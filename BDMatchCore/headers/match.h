@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "datastruct.h"
-#include <array>
 #include <vector>
+#include <array>
 #include <memory>
 #include <stop_token>
 #include "language_pack.h"
@@ -37,6 +37,8 @@ namespace Match {
 		std::string former_text_;
 	};
 
+	typedef std::array<int64_t, 2> Se_Re; // [0]: diff, [1]: time
+
 	class BDSearch
 	{
 	public:
@@ -44,23 +46,12 @@ namespace Match {
 		int reserve(const int& num);
 		int push(const int64_t& time, const int64_t& diff);
 		int64_t read(const size_t& pos);
-		int64_t find(const int& searchnum, const int& retype);
+		int64_t find(const int64_t& search_time, const int& retype);
 		int sort();
 		size_t size();
 		int clear();
 	private:
-		std::vector<std::array<int64_t, 2>>bditem;
-	};
-
-	class Se_Re
-	{
-	public:
-		Se_Re();
-		int64_t& operator[](const int &index);
-		Se_Re(Se_Re &in);
-		int init();
-	private:
-		int64_t data[2] = { std::numeric_limits<int64_t>::max(),0 };
+		std::vector<Se_Re> bditem;
 	};
 
 	struct Debug_Info {//debug info in matching
@@ -70,7 +61,7 @@ namespace Match {
 
 	class Match {
 	public:
-		Match(Language_Pack& lang_pack0, std::stop_source& stop_src0);
+		Match(const Language_Pack& lang_pack0, std::stop_source& stop_src0);
 		virtual ~Match();
 		int load_settings(const int &min_check_num0, const int &find_field0, const int &sub_offset0, 
 			const int &max_length0,
@@ -99,7 +90,7 @@ namespace Match {
 		Debug_Info deb_info;//debug info in matching
 		prog_func prog_single = nullptr;//func_ptr for progress bar
 		std::stop_source &stop_src;//multithreading cancel source
-		Language_Pack& lang_pack;//language pack
+		const Language_Pack& lang_pack;//language pack
 		//sub info and data
 		Sub_Type sub_type = Sub_Type::ASS;
 		std::string_view sub_path;
@@ -131,13 +122,13 @@ namespace Match {
 		double t2f = 1.0;//Time to Frequency
 		double f2t = 1.0;//Frequency to Time
 		int64_t diffa[3] = { 0 };//No need to make atomic
-		Se_Re *search_result = nullptr;
+		std::vector<Se_Re> search_result;
 		std::string feedback;
 	};
 
 	class Match_SSE : public Match {
 	public:
-		Match_SSE(Language_Pack& lang_pack0, std::stop_source& stop_src0)
+		Match_SSE(const Language_Pack& lang_pack0, std::stop_source& stop_src0)
 			:Match(lang_pack0, stop_src0) {}
 		int caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int min_check_num,
 			const int64_t check_field, Se_Re* re);
@@ -145,7 +136,7 @@ namespace Match {
 
 	class Match_AVX2 : public Match {
 	public:
-		Match_AVX2(Language_Pack& lang_pack0, std::stop_source& stop_src0)
+		Match_AVX2(const Language_Pack& lang_pack0, std::stop_source& stop_src0)
 			:Match(lang_pack0, stop_src0) {}
 		int caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int min_check_num,
 			const int64_t check_field, Se_Re* re);

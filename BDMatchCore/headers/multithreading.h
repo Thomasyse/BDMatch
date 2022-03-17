@@ -72,12 +72,9 @@ public:
 	}
 
 	template <class F>
-	void execute_batch(std::vector<F> &batch) {
+	void execute_batch(const std::vector<F> &batch) {
 		std::lock_guard<std::mutex> lk(data_->mtx_);
-		for (auto &task : batch)
-		{
-			data_->tasks_.emplace_back(task);
-		}
+		data_->tasks_.insert(data_->tasks_.end(), batch.begin(), batch.end());
 		data_->task_num_ += batch.size();
 		data_->cond_.notify_all();
 	}

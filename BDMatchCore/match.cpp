@@ -77,20 +77,20 @@ int Match::BDSearch::reserve(const int &num)
 }
 int Match::BDSearch::push(const int64_t& time, const int64_t& diff)
 {
-	bditem.emplace_back(std::array<int64_t, 2>({ time, diff }));
+	bditem.push_back({ diff, time });
 	return 0;
 }
 int64_t Match::BDSearch::read(const size_t &pos)
 {
-	return bditem[pos][0];
+	return bditem[pos][1];
 }
-int64_t Match::BDSearch::find(const int &searchnum, const int &retype)
+int64_t Match::BDSearch::find(const int64_t &search_time, const int &retype)
 {
 	int index = 0;
 	for (auto &i : bditem) {
-		if (i[0] == searchnum) {
+		if (i[1] == search_time) {
 			if (!retype)return index;
-			else return i[1];
+			else return i[0];
 		};
 		index++;
 	}
@@ -99,8 +99,8 @@ int64_t Match::BDSearch::find(const int &searchnum, const int &retype)
 }
 int Match::BDSearch::sort()
 {
-	std::sort(bditem.begin(), bditem.end(), [](std::array<int64_t, 2> &a, std::array<int64_t, 2> &b) {
-		return a[1] < b[1];
+	std::sort(bditem.begin(), bditem.end(), [](const Se_Re &a, const Se_Re &b) {
+		return a[0] < b[0];
 	});
 	return 0;
 }
@@ -115,34 +115,12 @@ int Match::BDSearch::clear()
 }
 
 
-Match::Se_Re::Se_Re()
-{
-}
-int64_t& Match::Se_Re::operator[](const int & index)
-{
-	return data[index];
-}
-Match::Se_Re::Se_Re(Se_Re &in)
-{
-	data[0] = in[0];
-	data[1] = in[1];
-}
-int Match::Se_Re::init()
-{
-	data[0] = 922372036854775808;
-	data[1] = 0;
-	return 0;
-}
-
-
-Match::Match::Match(Language_Pack& lang_pack0, std::stop_source& stop_src0)
+Match::Match::Match(const Language_Pack& lang_pack0, std::stop_source& stop_src0)
 	:stop_src(stop_src0), lang_pack(lang_pack0) {
 }
 
 Match::Match::~Match()
 {
-	if (search_result)delete[] search_result;
-	search_result = nullptr;
 }
 
 int Match::Match::load_settings(const int & min_check_num0, const int & find_field0, const int &sub_offset0,
@@ -341,7 +319,7 @@ int Match::Match::load_ass()
 int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const bool& iscom, 
 	const std::string_view& header, const std::string_view& text)
 {
-	timeline_list.emplace_back(Timeline(start, end, iscom, header, text));
+	timeline_list.emplace_back(start, end, iscom, header, text);
 	if (iscom) {
 		tv_time.emplace_back(-1);
 		bd_time.emplace_back(-1);
@@ -419,7 +397,7 @@ int Match::Match::match()
 	tasks.reserve(nb_tasks);
 	fixed_thread_pool pool(nb_threads, stop_src);
 	//search vars
-	search_result = new Se_Re[nb_tasks];
+	search_result.assign(nb_tasks, { std::numeric_limits<int64_t>::max() , 0 });
 	//fast matching parameters
 	int64_t offset = 0; int64_t fivesec = 0; int64_t lastlinetime = 0;
 	if (fast_match) {
@@ -494,26 +472,16 @@ int Match::Match::match()
 			else if (fast_match)min_check_num_cal = min_check_num / 2 * 3;
 			int64_t check_field = min_check_num_cal * interval;
 			diffa[2] = min_check_num_cal;
-			Se_Re *se_re_ptr = search_result;
 			for (size_t j = 0; j < nb_tasks; j++) {
 				size_t se_start = j * nb_per_task;
-				se_re_ptr->init();
+				search_result[j][0] = std::numeric_limits<int64_t>::max();
 				tasks.emplace_back(std::bind(&Match::caldiff, this, tv_time[i], se_start, min(se_start + nb_per_task, bd_se.size()),
-					min_check_num_cal, check_field, se_re_ptr));
-				se_re_ptr++;
+					min_check_num_cal, check_field, &search_result[j]));
 			}
 			pool.execute_batch(tasks);
 			pool.wait();
 			tasks.clear();
-			int64_t minsum = std::numeric_limits<int64_t>::max();
-			int besttime = 0;
-			for (size_t j = 0; j < nb_tasks; j++) {
-				int64_t sum = search_result[j][0];
-				if (sum < minsum) {
-					besttime = static_cast<int>(search_result[j][1]);
-					minsum = sum;
-				}
-			}
+			const auto& [mindiff, besttime] = *std::min_element(search_result.begin(), search_result.end(), [] (const Se_Re &left, const Se_Re &right) { return left[0] < right[0]; });
 			bd_time[i] = besttime;
 
 			//for debug->
@@ -536,8 +504,8 @@ int Match::Match::match()
 				int64_t delta1 = bd_se.find(besttime, 1);
 				if (delta1 > deb_info.max_delta)deb_info.max_delta = delta1;
 				feedback += std::format("\r\n{}, {}", i + 1, delta1);//"\r\n i, delta"
-				if (minsum == diffa[0])deb_info.diffa_consis++;
-				else feedback += std::format(", {}, {}", minsum, diffa[0]);//", minsum, diffa[0]"
+				if (mindiff == diffa[0])deb_info.diffa_consis++;
+				else feedback += std::format(", {}, {}", mindiff, diffa[0]);//", minsum, diffa[0]"
 				double foundindex = bd_se.find(besttime, 0) / (double)find_num;
 				deb_info.ave_index = deb_info.ave_index + foundindex;
 				if (foundindex > deb_info.max_index && duration > 75 * interval) {
@@ -552,14 +520,12 @@ int Match::Match::match()
 			}
 		}
 		if (stop_src.stop_requested()) {
-			delete[] search_result;
-			search_result = nullptr;
+			search_result.clear();
 			return -2;
 		}
 		if (prog_single)prog_single(3, (i + 1) / static_cast<double>(nb_timeline));
 	}
-	delete[] search_result;
-	search_result = nullptr;
+	search_result.clear();
 	//output debug info
 	if (debug_mode) {
 		deb_info.ave_index *= 100.0 / static_cast<double>(deb_info.nb_line);
@@ -584,7 +550,7 @@ int Match::Match::output(const std::string_view &output_path)
 	vector<int64_t>time_diff(nb_timeline);
 	vector<int>check_feedbacks(nb_timeline);
 	for (int64_t i = 0; i < nb_timeline; i++) {
-		if (tv_time[i] >= 0)time_diff.push_back(bd_time[i] - tv_time[i]);
+		if (tv_time[i] >= 0)time_diff.emplace_back(bd_time[i] - tv_time[i]);
 		else if (tv_time[i] == -1)time_diff[i] = 0;
 		else time_diff[i] = time_diff[-static_cast<int64_t>(tv_time[i]) - 2];
 	}
@@ -800,9 +766,9 @@ int Match::Match::time2cs(const std::string_view &time)
 int Match::Match::caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int min_check_num,
 	const int64_t check_field, Se_Re* re)
 {
-	Se_Re feedback;
+	Se_Re feedback{ std::numeric_limits<int64_t>::max(), 0 };
 	if (diffa[2] <= 0) {
-		*re = feedback;
+		*re = std::move(feedback);
 		return -1;
 	}
 	int64_t sum = 0;
@@ -837,19 +803,19 @@ int Match::Match::caldiff(const int64_t tv_start, const size_t se_start, const s
 		}
 		else if (llabs(bd_start - diffa[1]) <= check_field) diffa[2]--;
 		if (diffa[2] <= 0) {
-			*re = feedback;
+			*re = std::move(feedback);
 			return -1;
 		}
 	}
-	*re = feedback;
+	*re = std::move(feedback);
 	return 0;
 }
 int Match::Match_SSE::caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int min_check_num,
 	const int64_t check_field, Se_Re* re)
 {
-	Se_Re feedback;
+	Se_Re feedback{ std::numeric_limits<int64_t>::max(), 0 };
 	if (diffa[2] <= 0) {
-		*re = feedback;
+		*re = std::move(feedback);
 		return -1;
 	}
 	int64_t sum = 0;
@@ -900,19 +866,19 @@ int Match::Match_SSE::caldiff(const int64_t tv_start, const size_t se_start, con
 		}
 		else if (llabs(bd_start - diffa[1]) <= check_field) diffa[2]--;
 		if (diffa[2] <= 0) {
-			*re = feedback;
+			*re = std::move(feedback);
 			return -1;
 		}
 	}
-	*re = feedback;
+	*re = std::move(feedback);
 	return 0;
 }
 int Match::Match_AVX2::caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int min_check_num,
 	const int64_t check_field, Se_Re* re)
 {
-	Se_Re feedback;
+	Se_Re feedback{ std::numeric_limits<int64_t>::max(), 0 };
 	if (diffa[2] <= 0) {
-		*re = feedback;
+		*re = std::move(feedback);
 		return -1;
 	}
 	int64_t sum = 0;
@@ -967,10 +933,11 @@ int Match::Match_AVX2::caldiff(const int64_t tv_start, const size_t se_start, co
 		}
 		else if (llabs(bd_start - diffa[1]) <= check_field) diffa[2]--;
 		if (diffa[2] <= 0) {
-			*re = feedback;
+			*re = std::move(feedback);
 			return -1;
 		}
 	}
-	*re = feedback;
+	*re = std::move(feedback);
 	return 0;
 }
+

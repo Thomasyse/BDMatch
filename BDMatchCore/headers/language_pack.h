@@ -9,7 +9,7 @@ enum class Lang_Type { General, Notif, Core, Decoder_Info, Decoder_Error, Match_
 
 class Language_Pack {
 public:
-	std::string_view get_text(const Lang_Type& type, const size_t& index);
+	std::string_view get_text(const Lang_Type& type, const size_t& index) const;
 private:
 	std::vector<std::u8string_view> general_texts = { u8"\r\n", u8"  ", u8"->", u8"秒", u8", ", u8"    " };
 	std::vector<std::u8string_view> notif_texts = { u8"\r\n    信息：{}", u8"\r\n    警告：{}", u8"\r\n    错误：{}" };

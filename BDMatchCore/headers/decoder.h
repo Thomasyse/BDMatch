@@ -54,7 +54,7 @@ namespace Decode {
 	class Decode
 	{
 	public:
-		Decode(Language_Pack& lang_pack0, std::stop_source &stop_src0);
+		Decode(const Language_Pack& lang_pack0, std::stop_source &stop_src0);
 		virtual ~Decode();
 		int load_settings(const int &fft_num0, const bool &output_pcm0, const int &min_db0, 
 			const int &resamp_rate0, const int &prog_type0,	fftw_plan plan0, const prog_func &prog_single0 = nullptr);
@@ -93,7 +93,7 @@ namespace Decode {
 		virtual int FD8(double* inseq, DataStruct::Spec_Node* outseq);
 		std::stop_source& stop_src;//multithreading cancel source
 		//language pack
-		Language_Pack& lang_pack;
+		const Language_Pack& lang_pack;
 		//settings
 		int fft_num = 512;
 		int min_db = -14;
@@ -138,14 +138,14 @@ namespace Decode {
 
 	class Decode_SSE :public Decode {
 	public:
-		Decode_SSE(Language_Pack& lang_pack0, std::stop_source& stop_src0)
+		Decode_SSE(const Language_Pack& lang_pack0, std::stop_source& stop_src0)
 			:Decode(lang_pack0, stop_src0) {}
 		virtual int FD8(double* inseq, DataStruct::Spec_Node* outseq);
 	};
 
 	class Decode_AVX :public Decode {
 	public:
-		Decode_AVX(Language_Pack& lang_pack0, std::stop_source& stop_src0)
+		Decode_AVX(const Language_Pack& lang_pack0, std::stop_source& stop_src0)
 			:Decode(lang_pack0, stop_src0) {}
 		int transfer_audio_data_planar_float(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
 			const int& nb_last, const int& nb_last_next, const int& length, const int& nb_samples);
@@ -158,7 +158,7 @@ namespace Decode {
 
 	class Decode_AVX2 :public Decode_AVX {
 	public:
-		Decode_AVX2(Language_Pack& lang_pack0, std::stop_source& stop_src0)
+		Decode_AVX2(const Language_Pack& lang_pack0, std::stop_source& stop_src0)
 			:Decode_AVX(lang_pack0, stop_src0) {}
 		int transfer_audio_data_packed_int16(uint8_t** const audiodata, double** const normalized_samples, double** const seqs,
 			const int& nb_last, const int& length, const int& nb_samples);

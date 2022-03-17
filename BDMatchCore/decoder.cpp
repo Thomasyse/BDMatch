@@ -78,7 +78,7 @@ Decode::FFmpeg::~FFmpeg()
 	swr_ctx = nullptr;
 }
 
-Decode::Decode::Decode(Language_Pack& lang_pack0, std::stop_source& stop_src0)
+Decode::Decode::Decode(const Language_Pack& lang_pack0, std::stop_source& stop_src0)
 	:stop_src(stop_src0), lang_pack(lang_pack0) {
 }
 Decode::Decode::~Decode()

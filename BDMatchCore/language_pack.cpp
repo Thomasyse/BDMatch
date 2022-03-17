@@ -1,6 +1,6 @@
 #include "headers/language_pack.h"
 
-std::string_view Language_Pack::get_text(const Lang_Type& type, const size_t& index)
+std::string_view Language_Pack::get_text(const Lang_Type& type, const size_t& index) const
 {
 	std::u8string_view re;
 	switch (type) {
