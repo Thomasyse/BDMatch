@@ -311,7 +311,7 @@ int BDMatchCore::feedback_tv(const std::string_view& tv_path)
 		feedback += std::format("\r\n{}", decoder_feedback);//"\r\n tv_feedback"
 		if (vol_match) {
 			double vol = 10.0 * log10(tv_decode->get_avg_vol());
-			feedback += std::format(lang_pack.get_text(Lang_Type::Core, 2), std::format("{:3f}", vol));//"   响度：**.*dB"
+			feedback += std::vformat(lang_pack.get_text(Lang_Type::Core, 2), std::make_format_args(std::format("{:3f}", vol)));//"   响度：**.*dB"
 		}
 		feed_func(feedback.c_str(), feedback.length());
 	}
@@ -332,9 +332,9 @@ int BDMatchCore::feedback_bd(const std::string_view& bd_path, const double& bd_p
 		if (vol_match) {
 			double vol = 10.0 * log10(bd_pre_avg_vol);
 			double vol2 = 10.0 * log10(bd_decode->get_avg_vol());
-			feedback += std::format(lang_pack.get_text(Lang_Type::Core, 2), 
-				std::format("{:3f}{}{:3f}", 
-					vol, lang_pack.get_text(Lang_Type::General, 2), vol2));//"   响度：**.*->**.*dB"
+			feedback += std::vformat(lang_pack.get_text(Lang_Type::Core, 2), std::make_format_args(
+				std::format("{:3f}{}{:3f}",
+					vol, lang_pack.get_text(Lang_Type::General, 2), vol2)));//"   响度：**.*->**.*dB"
 		}
 		feed_func(feedback.c_str(), feedback.length());
 	}
@@ -346,8 +346,8 @@ int BDMatchCore::feedback_time(const Procedure& proc)
 		auto clock_end = std::chrono::high_resolution_clock::now();
 		double spend = std::chrono::duration<double>(clock_end - clock_start).count();
 		std::string feedback;
-		feedback += std::format(lang_pack.get_text(Lang_Type::Core, static_cast<int>(proc)), 
-			spend, lang_pack.get_text(Lang_Type::General, 3));//"\r\n解码（/匹配）时间：**.***秒"
+		feedback += std::vformat(lang_pack.get_text(Lang_Type::Core, static_cast<int>(proc)), std::make_format_args(
+			spend, lang_pack.get_text(Lang_Type::General, 3)));//"\r\n解码（/匹配）时间：**.***秒"
 		feed_func(feedback.c_str(), feedback.length());
 	}
 	return 0;
