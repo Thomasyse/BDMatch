@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
 		{3, "-isa", "ISA mode:0 for no SIMD, 1 for SSE/SSE2/SSE4.1, 2 for AVX, 3 for AVX2 (default: 3)"},
 		{512, "-fftn", "FFT window size, larger for speed, smaller for precision(uncertain), should be a power of 2 (default: 512)"},
 		{-14, "-mindb", "volume(db) threshold for noise filter(default: -14)"},
-		{100, "-minchn", "check times for match results, larger(ie. 10000) for precision, smaller for speed (default: 100)"},
+		{100, "-mincfn", "confirm times for match results, larger(ie. 10000) for precision, smaller for speed (default: 100)"},
 		{10, "-range", "range for searching the results(-xx -> +xx), with the unit of second (default: 10)"},
 		{0, "-offset", "offset of the timeline of the subtitle, with the unit of centisecond (default: 0)"},
 		{20, "-maxlen", "the max length of the timeline to be matched, with the unit of second (default: 20)"} };
@@ -104,6 +104,7 @@ int main(int argc, char* argv[]) {
 	BDMatchCore* match_core = new BDMatchCore;
 	prog_func prog_ptr = nullptr;//function pointer to show progress: prog_func(int phase(0-3), double percent);
 	feedback_func feedback_ptr = print;//function pointer to show feedback: feedback_func(const char* feedback_string);
+	match_core->set_language("en-US");
 	match_core->load_interface(prog_ptr, feedback_ptr);
 	match_core->load_settings(static_cast<ISA_Mode>(int_settings[0].val), int_settings[1].val, int_settings[2].val,
 		bool_settings[0].val, bool_settings[1].val, bool_settings[2].val,

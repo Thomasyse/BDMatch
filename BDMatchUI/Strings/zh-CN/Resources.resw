@@ -1,0 +1,444 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BDMatchUI/AboutPage/Text_About" xml:space="preserve">
+    <value>BDMatch
+版本 {0}
+该二进制分发从属于 GPLv3 协议
+
+BDMatch 项目:
+版权所有(c) {3}, Thomasys
+
+依赖:
+FFmpeg {1}
+FFTW {2}: Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005).</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_BD" xml:space="preserve">
+    <value>BD</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Cancelled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_CentiSec" xml:space="preserve">
+    <value>厘秒</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Dash_Line" xml:space="preserve">
+    <value>—————————————————————————————————————</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_DebugMode" xml:space="preserve">
+    <value>调试模式</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Decibel" xml:space="preserve">
+    <value>dB</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Decoding" xml:space="preserve">
+    <value>解码…</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Error" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Finish" xml:space="preserve">
+    <value>共匹配{0}项：警告{1}个，错误{2}个，用时{3}{4}</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Info" xml:space="preserve">
+    <value>信息</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_ISA_AVX" xml:space="preserve">
+    <value>：使用SSE2、SSSE3、SSE4.1、AVX指令集加速</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_ISA_AVX2" xml:space="preserve">
+    <value>：使用AVX、AVX2、FMA指令集加速</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_ISA_NO_SIMD" xml:space="preserve">
+    <value>：不使用增强指令集加速</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_ISA_SSE" xml:space="preserve">
+    <value>：使用SSE2、SSSE3、SSE4.1指令集加速</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Match" xml:space="preserve">
+    <value>匹配</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Matching" xml:space="preserve">
+    <value>匹配字幕…</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Off" xml:space="preserve">
+    <value>关</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_On" xml:space="preserve">
+    <value>开</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_ProgStat" xml:space="preserve">
+    <value>正在匹配（{0}/{1}）：  {2}</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Ready" xml:space="preserve">
+    <value>就绪</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Sec" xml:space="preserve">
+    <value>秒</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Stopped" xml:space="preserve">
+    <value>已停止</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Sub" xml:space="preserve">
+    <value>字幕</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_SubTimeDelay" xml:space="preserve">
+    <value>字幕时间偏置：延后</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Subtitle" xml:space="preserve">
+    <value>字幕</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_TV" xml:space="preserve">
+    <value>TV</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Warning" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/FFTNumElbr.Text" xml:space="preserve">
+    <value>进行一次快速傅里叶变换（Fast Fourier Transform）所输入的采样点个数。请设置为接近采样率百分之一的数值。FFT采样数过小会导致解码和匹配速度缓慢，FFT采样数过大会导致匹配精度下降。</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/FFTNumText.Text" xml:space="preserve">
+    <value>FFT采样数：</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/MinFindDBElbr.Text" xml:space="preserve">
+    <value>最小响度以下的噪声会被过滤，以保证解码生成的声谱不被噪声干扰。</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/MinFindDBText.Text" xml:space="preserve">
+    <value>最小响度：</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/OutputPCMElbr.Text" xml:space="preserve">
+    <value>生成WAV格式音频文件，用以检查解码是否正常工作。重采样生成的音频会有噪声，但不会影响匹配。</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/OutputPCMText.Text" xml:space="preserve">
+    <value>输出解码后的音频：</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/ParallelDecodeElbr.Text" xml:space="preserve">
+    <value>同时进行TV和BD文件的解码。请在拥有高性能硬盘的设备上开启此选项，否则可能会导致在硬盘负载较大时解码速度不升反降。</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/ParallelDecodeText.Text" xml:space="preserve">
+    <value>并行解码：</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/VolMatchElbr.Text" xml:space="preserve">
+    <value>对BD音频响度进行补偿，使BD音频的响度与TV一致。此时会对BD音频进行两次解码。建议在TV和BD音频响度差距过大时开启此选项。</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/VolMatchText.Text" xml:space="preserve">
+    <value>响度补偿：</value>
+  </data>
+  <data name="BDMatchUI/Error/DecodeError" xml:space="preserve">
+    <value>解码失败！</value>
+  </data>
+  <data name="BDMatchUI/Error/EmptyPath" xml:space="preserve">
+    <value>文件路径为空！</value>
+  </data>
+  <data name="BDMatchUI/Error/InvalidRegex" xml:space="preserve">
+    <value>非法正则表达式： {0} </value>
+  </data>
+  <data name="BDMatchUI/Error/NotRegexPath" xml:space="preserve">
+    <value>路径 {0} 不是正则表达式路径！</value>
+  </data>
+  <data name="BDMatchUI/Error/PathNotExist" xml:space="preserve">
+    <value>路径不存在！</value>
+  </data>
+  <data name="BDMatchUI/Error/Prefix" xml:space="preserve">
+    <value>错误：</value>
+  </data>
+  <data name="BDMatchUI/Error/User_Stop" xml:space="preserve">
+    <value>用户终止操作。</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/BatchProcessingHeader.Text" xml:space="preserve">
+    <value>批量处理</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/BatchProcessingText.Text" xml:space="preserve">
+    <value>可以使用换行输入多个文件。通过点击「...」或者拖动放置也可以输入多个文件。为了让程序能正确运行，请确保字幕、TV、BD输入的文件是逐个对应的。</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/ExcludeSubExprHeader.Text" xml:space="preserve">
+    <value>排除子表达式</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/ExcludeSubExprText.Text" xml:space="preserve">
+    <value>使用「(?:&lt;子表达式&gt;)」可以在将该子表达式排除在正则查找的共通部分外。请查阅「.NET正则表达式」中的「非捕获组」以获取详细信息。</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/FastRegexHeader.Text" xml:space="preserve">
+    <value>快速创建正则表达式</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/FastRegexText.Text" xml:space="preserve">
+    <value>点击「R#」可以将输入「"&lt;路径&gt;"」中的&lt;路径&gt;转换为对应的正则表达式。可以通过这种方式更快捷地创建路径正则表达式。</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/OneToMultiHeader.Text" xml:space="preserve">
+    <value>一对多模式</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/OneToMultiText.Text" xml:space="preserve">
+    <value>当字幕和TV输入只有一个文件并且BD输入有多个文件时，将会使用字幕和TV文件对每个BD文件进行匹配。</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/UsingRegexHeader.Text" xml:space="preserve">
+    <value>使用正则表达式</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/UsingRegexText.Text" xml:space="preserve">
+    <value>使用「&lt;路径1&gt;\"&lt;正则表达式&gt;"[\&lt;路径2&gt;]」（请使用半角「"」）可以在&lt;路径1&gt;中按照正则表达式查找文件或文件夹（不支持递归查找）。正则表达式可以用在路径中除了盘符以外的任何一级。请使用「(&lt;子表达式&gt;)」表示字幕、BD、TV路径中的共通部分。点击「匹配」后，程序将会自动查找拥有相同共通部分的配对并显示在各输入框中。请查阅「.NET正则表达式」以获取关于正则表达式的详细信息。</value>
+  </data>
+  <data name="BDMatchUI/Info/Batch_No_Draw" xml:space="preserve">
+    <value>批量处理将不作声谱图</value>
+  </data>
+  <data name="BDMatchUI/Info/Prefix" xml:space="preserve">
+    <value>信息：</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/About.Content" xml:space="preserve">
+    <value>关于</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Decode_Settings.Content" xml:space="preserve">
+    <value>解码设置</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Help.Content" xml:space="preserve">
+    <value>帮助</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Logs.Content" xml:space="preserve">
+    <value>日志</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Match.Content" xml:space="preserve">
+    <value>匹配</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Match_and_Result.Content" xml:space="preserve">
+    <value>匹配与结果</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Match_Settings.Content" xml:space="preserve">
+    <value>匹配设置</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Others.Content" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Other_Settings.Content" xml:space="preserve">
+    <value>其他设置</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Settings.Content" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Spectrum.Content" xml:space="preserve">
+    <value>声谱</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Spectrum_Settings.Content" xml:space="preserve">
+    <value>声谱设置</value>
+  </data>
+  <data name="BDMatchUI/MatchPage/BDPath.PlaceholderText" xml:space="preserve">
+    <value>BD文件</value>
+  </data>
+  <data name="BDMatchUI/MatchPage/LogButton.Content" xml:space="preserve">
+    <value>显示日志</value>
+  </data>
+  <data name="BDMatchUI/MatchPage/SubPath.PlaceholderText" xml:space="preserve">
+    <value>字幕文件</value>
+  </data>
+  <data name="BDMatchUI/MatchPage/TVPath.PlaceholderText" xml:space="preserve">
+    <value>TV文件</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/FastMatchElbr.Text" xml:space="preserve">
+    <value>开启后，只匹配少许时间轴，其余时间轴根据匹配结果进行调整。由于BD文件可能会进行一些修改，匹配结果可能会不准确。</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/FastMatchText.Text" xml:space="preserve">
+    <value>快速匹配：</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/MatchEnElbr.Text" xml:space="preserve">
+    <value>关闭后只会进行音频解码，不会进行匹配。</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/MatchEnText.Text" xml:space="preserve">
+    <value>对字幕进行匹配：</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/MaxLengthElbr.Text" xml:space="preserve">
+    <value>超过最大匹配轴长的时间轴将不会进行处理，以防止过长的空轴影响匹配速度。</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/MaxLengthText.Text" xml:space="preserve">
+    <value>最大匹配轴长：</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/MinCnfrmNumElbr.Text" xml:space="preserve">
+    <value>对搜索到的暂优匹配选点进行确认，确认足够次数后即会取作最佳选点。过小的确认次数会导致匹配不精确，过大的确认次数会加长匹配时间。</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/MinCnfrmNumText.Text" xml:space="preserve">
+    <value>匹配确认次数：</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/SearchRangeElbr.Text" xml:space="preserve">
+    <value>决定在字幕时间轴前后多大时间范围内查找最佳匹配。查找范围增加会加长匹配时间，过小的查找范围会导致无法匹配到正确的时间。</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/SearchRangeText.Text" xml:space="preserve">
+    <value>查找范围：前后</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/SubOffsetElbr.Text" xml:space="preserve">
+    <value>将字幕中的时间轴进行一定的偏移之后再进行匹配。</value>
+  </data>
+  <data name="BDMatchUI/OtherSettingsPage/LanguageText.Text" xml:space="preserve">
+    <value>语言：</value>
+  </data>
+  <data name="BDMatchUI/OtherSettingsPage/ThemeText.Text" xml:space="preserve">
+    <value>主题：</value>
+  </data>
+  <data name="BDMatchUI/Regex/FoundNMatch" xml:space="preserve">
+    <value>正则查找：共找到{0}个匹配</value>
+  </data>
+  <data name="BDMatchUI/Regex/Pair_FoundNMatch" xml:space="preserve">
+    <value>正则查找：该组合共找到{0}个匹配</value>
+  </data>
+  <data name="BDMatchUI/Regex/Pattern_FoundNMatch" xml:space="preserve">
+    <value>正则查找：表达式“ {0} ”找到{1}个匹配</value>
+  </data>
+  <data name="BDMatchUI/Regex/Searching" xml:space="preserve">
+    <value>检测到正则匹配符，正在查找符合的文件…</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/ChannelText.Text" xml:space="preserve">
+    <value>声道：</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/Channel_Invalid" xml:space="preserve">
+    <value>无该声道！</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/Channel_Left" xml:space="preserve">
+    <value>左声道</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/Channel_Right" xml:space="preserve">
+    <value>右声道</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/JumpSelText.Text" xml:space="preserve">
+    <value>跳转：</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/JumpSel_Time" xml:space="preserve">
+    <value>按时间</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/JumpSel_Timeline" xml:space="preserve">
+    <value>按时轴</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/Not_Matched" xml:space="preserve">
+    <value>未匹配！</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/No_Spectrum" xml:space="preserve">
+    <value>无声谱！</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/ScaleSliderText.Text" xml:space="preserve">
+    <value>缩放：</value>
+  </data>
+  <data name="BDMatchUI/SpectrumSettingsPage/DrawSpecElbr.Text" xml:space="preserve">
+    <value>打开此选项可以查看解码得到的声谱图，并对原字幕时间轴和匹配后的时间轴所对应的声谱进行对比。</value>
+  </data>
+  <data name="BDMatchUI/SpectrumSettingsPage/DrawSpecText.Text" xml:space="preserve">
+    <value>作声谱图：</value>
+  </data>
+  <data name="BDMatchUI/Warning/Diff_Batch_Cnt" xml:space="preserve">
+    <value>字幕、TV、BD文件数量不一致！</value>
+  </data>
+  <data name="BDMatchUI/Warning/Prefix" xml:space="preserve">
+    <value>警告：</value>
+  </data>
+</root>

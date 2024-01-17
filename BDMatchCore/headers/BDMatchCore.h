@@ -4,7 +4,6 @@
 #include "match.h"
 #include "language_pack.h"
 
-typedef void(*prog_func)(int, double);
 typedef void(*feedback_func)(const char*, const int64_t len);
 
 enum class Procedure { Decode = 3, Match = 5 };
@@ -14,17 +13,18 @@ public:
 	BDMatchCore();
 	~BDMatchCore();
 	int clear_data();
+	int set_language(const char *language0);
 	int load_interface(const prog_func& prog_back0 = nullptr, const feedback_func& feed_func0 = nullptr);
 	int load_settings(const ISA_Mode& isa_mode0 = ISA_Mode::No_SIMD, const int& fft_num0 = 512, const int& min_db0 = -14,
 		const bool& output_pcm0 = false, const bool& parallel_decode0 = false, const bool& vol_match0 = false,
-		const int& min_check_num0 = 100, const int& find_field0 = 10, const int& sub_offset0 = 0, const int& max_length0 = 20,
+		const int& min_cnfrm_num0 = 100, const int& search_range0 = 10, const int& sub_offset0 = 0, const int& max_length0 = 20,
 		const bool& match_ass0 = true, const bool& fast_match0 = false, const bool& debug_mode0 = false);
-	int decode(const char* tv_path0, const char* bd_path0);
-	int match_1(const char* sub_path0, const char* encoded_tv_path0 = nullptr, const char* encoded_bd_path0 = nullptr);
-	int match_2(const char* output_path0);
+	Match_Core_Return decode(const char* tv_path0, const char* bd_path0);
+	Match_Core_Return match_1(const char* sub_path0, const char* encoded_tv_path0 = nullptr, const char* encoded_bd_path0 = nullptr);
+	Match_Core_Return match_2(const char* output_path0);
 	int clear_match();
 	size_t get_nb_timeline();
-	int64_t get_timeline(const int& index, const Match::Timeline_Time_Type& type);
+	int64_t get_timeline(const size_t& index, const Match::Timeline_Time_Type& type);
 	int64_t get_decode_info(const Decode::Decode_File& file, const Decode::Decode_Info& type);
 	char** get_decode_spec(const Decode::Decode_File& file);
 	int start_process();
@@ -47,8 +47,8 @@ private:
 	bool output_pcm = false;
 	bool vol_match = false;
 	bool parallel_decode = false;
-	int min_check_num = 100;
-	int find_field = 10;
+	int min_cnfrm_num = 100;
+	int search_range = 10;
 	int sub_offset = 0;
 	int max_length = 20;
 	bool match_ass = true;

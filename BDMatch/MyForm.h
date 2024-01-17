@@ -3,6 +3,7 @@
 #include "Settings.h"
 #pragma unmanaged
 #include "headers/user interface.h"
+#include "include/BDMatchCoreAPI.h"
 #include <cstdint>
 #pragma managed
 
@@ -43,8 +44,8 @@ namespace BDMatch {
 	private: ref struct drawpara {
 		int64_t num = 0;
 		int ch = 0;
-		int64_t milisec = 0;
-		int64_t line_num = 0;
+		int64_t centi_sec = 0;
+		size_t line_num = 0;
 		int fft_num = 0;
 		double ttf = 1.0;//Time to Frequency
 		char** spec = nullptr;
@@ -693,11 +694,11 @@ namespace BDMatch {
 		void feedback(const char* input, const long long len);
 
 	private:
-		int match(String^ sub_text, String^ tv_text, String^ bd_text);
+		Match_Core_Return match(String^ sub_text, String^ tv_text, String^ bd_text);
 		int draw_pre(); 
-		int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path, 
+		Match_Core_Return BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path,
 			const char* encoded_tv_path, const char* encoded_bd_path);
-		int draw_pre(const int &re);
+		int draw_pre(const Match_Core_Return &re);
 		int draw_chart();
 		String ^ ms2time(int ms);
 		int set_rows();

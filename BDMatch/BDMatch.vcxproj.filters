@@ -34,11 +34,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\logo1.ico">
-      <Filter>资源文件</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="MyForm.resx">
       <Filter>资源文件</Filter>
     </EmbeddedResource>
@@ -62,5 +57,10 @@
     <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\logo.ico">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>

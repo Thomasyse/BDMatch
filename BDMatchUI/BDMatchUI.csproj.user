@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Source>E:\Applications\BDMatch\logo.png</Source>
+    <SmallTileSource>E:\Applications\BDMatch\logo.png</SmallTileSource>
+    <MediumTileSource>E:\Applications\BDMatch\logo.png</MediumTileSource>
+    <WideTileSource>E:\Applications\BDMatch\logo.png</WideTileSource>
+    <LargeTileSource>E:\Applications\BDMatch\logo.png</LargeTileSource>
+    <AppIconSource>E:\Applications\BDMatch\logo.png</AppIconSource>
+    <SplashScreenSource>E:\Applications\BDMatch\logo.png</SplashScreenSource>
+    <BadgeLogoSource>E:\Applications\BDMatch\logo.png</BadgeLogoSource>
+    <PackageLogoSource>E:\Applications\BDMatch\logo.png</PackageLogoSource>
+    <ActiveDebugProfile>BDMatchUI (Unpackaged)</ActiveDebugProfile>
+    <_LastSelectedProfileId>E:\Applications\BDMatch\BDMatch\BDMatchUI\Properties\PublishProfiles\win-x64.pubxml</_LastSelectedProfileId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <ItemGroup>
+    <Page Update="AboutPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <None Update="App.xaml">
+      <SubType>Designer</SubType>
+    </None>
+    <Page Update="HelpPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="OtherSettingsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="SpectrumPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="SpectrumSettingsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="MatchSettingsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="MatchPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="LogsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="DeccodeSettingsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <None Update="MainWindow.xaml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Update="Package.appxmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+</Project>

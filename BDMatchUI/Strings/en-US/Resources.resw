@@ -1,0 +1,444 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BDMatchUI/AboutPage/Text_About" xml:space="preserve">
+    <value>BDMatch
+Version {0}
+This binary distribution is licensed under GPLv3.
+
+BDMatch Project: 
+Copyright (c) {3}, Thomasys
+
+Dependencies: 
+FFmpeg {1}
+FFTW {2}: Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005).</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_BD" xml:space="preserve">
+    <value>BD</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_CentiSec" xml:space="preserve">
+    <value>Centi Sec</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Dash_Line" xml:space="preserve">
+    <value>---------------------------------------------------------------------------------------------</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_DebugMode" xml:space="preserve">
+    <value>Debug Mode</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Decibel" xml:space="preserve">
+    <value>dB</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Decoding" xml:space="preserve">
+    <value>Decoding...</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Finish" xml:space="preserve">
+    <value>Total matching {0} items: {1} Warnings, {2} Errors, {3} {4} taken</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_ISA_AVX" xml:space="preserve">
+    <value>: Accelerated with SSE2, SSSE3, SSE4.1, and AVX instruction sets</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_ISA_AVX2" xml:space="preserve">
+    <value>: Accelerated with AVX, AVX2, and FMA instruction sets</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_ISA_NO_SIMD" xml:space="preserve">
+    <value>: No acceleration with enhanced instruction set</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_ISA_SSE" xml:space="preserve">
+    <value>: Accelerated with SSE2, SSE3, and SSE4.1 instruction sets</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Match" xml:space="preserve">
+    <value>Match</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Matching" xml:space="preserve">
+    <value>Matching subtitle</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_On" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_ProgStat" xml:space="preserve">
+    <value>Matching ({0}/{1}):  {2}</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Sec" xml:space="preserve">
+    <value>Sec</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Stop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Stopped" xml:space="preserve">
+    <value>Stopped</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Sub" xml:space="preserve">
+    <value>Sub</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_SubTimeDelay" xml:space="preserve">
+    <value>Subtitle time offset: Delayed</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Subtitle" xml:space="preserve">
+    <value>Subtitle</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_TV" xml:space="preserve">
+    <value>TV</value>
+  </data>
+  <data name="BDMatchUI/Common/Text_Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/FFTNumElbr.Text" xml:space="preserve">
+    <value>The number of sample points input for a Fast Fourier Transform. Please set it to a value close to one percent of the sampling rate. If the number of FFT samples is too small, the decoding and matching speed will be slow, and if the number of FFT samples is too large, the matching accuracy will decrease.</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/FFTNumText.Text" xml:space="preserve">
+    <value>FFT Sampling Size: </value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/MinFindDBElbr.Text" xml:space="preserve">
+    <value>Noise below the minimum loudness will be filtered to ensure that the decoded spectrum is not interfered by noise.</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/MinFindDBText.Text" xml:space="preserve">
+    <value>Min Loudness: </value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/OutputPCMElbr.Text" xml:space="preserve">
+    <value>Ouput audio files as WAV format to check whether the decoding is working properly. There will be noise in resampled audio, but it does not affect matching.</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/OutputPCMText.Text" xml:space="preserve">
+    <value>Output Decoded Audio: </value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/ParallelDecodeElbr.Text" xml:space="preserve">
+    <value>Decode TV and BD files simultaneously. Only enable this option on a device with a high-performance hard disk, otherwise the decoding speed may decrease instead of increasing when the hard disk load is heavy.</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/ParallelDecodeText.Text" xml:space="preserve">
+    <value>Parallel Decoding: </value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/VolMatchElbr.Text" xml:space="preserve">
+    <value>Compensate the BD audio loudness to align with the TV. In this case, the BD audio will be decoded twice. It is recommended to turn this option on when the loudness difference between TV and BD audio is too large.</value>
+  </data>
+  <data name="BDMatchUI/DeccodeSettingsPage/VolMatchText.Text" xml:space="preserve">
+    <value>Loudness Compensation:</value>
+  </data>
+  <data name="BDMatchUI/Error/DecodeError" xml:space="preserve">
+    <value>Decoding failed!</value>
+  </data>
+  <data name="BDMatchUI/Error/EmptyPath" xml:space="preserve">
+    <value>The path is empty!</value>
+  </data>
+  <data name="BDMatchUI/Error/InvalidRegex" xml:space="preserve">
+    <value>Illegal regular expression: {0}</value>
+  </data>
+  <data name="BDMatchUI/Error/NotRegexPath" xml:space="preserve">
+    <value>Path {0} is not a regular expression path!</value>
+  </data>
+  <data name="BDMatchUI/Error/PathNotExist" xml:space="preserve">
+    <value>The path does not exist!</value>
+  </data>
+  <data name="BDMatchUI/Error/Prefix" xml:space="preserve">
+    <value>Error: </value>
+  </data>
+  <data name="BDMatchUI/Error/User_Stop" xml:space="preserve">
+    <value>User terminated.</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/BatchProcessingHeader.Text" xml:space="preserve">
+    <value>Batch Processing</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/BatchProcessingText.Text" xml:space="preserve">
+    <value>Multiple files can be input using line breaks. It can also be done by clicking 「...」 or dragging and placing. In order for the program to run correctly, please ensure that the input files for subtitles, TV, and BD correspond one by one.</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/ExcludeSubExprHeader.Text" xml:space="preserve">
+    <value>Excluding Subexpression</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/ExcludeSubExprText.Text" xml:space="preserve">
+    <value>Use 「(?:&lt;Subexpression&gt;)」 to exclude the subexpression from the common part of the regular expression search. Please check out "Non-Capturing Group" in ".NET Regular Expressions" for details.</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/FastRegexHeader.Text" xml:space="preserve">
+    <value>Creating Regular Expressions Fast</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/FastRegexText.Text" xml:space="preserve">
+    <value>Click 「R#」 to convert the &lt;path&gt; in the expression 「"&lt;Path&gt;"」 into the corresponding regular expression. Path regular expressions can be created more quickly this way.</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/OneToMultiHeader.Text" xml:space="preserve">
+    <value>One-to-Many Mode</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/OneToMultiText.Text" xml:space="preserve">
+    <value>When the subtitle and TV input have only one file and the BD input has multiple files, the subtitle and TV file will be used to match each BD file.</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/UsingRegexHeader.Text" xml:space="preserve">
+    <value>Using Regular Expressions</value>
+  </data>
+  <data name="BDMatchUI/HelpPage/UsingRegexText.Text" xml:space="preserve">
+    <value>Use 「&lt;Path1&gt;\"&lt;Regular Expression&gt;"[\&lt;Path2&gt;]」 to search for files or folders according to regular expressions in &lt;Path1&gt; (recursive search not supported). Regular expressions can be placed at any level in the path except the drive letter. Please use 「(&lt;subexpression&gt;)」 to indicate the common part in subtitle, BD, and TV file paths. After 「Match」clicked, the program will automatically find pairs with the same common parts and display them in respective input box. Please check out 「.NET Regular Expressions」 for more information about regular expressions.</value>
+  </data>
+  <data name="BDMatchUI/Info/Batch_No_Draw" xml:space="preserve">
+    <value>Batch processing will not draw spectrograms</value>
+  </data>
+  <data name="BDMatchUI/Info/Prefix" xml:space="preserve">
+    <value>Info: </value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/About.Content" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Decode_Settings.Content" xml:space="preserve">
+    <value>Decoding Settings</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Help.Content" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Logs.Content" xml:space="preserve">
+    <value>Logs</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Match.Content" xml:space="preserve">
+    <value>Matching</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Match_and_Result.Content" xml:space="preserve">
+    <value>Matching and Results</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Match_Settings.Content" xml:space="preserve">
+    <value>Matching Settings</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Others.Content" xml:space="preserve">
+    <value>Others</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Other_Settings.Content" xml:space="preserve">
+    <value>Other Settings</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Settings.Content" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Spectrum.Content" xml:space="preserve">
+    <value>Spectrum</value>
+  </data>
+  <data name="BDMatchUI/MainWindow/Navi/Spectrum_Settings.Content" xml:space="preserve">
+    <value>Spectrum Settings</value>
+  </data>
+  <data name="BDMatchUI/MatchPage/BDPath.PlaceholderText" xml:space="preserve">
+    <value>BD File</value>
+  </data>
+  <data name="BDMatchUI/MatchPage/LogButton.Content" xml:space="preserve">
+    <value>Show Log</value>
+  </data>
+  <data name="BDMatchUI/MatchPage/SubPath.PlaceholderText" xml:space="preserve">
+    <value>Subtitle File</value>
+  </data>
+  <data name="BDMatchUI/MatchPage/TVPath.PlaceholderText" xml:space="preserve">
+    <value>TV File</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/FastMatchElbr.Text" xml:space="preserve">
+    <value>When turned on, only a few timelines are matched, and the rest of the timelines are adjusted based on the matching results. Since the BD file may undergo some modifications, the matching results may be inaccurate.</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/FastMatchText.Text" xml:space="preserve">
+    <value>Fast Matching: </value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/MatchEnElbr.Text" xml:space="preserve">
+    <value>When turned off, only audio decoding will be performed and no matching will be performed.</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/MatchEnText.Text" xml:space="preserve">
+    <value>Matching Subtitles: </value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/MaxLengthElbr.Text" xml:space="preserve">
+    <value>Timelines that exceed the maximum matching length will not be processed to prevent excessively long blank lines from affecting the matching speed.</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/MaxLengthText.Text" xml:space="preserve">
+    <value>Max Matching Length: </value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/MinCnfrmNumElbr.Text" xml:space="preserve">
+    <value>Confirm the tentatively selected matching point that is searched for. After confirming enough times, it will be selected as the best point. If the number of confirmations is too small, the matching will be inaccurate, and if the number of confirmations is too large, the matching time will be lengthened.</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/MinCnfrmNumText.Text" xml:space="preserve">
+    <value>Match Confirmation Times: </value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/SearchRangeElbr.Text" xml:space="preserve">
+    <value>Determine the time range before and after the timeline in subtitle to look for the best match. Increasing the search range will lengthen the matching time, and a search range that is too small will result in the inability to match the correct time.</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/SearchRangeText.Text" xml:space="preserve">
+    <value>Search Range: Between Before and After</value>
+  </data>
+  <data name="BDMatchUI/MatchSettingsPage/SubOffsetElbr.Text" xml:space="preserve">
+    <value>Offset the timeline in the subtitle to a certain extent before matching.</value>
+  </data>
+  <data name="BDMatchUI/OtherSettingsPage/LanguageText.Text" xml:space="preserve">
+    <value>Language: </value>
+  </data>
+  <data name="BDMatchUI/OtherSettingsPage/ThemeText/Text" xml:space="preserve">
+    <value>Theme: </value>
+  </data>
+  <data name="BDMatchUI/Regex/FoundNMatch" xml:space="preserve">
+    <value>Regular Expression Search: {0} matches found in total</value>
+  </data>
+  <data name="BDMatchUI/Regex/Pair_FoundNMatch" xml:space="preserve">
+    <value>Regular Expression Search: {0} matches found in total for this combination</value>
+  </data>
+  <data name="BDMatchUI/Regex/Pattern_FoundNMatch" xml:space="preserve">
+    <value>Regular Expression Search: The expression " {0} " found {1} match(es)</value>
+  </data>
+  <data name="BDMatchUI/Regex/Searching" xml:space="preserve">
+    <value>Regular expression detected, looking for matching files...</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/ChannelText.Text" xml:space="preserve">
+    <value>Channel: </value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/Channel_Invalid" xml:space="preserve">
+    <value>No such channel!</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/Channel_Left" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/Channel_Right" xml:space="preserve">
+    <value>Right</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/JumpSelText.Text" xml:space="preserve">
+    <value>Jump: </value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/JumpSel_Time" xml:space="preserve">
+    <value>By Time</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/JumpSel_Timeline" xml:space="preserve">
+    <value>By Timeline</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/Not_Matched" xml:space="preserve">
+    <value>Not Matched!</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/No_Spectrum" xml:space="preserve">
+    <value>No spectrum!</value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/ScaleSliderText.Text" xml:space="preserve">
+    <value>Scale: </value>
+  </data>
+  <data name="BDMatchUI/SpectrumSettingsPage/DrawSpecElbr.Text" xml:space="preserve">
+    <value>Turn on this option to view the decoded spectrogram and compare the spectrograms of the original subtitle timeline and the matched timeline.</value>
+  </data>
+  <data name="BDMatchUI/SpectrumSettingsPage/DrawSpecText.Text" xml:space="preserve">
+    <value>Draw Spectrogram: </value>
+  </data>
+  <data name="BDMatchUI/Warning/Diff_Batch_Cnt" xml:space="preserve">
+    <value>Numbers of subtitle, TV, and BD files are inconsistent!</value>
+  </data>
+  <data name="BDMatchUI/Warning/Prefix" xml:space="preserve">
+    <value>Warning: </value>
+  </data>
+</root>

@@ -23,34 +23,39 @@ BDMatchCore_API int BDMatchCoreAPI::clear_data()
 	return match_core->clear_data();
 }
 
+BDMatchCore_API int BDMatchCoreAPI::set_language(const char* language)
+{
+	return match_core->set_language(language);
+}
+
 BDMatchCore_API int BDMatchCoreAPI::load_interface(const prog_func& prog_back, const feedback_func& feed_func)
 {
 	return match_core->load_interface(prog_back, feed_func);
 }
 
-BDMatchCore_API int BDMatchCoreAPI::load_settings(const int& isa_mode0, const int& fft_num, const int& min_db,
+BDMatchCore_API int BDMatchCoreAPI::load_settings(const ISA_Mode& isa_mode0, const int& fft_num, const int& min_db,
 	const bool& output_pcm, const bool& parallel_decode, const bool& vol_match, 
-	const int& min_check_num, const int& find_field, const int& sub_offset, const int& max_length,
+	const int& min_cnfrm_num, const int& search_range, const int& sub_offset, const int& max_length,
 	const bool& match_ass, const bool& fast_match, const bool& debug_mode)
 {
-	if (isa_mode0 >= 0)ISA_mode = static_cast<ISA_Mode>(isa_mode0);
+	if (isa_mode0 != ISA_Mode::Auto)ISA_mode = isa_mode0;
 	return match_core->load_settings(ISA_mode, fft_num, min_db, 
 		output_pcm, parallel_decode, vol_match, 
-		min_check_num, find_field, sub_offset, max_length,
+		min_cnfrm_num, search_range, sub_offset, max_length,
 		match_ass, fast_match, debug_mode);
 }
 
-BDMatchCore_API int BDMatchCoreAPI::decode(const char* tv_path, const char* bd_path)
+BDMatchCore_API Match_Core_Return BDMatchCoreAPI::decode(const char* tv_path, const char* bd_path)
 {
 	return match_core->decode(tv_path, bd_path);
 }
 
-BDMatchCore_API int BDMatchCoreAPI::match_1(const char* sub_path, const char* encoded_tv_path, const char* encoded_bd_path)
+BDMatchCore_API Match_Core_Return BDMatchCoreAPI::match_1(const char* sub_path, const char* encoded_tv_path, const char* encoded_bd_path)
 {
 	return match_core->match_1(sub_path, encoded_tv_path, encoded_bd_path);
 }
 
-BDMatchCore_API int BDMatchCoreAPI::match_2(const char* output_path)
+BDMatchCore_API Match_Core_Return BDMatchCoreAPI::match_2(const char* output_path)
 {
 	return match_core->match_2(output_path);
 }
@@ -65,7 +70,7 @@ BDMatchCore_API size_t BDMatchCoreAPI::get_nb_timeline()
 	return match_core->get_nb_timeline();
 }
 
-BDMatchCore_API int64_t BDMatchCoreAPI::get_timeline(const int& index, const Match::Timeline_Time_Type& type)
+BDMatchCore_API int64_t BDMatchCoreAPI::get_timeline(const size_t& index, const Match::Timeline_Time_Type& type)
 {
 	return match_core->get_timeline(index, type);
 }

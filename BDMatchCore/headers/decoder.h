@@ -26,8 +26,6 @@ extern"C" {
 
 namespace Decode {
 
-	typedef void(*prog_func)(int, double);
-
 	template <typename T, int type>
 	concept Normalizable = (type == 0 || (std::is_same<T, int>::value && type == 24)) && 
 		requires (T v) {
@@ -42,7 +40,7 @@ namespace Decode {
 		~FFmpeg();
 		AVFormatContext * filefm = nullptr;
 		AVCodecContext *codecfm = nullptr;
-		AVCodec *codec = nullptr;
+		const AVCodec *codec = nullptr;
 		AVPacket *packet = nullptr;
 		uint8_t **dst_data = nullptr;
 		AVFrame *decoded_frame = nullptr;
@@ -57,14 +55,14 @@ namespace Decode {
 		Decode(const Language_Pack& lang_pack0, std::stop_source &stop_src0);
 		virtual ~Decode();
 		int load_settings(const int &fft_num0, const bool &output_pcm0, const int &min_db0, 
-			const int &resamp_rate0, const int &prog_type0,	fftw_plan plan0, const prog_func &prog_single0 = nullptr);
-		int initialize(const std::string_view &file_name0);
-		int decode_audio();
+			const int &resamp_rate0, const Prog_Mode &prog_type0, fftw_plan plan0, const prog_func &prog_single0 = nullptr);
+		Match_Core_Return initialize(const std::string_view &file_name0);
+		Match_Core_Return decode_audio();
 		std::string_view get_feedback();
 		std::string_view get_file_name();
-		int get_return();
+		Match_Core_Return get_return();
 		int64_t get_fft_samp_num();
-		int64_t get_milisec();
+		int64_t get_centi_sec();
 		int get_channels();
 		int get_samp_rate();
 		int get_fft_num();
@@ -75,7 +73,7 @@ namespace Decode {
 		int set_vol_mode(const int &input);
 		int set_vol_coef(const double &input);
 	protected:
-		void sub_prog_back(int type, double val);
+		void sub_prog_back(double val);
 		int clear_fft_data();
 		int clear_ffmpeg();
 		int clear_normalized_samples(double** normalized_samples);
@@ -89,7 +87,7 @@ namespace Decode {
 			const int& nb_last, const int& nb_last_next, const int& length);
 		virtual int normalize(uint8_t ** const &audiodata, double ** &normalized_samples, double ** &seqs, 
 			int &nb_last, const int &nb_samples);
-		int FFT(DataStruct::Spec_Node** nodes, double** in, int fft_index, const int nb_fft);
+		int FFT(DataStruct::Spec_Node** nodes, double** in, int64_t fft_index, const int nb_fft);
 		virtual int FD8(double* inseq, DataStruct::Spec_Node* outseq);
 		std::stop_source& stop_src;//multithreading cancel source
 		//language pack
@@ -110,7 +108,7 @@ namespace Decode {
 		std::string_view file_name;
 		int out_bit_depth = 0;
 		int audio_stream = 0;
-		int64_t milisec = 0;
+		int64_t centi_sec = 0;
 		int64_t fft_samp_num = 0;
 		int64_t e_fft_num = 0;
 		int channels = 0;//audio channels
@@ -124,11 +122,11 @@ namespace Decode {
 		//progress bar and return
 		prog_func prog_single = nullptr;//func_ptr for progress bar
 		std::string feedback;
-		int return_val = -100;
-		int prog_type = 0;
-		int decoded_num = 0;
+		Match_Core_Return return_val = Match_Core_Return::Invalid;
+		Prog_Mode prog_type = Prog_Mode::Setting;
+		std::atomic<int64_t> decoded_num = 0;
 		//fix audio volume
-		double prog_val = 0.0;
+		volatile double prog_val = 0.0;
 		double total_vol = 0.0;
 		double vol_coef = 0.0;
 		double c_min_db = 0.0;

@@ -1,11 +1,10 @@
 ﻿#include "MyForm.h"
 #pragma unmanaged
-#include "include/BDMatchCoreAPI.h"
 #include <ctime>
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.5.21"
+#define appversion "1.6.0"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -22,7 +21,7 @@ int main(array<System::String^>^args)
 	return 0;
 }
 
-int BDMatch::MyForm::match(String^ sub_text, String^ tv_text, String^ bd_text)
+Match_Core_Return BDMatch::MyForm::match(String^ sub_text, String^ tv_text, String^ bd_text)
 {
 	using namespace System::IO;
 	using namespace System::Text;
@@ -45,7 +44,7 @@ int BDMatch::MyForm::match(String^ sub_text, String^ tv_text, String^ bd_text)
 		
 	prog_single(0, 0);
 	
-	int re = 0;
+	Match_Core_Return re = Match_Core_Return::Success;
 	BDMatchCoreAPI::load_interface(prog_ptr, feedback_ptr);
 	//settings
 	int fft_num = setting->fft_num;
@@ -60,7 +59,7 @@ int BDMatch::MyForm::match(String^ sub_text, String^ tv_text, String^ bd_text)
 	bool match_ass = setting->match_ass;
 	bool fast_match = setting->fast_match;
 	bool debug_mode0 = debug_mode;
-	BDMatchCoreAPI::load_settings(-1, fft_num, min_db, output_pcm, parallel_decode, vol_match,
+	BDMatchCoreAPI::load_settings(ISA_Mode::Auto, fft_num, min_db, output_pcm, parallel_decode, vol_match,
 		min_check_num, find_field, sub_offset, max_length,
 		match_ass, fast_match, debug_mode0);
 	//convert tv, bd and sub paths to local coding
@@ -86,7 +85,7 @@ int BDMatch::MyForm::match(String^ sub_text, String^ tv_text, String^ bd_text)
 	bd_path_ptr[bd_path_size] = 0;
 	//decode
 	re = BDMatchCoreAPI::decode(tv_path, bd_path);
-	if (re < 0) {
+	if (re != Match_Core_Return::Success) {
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;
 	}
@@ -97,32 +96,29 @@ int BDMatch::MyForm::match(String^ sub_text, String^ tv_text, String^ bd_text)
 		prog_single(3, 0);
 	}
 	draw_pre(re);
-	if (re < 0) {
-		if (re == -2)return -6;
-		else {
-			return -5;
-			taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
-		}
+	if (re != Match_Core_Return::Success) {
+		if (re != Match_Core_Return::User_Stop)taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
+		return re;
 	}
 	gch1.Free();
 	gch2.Free();
 	Marshal::FreeHGlobal(tv_pnt);
 	Marshal::FreeHGlobal(bd_pnt);
 	prog_single(0, 0);
-	return 0;
+	return Match_Core_Return::Success;
 }
 
-int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path, const char* encoded_tv_path, const char* encoded_bd_path)
+Match_Core_Return BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path, const char* encoded_tv_path, const char* encoded_bd_path)
 {
 	//
-	int re = 0;
+	Match_Core_Return re = Match_Core_Return::Success;
 	re = BDMatchCoreAPI::match_1(sub_path, encoded_tv_path, encoded_bd_path);
-	if (re < 0) {
+	if (re != Match_Core_Return::Success) {
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;
 	}
-	int nb_timeline = static_cast<int>(BDMatchCoreAPI::get_nb_timeline());
 	//绘图相关
+	size_t nb_timeline = BDMatchCoreAPI::get_nb_timeline();
 	if (setting->draw) {
 		tv_draw.time_list = gcnew array<int64_t, 2>(nb_timeline, 2);
 		bd_draw.time_list = gcnew array<int64_t, 2>(nb_timeline, 2);
@@ -136,7 +132,7 @@ int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path, co
 	}
 	//
 	re = BDMatchCoreAPI::match_2(output_path);
-	if (re < 0) {
+	if (re != Match_Core_Return::Success) {
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;
 	}
@@ -149,7 +145,7 @@ int BDMatch::MyForm::write_ass(const char* sub_path, const char* output_path, co
 	}
 	BDMatchCoreAPI::clear_match();
 	prog_single(3, 1);
-	return 0;
+	return Match_Core_Return::Success;
 }
 
 int BDMatch::MyForm::draw_pre()
@@ -166,8 +162,8 @@ int BDMatch::MyForm::draw_pre()
 	LineSel->Value = 1;
 	tv_draw.ch = 0;
 	bd_draw.ch = 0;
-	tv_draw.milisec = 0;
-	bd_draw.milisec = 0;
+	tv_draw.centi_sec = 0;
+	bd_draw.centi_sec = 0;
 	tv_draw.line_num = 0;
 	bd_draw.line_num = 0;
 	tv_draw.ttf = 1.0;
@@ -180,17 +176,17 @@ int BDMatch::MyForm::draw_pre()
 	if (!setting->draw)set_rows();
 	return 0;
 }
-int BDMatch::MyForm::draw_pre(const int &re)
+int BDMatch::MyForm::draw_pre(const Match_Core_Return&re)
 {
-	if (setting->draw && !re) {
+	if (setting->draw && re == Match_Core_Return::Success) {
 		tv_draw.spec = BDMatchCoreAPI::get_decode_spec(Decode::Decode_File::TV_Decode);
 		bd_draw.spec = BDMatchCoreAPI::get_decode_spec(Decode::Decode_File::BD_Decode);
 		tv_draw.num = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::FFT_Samp_Num);
 		bd_draw.num = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::FFT_Samp_Num);
 		tv_draw.ch = static_cast<int>(BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Channels));
 		bd_draw.ch = static_cast<int>(BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::Channels));
-		tv_draw.milisec = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Milisec);
-		bd_draw.milisec = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::Milisec);
+		tv_draw.centi_sec = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Centi_Sec);
+		bd_draw.centi_sec = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::Centi_Sec);
 		tv_draw.fft_num = static_cast<int>(BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::FFT_Num));
 		bd_draw.fft_num = static_cast<int>(BDMatchCoreAPI::get_decode_info(Decode::Decode_File::BD_Decode, Decode::Decode_Info::FFT_Num));
 		tv_draw.ttf = BDMatchCoreAPI::get_decode_info(Decode::Decode_File::TV_Decode, Decode::Decode_Info::Samp_Rate) / (static_cast<double>(tv_draw.fft_num) * 100.0);
@@ -198,7 +194,7 @@ int BDMatch::MyForm::draw_pre(const int &re)
 		ViewSel->SelectedIndex = 0;
 		ChSelect->SelectedIndex = 0;
 		ChSelect->Enabled = true;
-		TimeRoll->Maximum = static_cast<int>(max(tv_draw.milisec, bd_draw.milisec));
+		TimeRoll->Maximum = static_cast<int>(max(tv_draw.centi_sec, bd_draw.centi_sec));
 		TimeRoll->Value = 0;
 		TimeRoll->Enabled = true;
 		if (setting->match_ass)ViewSel->Enabled = true;
@@ -207,7 +203,7 @@ int BDMatch::MyForm::draw_pre(const int &re)
 	}
 	else
 	{
-		if (!re) {
+		if (re == Match_Core_Return::Success) {
 			BDMatchCoreAPI::clear_data();
 		}
 		tv_draw.spec = nullptr;
@@ -222,10 +218,10 @@ int BDMatch::MyForm::draw_chart()
 	using namespace System::Drawing;
 	Match->Enabled = false;
 	int64_t maxsampnum = max(tv_draw.num, bd_draw.num);
-	int64_t milisec = max(tv_draw.milisec, bd_draw.milisec);
+	int64_t centi_sec = max(tv_draw.centi_sec, bd_draw.centi_sec);
 	int offset = 0;
-	if (milisec < 10000) offset = 150;
-	else if (milisec < 100000)offset = 250;
+	if (centi_sec < 10000) offset = 150;
+	else if (centi_sec < 100000)offset = 250;
 	else offset = 350;
 	TimeRoll->TickFrequency = offset;
 	TimeRoll->LargeChange = offset;
@@ -565,9 +561,10 @@ int BDMatch::MyForm::match_input()
 					output_path = asstext->Substring(0, asstext->LastIndexOf(".")) + " - " +
 						bdtext->Substring(bdtext->LastIndexOf("\\") + 1, bdtext->LastIndexOf(".") - bdtext->LastIndexOf("\\") - 1)
 						+ ".matched.ass";
-					re = match(asstext, tvtext, bdtext);
-					if (re < 0) {
-						if (re == -6)	Result->Text += "\r\n\r\n用户中止操作。";
+					Match_Core_Return re_core = match(asstext, tvtext, bdtext);
+					if (re_core != Match_Core_Return::Success) {
+						if (re_core == Match_Core_Return::User_Stop)Result->Text += "\r\n\r\n用户中止操作。";
+						re = static_cast<int>(re_core);
 						match_control(true);
 						return re;
 					}
@@ -595,7 +592,6 @@ int BDMatch::MyForm::match_input()
 					match_num = bdfiles->Count;
 					for (int i = 0; i < bdfiles->Count; i++) {
 						re = -10;
-						int re1 = 0;
 						String ^star_content = bdfiles[i];
 						for (int j = 0; j < bdmatch->Count; j++)
 							star_content = star_content->Replace(bdmatch[j]->Value->Replace("*", ""), " ");
@@ -603,12 +599,12 @@ int BDMatch::MyForm::match_input()
 						if (star_content->EndsWith(" "))star_content = star_content->Substring(0, star_content->Length - 1);
 						output_path = asstext->Substring(0, asstext->LastIndexOf(".")) + " - " +
 							star_content + ".matched.ass";
-						re1 = match(asstext, tvtext, bdfiles[i]);
-						if (re < 0)re = re1;
-						if (re1 == -6) {
+						Match_Core_Return re_core = match(asstext, tvtext, bdfiles[i]);
+						if (re_core != Match_Core_Return::Success)re = static_cast<int>(re_core);
+						if (re_core == Match_Core_Return::User_Stop) {
 							Result->Text += "\r\n\r\n用户中止操作。";
 							match_control(true);
-							return -6;
+							return re;
 						}
 						Result->Text += cut_off;
 						fin_match_num = i + 1;
@@ -658,9 +654,10 @@ int BDMatch::MyForm::match_input()
 						continue;
 					}
 					match_num = 1;
-					re = match(asstext, tvtext, bdtext);
-					if (re < 0) {
-						if (re == -6)	Result->Text += "\r\n\r\n用户中止操作。";
+					Match_Core_Return re_core = match(asstext, tvtext, bdtext);
+					if (re_core != Match_Core_Return::Success) {
+						if (re_core == Match_Core_Return::User_Stop)Result->Text += "\r\n\r\n用户中止操作。";
+						re = static_cast<int>(re_core);
 						match_control(true);
 						return re;
 					}
@@ -753,14 +750,13 @@ int BDMatch::MyForm::match_input()
 							}
 						}
 						re = -10;
-						int re1 = 0;
 						if (tvfileindex >= 0 && bdfileindex >= 0) {
-							re1 = match(assfiles[i], tvfiles[tvfileindex], bdfiles[bdfileindex]);
-							if (re < 0)re = re1;
-							if (re1 == -6) {
+							Match_Core_Return re_core = match(assfiles[i], tvfiles[tvfileindex], bdfiles[bdfileindex]);
+							if (re_core != Match_Core_Return::Success)re = static_cast<int>(re_core);
+							if (re_core == Match_Core_Return::User_Stop) {
 								Result->Text += "\r\n\r\n用户中止操作。";
 								match_control(true);
-								return -6;
+								return re;
 							}
 							Result->Text += cut_off;
 						}
@@ -911,9 +907,9 @@ void BDMatch::MyForm::feedback(const char* input, const long long len)
 		array<Byte>^ bytes = gcnew array<Byte>(len);
 		Marshal::Copy(IntPtr((void*)input), bytes, 0, len);
 		Encoding^ encoder = Encoding::UTF8;
-		Result->Text += encoder->GetString(bytes);
+		Result->Text += encoder->GetString(bytes)->Replace("\n", "\r\n");
 	}
-	else if (len == -1) Result->Text += marshal_as<String^>(input);
+	else if (len == -1) Result->Text += marshal_as<String^>(input)->Replace("\n", "\r\n");
 }
 
 
@@ -954,6 +950,7 @@ System::Void BDMatch::MyForm::MyForm_Load(System::Object ^ sender, System::Event
 	TextEditorPanel->Dock = System::Windows::Forms::DockStyle::Fill;
 	taskbar = new TaskBar(this->Handle.ToPointer());
 	BDMatchCoreAPI::new_BDMatchCore();
+	BDMatchCoreAPI::set_language("zh-cn");
 	return System::Void();
 }
 
@@ -1159,7 +1156,7 @@ System::Void BDMatch::MyForm::Subtext_DragDrop(System::Object ^ sender, System::
 
 System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nThis binary distribution is under the GPLv3 license.\n\nBDMatch Project:\nCopyright (c) 2022, Thomasys\n\nDependencies:\nFFmpeg 4.2.2\nFFTW 3.3.8: " +
+	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nThis binary distribution is under the GPLv3 license.\n\nBDMatch Project:\nCopyright (c) 2024, Thomasys\n\nDependencies:\nFFmpeg 6.1.1\nFFTW 3.3.10: " +
 		"Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005). ", "关于", MessageBoxButtons::OK);
 	return System::Void();
 }

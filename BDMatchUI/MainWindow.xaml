@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="BDMatchUI.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:BDMatchUI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Closed="MainWindow_Closed">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="AppTitleBar">
+            <Image x:Name="AppFontIcon"
+                HorizontalAlignment="Left" 
+                VerticalAlignment="Center"
+                Source="Assets/Square44x44Logo.png"
+                Width="40" 
+                Height="40"
+                Margin="5, 2, 0, 0"/>
+            <TextBlock x:Name="AppTitle"
+                Text="BDMatch"
+                VerticalAlignment="Center"
+                TextWrapping="NoWrap"
+                Margin="45, 0, 0, 0"
+                FontSize="25"
+                Style="{StaticResource CaptionTextBlockStyle}" />
+        </Grid>
+
+        <NavigationView x:Name="NavigationViewControl"
+            Grid.Row="1"
+            PaneDisplayMode="Auto"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="False"
+            SelectionChanged="NavigationView_SelectionChanged">
+            <NavigationView.MenuItems>
+                <NavigationViewItemHeader x:Name="Match_and_Result_Header" x:Uid="BDMatchUI/MainWindow/Navi/Match_and_Result" Content="Match and Result"/>
+                <NavigationViewItem x:Name="MatchPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Match" Content="Match" Tag="MatchPage" Icon="Copy" />
+                <NavigationViewItem x:Name="LogsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Logs" Content="Logs" Tag="LogsPage">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe70b;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="SpectrumPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Spectrum" Content="Spectrum" Tag="SpectrumPage">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe90b;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItemHeader x:Name="Settings_Header" x:Uid="BDMatchUI/MainWindow/Navi/Settings" Content="Settings"/>
+                <NavigationViewItem x:Name="MatchSettingsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Match_Settings" Content="Match Settings" Tag="MatchSettingsPage">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xea86;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="DecodeSettingsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Decode_Settings" Content="Decode Settings" Tag="DeccodeSettingsPage">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe9f5;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="SpectrumSettingsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Spectrum_Settings" Content="Spectrum Settings" Tag="SpectrumSettingsPage">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe9f9;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="OtherSettingsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Other_Settings" Content="Other Settings" Tag="OtherSettingsPage">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xF259;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItemHeader x:Name="Others_Header" x:Uid="BDMatchUI/MainWindow/Navi/Others" Content="Others"/>
+                <NavigationViewItem x:Name="HelpPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Help" Content="Help" Tag="HelpPage" Icon="Help" />
+                <NavigationViewItem x:Name="AboutPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/About" Content="About" Tag="AboutPage">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe946;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.FooterMenuItems>
+            <Frame x:Name="NavigationFrame" />
+        </NavigationView>
+
+    </Grid>
+</Window>

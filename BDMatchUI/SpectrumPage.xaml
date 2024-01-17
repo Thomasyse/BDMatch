@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="BDMatchUI.SpectrumPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:BDMatchUI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    NavigationCacheMode="Required"
+    SizeChanged="SpectrumPage_SizeChanged">
+    
+    <Grid Background="Transparent">
+        <ScrollViewer
+            IsVerticalScrollChainingEnabled="True"
+            HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto"
+            VerticalScrollMode="Enabled" VerticalScrollBarVisibility="Auto">
+            <Grid Margin="5, 5, 5, 20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+
+                <Grid x:Name="SpecGrid" Grid.Row="1" Grid.Column="0" Margin="5, 5, 5, 20">
+                </Grid>
+
+                <StackPanel Grid.Row="2" Margin="5, 5, 5, 5">
+                    <Slider x:Name="TimeSlider" Minimum="0" SmallChange="10" LargeChange="100" StepFrequency="1" TickFrequency="1000" TickPlacement="TopLeft"
+                            ValueChanged="TimeSlider_ValueChanged"/>
+                    <Grid x:Name="SpecControlGrid" Margin="5, 5, 5, 20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <StackPanel Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Vertical">
+                            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock x:Name="ChannelText" x:Uid="BDMatchUI/SpectrumPage/ChannelText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                                <ComboBox x:Name="ChannelSel" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="18"
+                                  SelectionChanged="ChannelSel_SelectionChanged">
+                                    <x:String>0</x:String>
+                                    <x:String>1</x:String>
+                                    <x:String>2</x:String>
+                                    <x:String>3</x:String>
+                                    <x:String>4</x:String>
+                                    <x:String>5</x:String>
+                                    <x:String>6</x:String>
+                                    <x:String>7</x:String>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock x:Name="JumpSelText" x:Uid="BDMatchUI/SpectrumPage/JumpSelText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                                <ComboBox x:Name="JumpSel" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="18"
+                                    SelectionChanged="JumpSel_SelectionChanged">
+                                    <x:String>0</x:String>
+                                    <x:String>1</x:String>
+                                </ComboBox>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                            <StackPanel x:Name="TimePanel" HorizontalAlignment="Stretch" VerticalAlignment="Center" Orientation="Horizontal">
+                                <NumberBox x:Name="HourNumber" SpinButtonPlacementMode="Compact" Minimum="0" Maximum="2147483647" SmallChange="1" LargeChange="10" Margin="10,0,0,0" FontSize="18" HorizontalAlignment="Stretch"
+                                   ValueChanged="Time_ValueChanged"/>
+                                <TextBlock Margin="5,0,5,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords">:</TextBlock>
+                                <NumberBox x:Name="MinuNumber" SpinButtonPlacementMode="Compact" Minimum="0" Maximum="59" SmallChange="1" LargeChange="10" Margin="0,0,0,0" FontSize="18" HorizontalAlignment="Stretch"
+                                   ValueChanged="Time_ValueChanged"/>
+                                <TextBlock Margin="5,0,5,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords">:</TextBlock>
+                                <NumberBox x:Name="SecNumber" SpinButtonPlacementMode="Compact" Minimum="0" Maximum="59" SmallChange="1" LargeChange="10" Margin="0,0,0,0" FontSize="18" HorizontalAlignment="Stretch"
+                                   ValueChanged="Time_ValueChanged"/>
+                                <TextBlock Margin="5,0,5,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords">.</TextBlock>
+                                <NumberBox x:Name="CentiSecNumber" SpinButtonPlacementMode="Compact" Minimum="0" Maximum="99" SmallChange="1" LargeChange="10" Margin="0,0,10,0" FontSize="18" HorizontalAlignment="Stretch"
+                                   ValueChanged="Time_ValueChanged"/>
+                            </StackPanel>
+                            <Line Stroke="Black" X1="0" Y1="0" X2="0" Y2="40" StrokeThickness="1" Margin="10, 0, 10, 0"/>
+                            <StackPanel x:Name="TimelinePanel" HorizontalAlignment="Stretch" VerticalAlignment="Center" Orientation="Horizontal">
+                                <NumberBox x:Name="TimelineNumber" SpinButtonPlacementMode="Compact" Minimum="1" Maximum="2147483647" SmallChange="1" LargeChange="10" Margin="10,0,0,0" FontSize="18" HorizontalAlignment="Stretch"
+                                   ValueChanged="Timeline_ValueChanged"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="0" Grid.Column="4" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock x:Name="ScaleSliderText" x:Uid="BDMatchUI/SpectrumPage/ScaleSliderText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                            <Slider x:Name="ScaleSlider" Minimum="0.2" Maximum="5" SmallChange="0.2" LargeChange="1" StepFrequency="0.2" Width="200"
+                                    ValueChanged="ScaleSlider_ValueChanged"/>
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock x:Name="TimeText" Margin="20,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</Page>

@@ -106,7 +106,7 @@ private:
 			for (int i = 0; i <= nIds_; ++i)
 			{
 				__cpuidex(cpui.data(), i, 0);
-				data_.push_back(cpui);
+				data_.emplace_back(cpui);
 			}
 
 			// Capture vendor string  
@@ -150,7 +150,7 @@ private:
 			for (int i = 0x80000000; i <= nExIds_; ++i)
 			{
 				__cpuidex(cpui.data(), i, 0);
-				extdata_.push_back(cpui);
+				extdata_.emplace_back(cpui);
 			}
 
 			// load bitset with flags for function 0x80000001  
