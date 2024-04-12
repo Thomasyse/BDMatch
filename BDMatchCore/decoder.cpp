@@ -70,7 +70,7 @@ Decode::FFmpeg::~FFmpeg()
 		av_packet_unref(packet);
 		packet = nullptr;
 	}
-	if (codecfm)avcodec_close(codecfm);
+	if (codecfm)avcodec_free_context(&codecfm);
 	codecfm = nullptr;
 	if (filefm)avformat_close_input(&filefm);
 	filefm = nullptr;
@@ -297,11 +297,11 @@ Match_Core_Return Decode::Decode::decode_audio() {
 			return return_val;
 		}
 		//重采样选项
-		av_opt_set_chlayout(ffmpeg->swr_ctx, "in_channel_layout", &(ffmpeg->codecfm->ch_layout), 0);
+		av_opt_set_chlayout(ffmpeg->swr_ctx, "in_chlayout", &(ffmpeg->codecfm->ch_layout), 0);
 		av_opt_set_int(ffmpeg->swr_ctx, "in_sample_rate", sample_rate, 0);
 		av_opt_set_sample_fmt(ffmpeg->swr_ctx, "in_sample_fmt", ffmpeg->codecfm->sample_fmt, 0);
 
-		av_opt_set_chlayout(ffmpeg->swr_ctx, "out_channel_layout", &(ffmpeg->codecfm->ch_layout), 0);
+		av_opt_set_chlayout(ffmpeg->swr_ctx, "out_chlayout", &(ffmpeg->codecfm->ch_layout), 0);
 		av_opt_set_int(ffmpeg->swr_ctx, "out_sample_rate", resamp_rate, 0);
 		av_opt_set_sample_fmt(ffmpeg->swr_ctx, "out_sample_fmt", ffmpeg->codecfm->sample_fmt, 0);
 		/* initialize the resampling context */

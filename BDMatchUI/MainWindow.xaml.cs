@@ -8,6 +8,7 @@ using BDMatchUI.Helper;
 
 namespace BDMatchUI
 {
+    using Windows.Graphics;
     /// <summary>
     /// An empty window that can be used on its own or navigated to within a Frame.
     /// </summary>
@@ -177,6 +178,10 @@ namespace BDMatchUI
         {
             // Settings
             sharing_helper.settings.load_settings();
+            int win_width = sharing_helper.settings[SettingType.WindowWidth] <= 0 ? 800 : sharing_helper.settings[SettingType.WindowWidth];
+            int win_height = sharing_helper.settings[SettingType.WindowHeight] <= 0 ? 800 : sharing_helper.settings[SettingType.WindowHeight];
+            SizeInt32 win_size = new SizeInt32(win_width, win_height);
+            AppWindow.Resize(win_size);
 
             // Controls
             InitializeComponent();
@@ -224,6 +229,12 @@ namespace BDMatchUI
             Others_Header.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Others/Content");
             HelpPage_Item.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Help/Content");
             AboutPage_Item.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/About/Content");
+        }
+
+        private void MainWindow_SizeChanged(object sender, WindowSizeChangedEventArgs args)
+        {
+            sharing_helper.settings[SettingType.WindowWidth] = AppWindow.Size.Width;
+            sharing_helper.settings[SettingType.WindowHeight] = AppWindow.Size.Height;
         }
     }
 }

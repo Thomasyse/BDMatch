@@ -123,6 +123,10 @@ namespace BDMatchUI.Helper
                         break;
                     case SettingType.SubOffset:
                         break;
+                    case SettingType.WindowWidth:
+                        break;
+                    case SettingType.WindowHeight:
+                        break;
                     default:
                         value = Convert.ToInt32(Convert.ToBoolean(value));
                         break;

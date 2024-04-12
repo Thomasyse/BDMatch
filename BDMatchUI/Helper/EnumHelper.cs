@@ -2,7 +2,7 @@
 
 namespace BDMatchUI.Helper
 {
-    enum SettingType : UInt32 { FFTNum, MinCnfrmNum, SearchRange, MinFinddB, MaxLength, SubOffset, OutputPCM, DrawSpec, MatchAss, ParallelDecode, FastMatch, VolMatch };
+    enum SettingType : UInt32 { FFTNum, MinCnfrmNum, SearchRange, MinFinddB, MaxLength, SubOffset, OutputPCM, DrawSpec, MatchAss, ParallelDecode, FastMatch, VolMatch, WindowWidth, WindowHeight };
 
     public enum LogLevel : UInt32 { Info, Warning, Error };
  

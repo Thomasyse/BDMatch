@@ -34,7 +34,7 @@
 1. Windows 10 1809 (17763) 或更高版本
 2. 带 AVX 指令集的 CPU
 3. .Net 8 或更高版本（[`Releases`](https://github.com/Thomasyse/BDMatch/releases) 中提供带.Net运行时的发行版）
-4. [Windows App SDK](https://learn.microsoft.com/zh-cn/windows/apps/windows-app-sdk/downloads) 1.4.4 或更高版本
+4. [Windows App SDK](https://learn.microsoft.com/zh-cn/windows/apps/windows-app-sdk/downloads) 1.5.2 或更高版本（从2.0.1起的发行版默认包含该运行时）
 5. Microsoft Visual C++ Redistributable for Visual Studio 2022
 
 ### BDMatchCore 编译：
