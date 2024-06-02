@@ -11,7 +11,7 @@ enum class Language { en_US, zh_CN };
 class Language_Pack {
 public:
 	Language_Pack(const Language &language = Language::en_US);
-	std::string_view get_text(const Lang_Type& type, const size_t& index) const;
+	const std::string_view get_text(const Lang_Type& type, const size_t& index) const;
 private:
 	std::vector<std::u8string_view> general_texts = { u8"\n", u8"  ", u8"->", u8"秒", u8", ", u8"    " };
 	std::vector<std::u8string_view> notif_texts = { u8"\n    信息：{}", u8"\n    警告：{}", u8"\n    错误：{}" };
@@ -35,3 +35,9 @@ private:
 	std::vector<std::u8string_view> match_debug_texts = { u8"Average Found Index = {:.6f}%", u8"Max Found Index = {:.6f}%", u8"Max Found Line = {}", 
 		u8"Max Delta = {}", u8"Diffa Consistency = {:.6f}%" };
 };
+
+template<typename... Args>
+std::string str_vfmt(const std::string_view fmt_str, Args&&... args)
+{
+	return std::vformat(fmt_str, std::make_format_args(args...));
+}

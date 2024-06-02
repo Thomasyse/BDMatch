@@ -84,10 +84,7 @@ Decode::Decode::Decode(const Language_Pack& lang_pack0, std::stop_source& stop_s
 Decode::Decode::~Decode()
 {
 	clear_fft_data();
-	if (ffmpeg) {
-		delete ffmpeg;
-		ffmpeg = nullptr;
-	}
+	clear_ffmpeg();
 	plan = nullptr;
 }
 
@@ -111,14 +108,14 @@ Match_Core_Return Decode::Decode::initialize(const std::string_view & file_name0
 	ffmpeg = new FFmpeg;
 	ffmpeg->filefm = NULL;//文件格式;
 	if (avformat_open_input(&ffmpeg->filefm, file_name.data(), NULL, NULL) != 0) {//获取文件格式
-		feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 0)));//"\n错误：无法打开文件！"
+		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 0));//"\n错误：无法打开文件！"
 		return_val = Match_Core_Return::File_Open_Err;
 		clear_ffmpeg();
 		stop_src.request_stop();
 		return return_val;
 	}
 	if (avformat_find_stream_info(ffmpeg->filefm, NULL) < 0) {//获取文件内音视频流的信息
-		feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 1)));//"\n错误：无法读取文件流信息！"
+		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 1));//"\n错误：无法读取文件流信息！"
 		return_val = Match_Core_Return::File_Stream_Err;
 		clear_ffmpeg();
 		stop_src.request_stop();
@@ -137,7 +134,7 @@ Match_Core_Return Decode::Decode::initialize(const std::string_view & file_name0
 		}
 	if (audio_stream == -1)
 	{
-		feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 2)));//"\n错误：无音频流！"
+		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 2));//"\n错误：无音频流！"
 		return_val = Match_Core_Return::No_Audio_Err;
 		clear_ffmpeg();
 		stop_src.request_stop();
@@ -150,7 +147,7 @@ Match_Core_Return Decode::Decode::initialize(const std::string_view & file_name0
 	ffmpeg->codec = avcodec_find_decoder(ffmpeg->filefm->streams[audio_stream]->codecpar->codec_id);//寻找解码器
 	if (!ffmpeg->codec)
 	{
-		feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 3)));//"\n错误：无法找到音频的对应解码器！"
+		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 3));//"\n错误：无法找到音频的对应解码器！"
 		return_val = Match_Core_Return::No_Codec_Err;
 		clear_ffmpeg();
 		stop_src.request_stop();
@@ -159,7 +156,7 @@ Match_Core_Return Decode::Decode::initialize(const std::string_view & file_name0
 	ffmpeg->codecfm = avcodec_alloc_context3(ffmpeg->codec);//音频的编码环境
 	if (!ffmpeg->codecfm)
 	{
-		feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 4)));//"\n错误：无法构建音频的解码器环境！";
+		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 4));//"\n错误：无法构建音频的解码器环境！";
 		return_val = Match_Core_Return::Codec_Ctx_Err;
 		clear_ffmpeg();
 		stop_src.request_stop();
@@ -167,7 +164,7 @@ Match_Core_Return Decode::Decode::initialize(const std::string_view & file_name0
 	}
 	int getcodecpara = avcodec_parameters_to_context(ffmpeg->codecfm, ffmpeg->filefm->streams[audio_stream]->codecpar);
 	if (getcodecpara < 0) {
-		feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 5)));//"\n错误：无法复制音频的解码器参数！"
+		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 5));//"\n错误：无法复制音频的解码器参数！"
 		return_val = Match_Core_Return::Codec_Copy_Para_Err;
 		clear_ffmpeg();
 		stop_src.request_stop();
@@ -175,12 +172,12 @@ Match_Core_Return Decode::Decode::initialize(const std::string_view & file_name0
 	}
 
 	feedback += std::format("{0}{1}{0}{2}", lang_pack.get_text(Lang_Type::General, 5),
-		std::vformat(lang_pack.get_text(Lang_Type::Decoder_Info, 8), std::make_format_args(audio_stream)), //"音轨编号：**"
-		std::vformat(lang_pack.get_text(Lang_Type::Decoder_Info, 9), std::make_format_args(ffmpeg->codec->long_name)));//"    音频编码：****"
+		str_vfmt(lang_pack.get_text(Lang_Type::Decoder_Info, 8), audio_stream), //"音轨编号：**"
+		str_vfmt(lang_pack.get_text(Lang_Type::Decoder_Info, 9), ffmpeg->codec->long_name));//"    音频编码：****"
 
 	if (avcodec_open2(ffmpeg->codecfm, ffmpeg->codec, NULL) < 0)//将两者结合以便在下面的解码函数中调用pInCodec中的对应解码函数
 	{
-		feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 6)));//"\n错误：无法打开音频的对应解码器！"
+		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 6));//"\n错误：无法打开音频的对应解码器！"
 		return_val = Match_Core_Return::Codec_Open_Err;
 		clear_ffmpeg();
 		stop_src.request_stop();
@@ -214,7 +211,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 		filename += ".wav";
 		pcm.open(filename, std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!pcm.is_open()) {
-			feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 7)));//"\n错误：无法打开要写入的PCM文件！"
+			feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 7));//"\n错误：无法打开要写入的PCM文件！"
 			return_val = Match_Core_Return::PCM_Open_Err;
 			clear_ffmpeg();
 			stop_src.request_stop();
@@ -289,7 +286,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 		samplenum = static_cast<int>(ceil(resamp_rate / 1000.0*ffmpeg->filefm->duration / 1000.0));
 		ffmpeg->swr_ctx = swr_alloc();
 		if (!ffmpeg->swr_ctx) {
-			feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 8)));//"\n错误：无法构建重采样环境！"
+			feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 8));//"\n错误：无法构建重采样环境！"
 			return_val = Match_Core_Return::Resample_Ctx_Alloc_Err;
 			if (output_pcm)pcm.close();
 			clear_ffmpeg();
@@ -306,7 +303,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 		av_opt_set_sample_fmt(ffmpeg->swr_ctx, "out_sample_fmt", ffmpeg->codecfm->sample_fmt, 0);
 		/* initialize the resampling context */
 		if ((swr_init(ffmpeg->swr_ctx)) < 0) {
-			feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 9)));//"\n错误：无法初始化重采样环境！"
+			feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 9));//"\n错误：无法初始化重采样环境！"
 			return_val = Match_Core_Return::Resample_Ctx_Init_Err;
 			if (output_pcm)pcm.close();
 			clear_ffmpeg();
@@ -329,7 +326,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 	}
 	ffmpeg->real_ch = real_ch;
 	//为频谱数据分配内存
-	if (vol_mode != 1) {
+	if (vol_mode != Vol_Mode::Cal_Only) {
 		data_channels = std::min(channels, 8);
 		int spectrum_size = fft_num / 2;
 		fft_data = new Spec_Node*[data_channels];
@@ -359,7 +356,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 			int data_size = 0;
 			if (!ffmpeg->decoded_frame) {
 				if (!(ffmpeg->decoded_frame = av_frame_alloc())) {
-					feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 10)));//"\n错误：无法为音频帧分配内存！"
+					feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 10));//"\n错误：无法为音频帧分配内存！"
 					return_val = Match_Core_Return::Frame_Alloc_Err;
 					if (output_pcm)pcm.close();
 					clear_ffmpeg();
@@ -370,7 +367,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 			int ret = 0;
 			ret = avcodec_send_packet(ffmpeg->codecfm, ffmpeg->packet);
 			if (ret < 0) {
-				feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 11)));//"\n错误：无法提交音频至解码器！"
+				feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 11));//"\n错误：无法提交音频至解码器！"
 				return_val = Match_Core_Return::Submit_Packet_Err;
 				if (output_pcm)pcm.close();
 				clear_ffmpeg();
@@ -383,7 +380,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 				if (len == AVERROR(EAGAIN) || len == AVERROR_EOF)
 					break;
 				else if (len < 0) {
-					feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 12)));//"\n错误：音频解码出错！"
+					feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 12));//"\n错误：音频解码出错！"
 					return_val = Match_Core_Return::Decode_Err;
 					if (output_pcm)pcm.close();
 					clear_ffmpeg();
@@ -393,7 +390,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 				data_size = av_get_bytes_per_sample(ffmpeg->codecfm->sample_fmt);
 				if (data_size < 0) {
 					/* This should not occur, checking just for paranoia */
-					feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 13)));//"\n错误：无法计算音频数据大小！"
+					feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 13));//"\n错误：无法计算音频数据大小！"
 					return_val = Match_Core_Return::Data_Size_Err;
 					if (output_pcm)pcm.close();
 					clear_ffmpeg();
@@ -413,7 +410,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 					ret = av_samples_alloc_array_and_samples(&ffmpeg->dst_data, &dst_linesize, channels,
 						nb_samples, ffmpeg->codecfm->sample_fmt, 0);
 					if (ret < 0) {
-						feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 14)));//"\n错误：无法为重采样数据分配内存！"
+						feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 14));//"\n错误：无法为重采样数据分配内存！"
 						return_val = Match_Core_Return::Resample_Dst_Alloc_Err;
 						if (output_pcm)pcm.close();
 						clear_ffmpeg();
@@ -423,7 +420,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 					ret = swr_convert(ffmpeg->swr_ctx, ffmpeg->dst_data, nb_samples,
 						(const uint8_t **)ffmpeg->decoded_frame->extended_data, ffmpeg->decoded_frame->nb_samples);
 					if (ret < 0) {
-						feedback = std::vformat(lang_pack.get_text(Lang_Type::Notif, 2), std::make_format_args(lang_pack.get_text(Lang_Type::Decoder_Error, 15)));//"\n错误：重采样错误！"
+						feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 15));//"\n错误：重采样错误！"
 						return_val = Match_Core_Return::Convert_Err;
 						if (output_pcm)pcm.close();
 						clear_ffmpeg();
@@ -446,7 +443,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 					clear_ffmpeg();
 					return return_val;
 				}
-				if (vol_mode != 1) {
+				if (vol_mode != Vol_Mode::Cal_Only) {
 					if (nb_fft_sample > 0) {
 						int64_t fft_index = fft_samp_num;
 						if (fft_index < e_fft_num) {
@@ -489,24 +486,24 @@ Match_Core_Return Decode::Decode::decode_audio() {
 	pool.wait();
 	//
 	feedback += std::format("{0}{1}{0}{2}{0}{3}", lang_pack.get_text(Lang_Type::General, 5),
-		std::vformat(lang_pack.get_text(Lang_Type::Decoder_Info, 0), std::make_format_args(channels)),
-		std::vformat(lang_pack.get_text(Lang_Type::Decoder_Info, 1), std::make_format_args(count)),
-		std::vformat(lang_pack.get_text(Lang_Type::Decoder_Info, 2), std::make_format_args(chfmt)));//"    声道：**    总帧数：***    格式：****"
-	std::string samp_rate_info = std::vformat(lang_pack.get_text(Lang_Type::Decoder_Info, 3), std::make_format_args(
+		str_vfmt(lang_pack.get_text(Lang_Type::Decoder_Info, 0), channels),
+		str_vfmt(lang_pack.get_text(Lang_Type::Decoder_Info, 1), count),
+		str_vfmt(lang_pack.get_text(Lang_Type::Decoder_Info, 2), chfmt));//"    声道：**    总帧数：***    格式：****"
+	std::string samp_rate_info = str_vfmt(lang_pack.get_text(Lang_Type::Decoder_Info, 3),
 		resamp ?
 		std::format("{} {} {}", sample_rate, lang_pack.get_text(Lang_Type::General, 2), resamp_rate) ://"采样率：*** -> ***Hz"
-		std::format("{}", sample_rate)));//"采样率：***Hz"
-	std::string samp_bit_info = std::vformat(lang_pack.get_text(Lang_Type::Decoder_Info, 4), std::make_format_args(
+		std::format("{}", sample_rate));//"采样率：***Hz"
+	std::string samp_bit_info = str_vfmt(lang_pack.get_text(Lang_Type::Decoder_Info, 4),
 		(bit_depth_raw != out_bit_depth) ?
 		std::format("{} {} {}", bit_depth_raw, lang_pack.get_text(Lang_Type::General, 2), out_bit_depth) ://"采样位数：*** -> ***bit"
-		std::format("{}", bit_depth_raw)));//"采样位数：***bit"
-	std::string samp_format_info = std::vformat(lang_pack.get_text(Lang_Type::Decoder_Info, 5), std::make_format_args(av_get_sample_fmt_name(ffmpeg->codecfm->sample_fmt)));//"采样格式：****"
+		std::format("{}", bit_depth_raw));//"采样位数：***bit"
+	std::string samp_format_info = str_vfmt(lang_pack.get_text(Lang_Type::Decoder_Info, 5), av_get_sample_fmt_name(ffmpeg->codecfm->sample_fmt));//"采样格式：****"
 	//samp_format_info = samp_format_info.replace(samp_format_info.find("AV_SAMPLE_FMT_"), 14, "");
 	feedback += std::format("\n{0}{1}{0}{2}{0}{3}", lang_pack.get_text(Lang_Type::General, 5),
 		samp_bit_info, samp_rate_info, samp_format_info);//"\n采样位数：**bit -> **bit    采样率：***   采样格式：****"
 	if (start_time != 0 && !audio_only)
 		feedback += std::format("{}{}", lang_pack.get_text(Lang_Type::General, 5),
-			std::vformat(lang_pack.get_text(Lang_Type::Decoder_Info, 6), std::make_format_args(start_time)));//"    延迟：***ms"
+			str_vfmt(lang_pack.get_text(Lang_Type::Decoder_Info, 6), start_time));//"    延迟：***ms"
 	//补充wav头信息
 	if (output_pcm) {
 		long pcmfilesize = static_cast<long>(pcm.tellp()) - 8;
@@ -522,8 +519,8 @@ Match_Core_Return Decode::Decode::decode_audio() {
 		pcmfilesize -= 36;
 		pcm.write(reinterpret_cast<char*>(&pcmfilesize), 4);//pcm size
 		pcm.close();
-		feedback += std::vformat(lang_pack.get_text(Lang_Type::Decoder_Info, 7),
-			std::make_format_args(file_name));//"\n输出解码音频：****"
+		feedback += str_vfmt(lang_pack.get_text(Lang_Type::Decoder_Info, 7),
+			file_name);//"\n输出解码音频：****"
 	}
 	//释放内存
 	return_val = Match_Core_Return::Success;
@@ -580,7 +577,7 @@ double Decode::Decode::get_avg_vol()
 {
 	return total_vol / static_cast<double>(e_fft_num);
 }
-int Decode::Decode::set_vol_mode(const int &input)
+int Decode::Decode::set_vol_mode(const Vol_Mode &input)
 {
 	vol_mode = input;
 	return 0;
@@ -702,7 +699,7 @@ int Decode::Decode::normalize(uint8_t ** const &audiodata, double **&normalized_
 		}
 	nb_last = nb_last_next;
 	//响度计算和匹配
-	if (vol_mode >= 0 && length > 0) {
+	if (vol_mode != Vol_Mode::None && length > 0) {
 		if (vol_coef != 0.0)
 			for (int ch = 0; ch < channels; ch++)
 				for (int i = 0; i < length; i++)
@@ -1039,7 +1036,7 @@ int Decode::Decode_AVX::normalize(uint8_t** const& audiodata, double**& normaliz
 		}
 	nb_last = nb_last_next;
 	//响度计算和匹配
-	if (vol_mode >= 0 && length > 0) {
+	if (vol_mode != Vol_Mode::None && length > 0) {
 		int avxlength = length / 4;
 		if (vol_coef != 0.0) {
 			__m256d vol_vect = _mm256_set1_pd(vol_coef);
@@ -1556,7 +1553,7 @@ int Decode::Decode_AVX2::normalize(uint8_t** const& audiodata, double**& normali
 		}
 	nb_last = nb_last_next;
 	//响度计算和匹配
-	if (vol_mode >= 0 && length > 0) {
+	if (vol_mode >= Vol_Mode::None && length > 0) {
 		int avxlength = length / 4;
 		if (vol_coef != 0.0) {
 			__m256d vol_vect = _mm256_set1_pd(vol_coef);

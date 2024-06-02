@@ -46,7 +46,7 @@ namespace Match {
 		int64_t read(const size_t& pos) const;
 		int64_t find(const int64_t& search_time, const int& retype) const;
 		int sort();
-		size_t size();
+		size_t size() const;
 		int clear();
 	private:
 		std::vector<Se_Re> bd_items;

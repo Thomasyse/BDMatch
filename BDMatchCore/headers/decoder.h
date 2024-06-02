@@ -34,6 +34,8 @@ namespace Decode {
 		}
 	;
 
+	enum class Vol_Mode { None, Dec_And_Cal, Cal_Only };
+
 	struct FFmpeg
 	{
 	public:
@@ -70,12 +72,12 @@ namespace Decode {
 		DataStruct::Spec_Node** get_fft_data();
 		char** get_fft_spec();
 		double get_avg_vol();
-		int set_vol_mode(const int &input);
+		int set_vol_mode(const Vol_Mode &input);
 		int set_vol_coef(const double &input);
+		int clear_ffmpeg();
 	protected:
 		void sub_prog_back(double val);
 		int clear_fft_data();
-		int clear_ffmpeg();
 		int clear_normalized_samples(double** normalized_samples);
 		template <typename T, int type = 0>
 			requires Normalizable<T, type>
@@ -96,7 +98,7 @@ namespace Decode {
 		int fft_num = 512;
 		int min_db = -14;
 		bool output_pcm = false;
-		int vol_mode = -1;
+		Vol_Mode vol_mode = Vol_Mode::None;
 		int resamp_rate = 0;
 		fftw_plan plan = nullptr;
 		//fft data
