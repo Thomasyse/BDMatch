@@ -76,6 +76,7 @@ namespace Decode {
 		int set_vol_coef(const double &input);
 		int clear_ffmpeg();
 	protected:
+		char* av_err_to_str(const int &err_code);
 		void sub_prog_back(double val);
 		int clear_fft_data();
 		int clear_normalized_samples(double** normalized_samples);
@@ -106,6 +107,7 @@ namespace Decode {
 		char** fft_spec = nullptr;
 		DataStruct::Spec_Node* fft_data_mem = nullptr;
 		char* fft_spec_mem = nullptr;
+		char av_err_buf[AV_ERROR_MAX_STRING_SIZE] = { 0 };
 		//audio info
 		std::string_view file_name;
 		int out_bit_depth = 0;

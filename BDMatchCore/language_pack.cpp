@@ -7,7 +7,7 @@ Language_Pack::Language_Pack(const Language& language)
 		break;
 	default:
 		general_texts = { u8"\n", u8"  ", u8"->", u8" Sec", u8", ", u8"    " };
-		notif_texts = { u8"\n    Info: {}", u8"\n    Warning: {}", u8"\n    Error: {}" };
+		notif_texts = { u8"\n    Info: {}", u8"\n    Warning: {}", u8"\n    Error: {}", u8"\n    Error: {} Err Msg: {}" };
 		match_core_texts = { u8"\nTV File: ", u8"\nBD File: ", u8"   Loudness: {} dB" , u8"\nDecoding Time: {:.5f}{}", u8"\nSub File: " ,
 			u8"\nMatching time: {:.5f}{}" };
 		decoder_error_texts = { u8"Failed to open file!", u8"Failed to read file stream information!", u8"Didn't find a audio stream!", u8"Codec not found!",

@@ -367,6 +367,3 @@ int BDMatchCore::feedback_match()
 	if (feed_func)feed_func(feedback.data(), feedback.size());
 	return 0;
 }
-
-
-

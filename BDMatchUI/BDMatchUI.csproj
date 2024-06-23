@@ -14,12 +14,13 @@
     <DefaultLanguage>en-US</DefaultLanguage>
     <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
     <AssemblyName>BDMatch</AssemblyName>
-    <Version>2.0.2</Version>
-    <FileVersion>2.0.2</FileVersion>
+    <Version>2.0.3</Version>
+    <FileVersion>2.0.3</FileVersion>
     <Authors>Thomasys</Authors>
     <Copyright>By Thomasys</Copyright>
     <ApplicationIcon>logo.ico</ApplicationIcon>
     <IsPublishable>True</IsPublishable>
+    <SelfContained>true</SelfContained>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
   <ItemGroup>
@@ -46,7 +47,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240428000" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240607001" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 

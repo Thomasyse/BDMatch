@@ -14,7 +14,7 @@ public:
 	const std::string_view get_text(const Lang_Type& type, const size_t& index) const;
 private:
 	std::vector<std::u8string_view> general_texts = { u8"\n", u8"  ", u8"->", u8"秒", u8", ", u8"    " };
-	std::vector<std::u8string_view> notif_texts = { u8"\n    信息：{}", u8"\n    警告：{}", u8"\n    错误：{}" };
+	std::vector<std::u8string_view> notif_texts = { u8"\n    信息：{}", u8"\n    警告：{}", u8"\n    错误：{}", u8"\n    错误：{} 错误信息：{}" };
 	std::vector<std::u8string_view> match_core_texts = { u8"\nTV文件：", u8"\nBD文件：", u8"   响度：{}dB" , u8"\n解码时间：{:.5f}{}", u8"\n字幕文件：" ,
 		u8"\n匹配时间：{:.5f}{}" };
 	std::vector<std::u8string_view> decoder_error_texts = { u8"无法打开文件！", u8"无法读取文件流信息！", u8"无音频流！", u8"无法找到音频的对应解码器！",
