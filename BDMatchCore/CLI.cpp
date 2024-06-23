@@ -8,7 +8,7 @@ A simple example of command line usage of BDMatchCore
 #include <iostream>
 #include "headers/BDMatchCore.h"
 
-constexpr const char* version = "1.0.21";
+constexpr const char* version = "1.1.4";
 
 void print(const char* in, const int64_t len) {
 	std::cout << in;
@@ -40,6 +40,8 @@ int main(int argc, char* argv[]) {
 		{10, "-range", "range for searching the results(-xx -> +xx), with the unit of second (default: 10)"},
 		{0, "-offset", "offset of the timeline of the subtitle, with the unit of centisecond (default: 0)"},
 		{20, "-maxlen", "the max length of the timeline to be matched, with the unit of second (default: 20)"} };
+		{0, "-lang", "Language (en-US: 0, zh-CN: 1)" }
+};
 	//help
 	std::string help_s = "--help";
 	if (argc == 2) {
@@ -55,7 +57,7 @@ int main(int argc, char* argv[]) {
 		}
 		else if (std::string(argv[1]) == "-v") {
 			std::cout << "BDMatchCore" << std::endl << "Version " << version << std::endl <<
-				"Copyright (c) 2020, Thomasys" << std::endl;
+				"Copyright (c) 2024, Thomasys" << std::endl;
 			return 0;
 		}
 	}
@@ -104,7 +106,8 @@ int main(int argc, char* argv[]) {
 	BDMatchCore* match_core = new BDMatchCore;
 	prog_func prog_ptr = nullptr;//function pointer to show progress: prog_func(int phase(0-3), double percent);
 	feedback_func feedback_ptr = print;//function pointer to show feedback: feedback_func(const char* feedback_string);
-	match_core->set_language("en-US");
+	if (int_settings[7].val == 1)match_core->set_language("zh-CN");
+	else match_core->set_language("en-US");
 	match_core->load_interface(prog_ptr, feedback_ptr);
 	match_core->load_settings(static_cast<ISA_Mode>(int_settings[0].val), int_settings[1].val, int_settings[2].val,
 		bool_settings[0].val, bool_settings[1].val, bool_settings[2].val,

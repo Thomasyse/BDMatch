@@ -3,6 +3,7 @@
 #include <vector>
 #include <array>
 #include <memory>
+#include <regex>
 #include <stop_token>
 #include "language_pack.h"
 
@@ -84,12 +85,15 @@ namespace Match {
 		std::string_view get_feedback(); // return timeline info
 	protected:
 		Match_Core_Return match_batch_lines(const int64_t start_line, const int64_t end_line); // match a batch of sub lines
-		Match_Core_Return load_ass(); // load ass file
+		std::pair<Match_Core_Return, size_t> open_sub(); // open sub file
 		Match_Core_Return load_srt(); // load srt file
+		Match_Core_Return load_ass(); // load ass file
+		int decode_sub(const size_t& sub_file_size, const std::regex& timeline_regex, const std::regex& time_regex, 
+			const std::regex* header_regex); // decode sub text to timelines
 		int add_timeline(const int64_t& start, const int64_t& end, const bool& iscom,
 			const std::string_view& header, const std::string_view& text); // add and check timeline
-		std::string cs2time(const int &cs0);
-		int time2cs(const std::string_view &time);
+		std::string cs_to_time(const int &cs0);
+		int time_to_cs(const std::string_view &time);
 		void sub_prog_back();
 		virtual int caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
 			const int64_t check_field, const BDSearch &bd_se, std::array<int64_t, 3> &diffa, Se_Re &re);

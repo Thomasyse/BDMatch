@@ -1,7 +1,6 @@
 ﻿#include "headers/match.h"
 #include "headers/multithreading.h"
 #include <fstream>
-#include <regex> 
 #include <immintrin.h>
 #include <cmath>
 
@@ -195,21 +194,32 @@ Match_Core_Return Match::Match::load_sub(const std::string_view &sub_path0)
 	}
 	return Match_Core_Return::Success;
 }
+std::pair<Match_Core_Return, size_t> Match::Match::open_sub()
+{
+	using std::ios, std::ifstream;
+	feedback.clear();
+	ifstream tv_sub_file(sub_path.data(), ios::binary | ios::ate);
+	if (!tv_sub_file.is_open()) {
+		feedback += str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Match_Sub_Error, 0));//"\n错误：读取字幕文件失败!"
+		return { Match_Core_Return::Sub_Open_Err, 0 };
+	}
+	auto sub_file_size = tv_sub_file.tellg();
+	tv_sub_text.resize(sub_file_size, '\0');
+	tv_sub_file.seekg(0);
+	tv_sub_file.read(tv_sub_text.data(), sub_file_size);
+	tv_sub_file.close();
+	size_t rn_pos = tv_sub_text.find("\r\n");
+	while (rn_pos != std::string::npos) {
+		tv_sub_text = tv_sub_text.replace(rn_pos, 2, "\n");
+		rn_pos = tv_sub_text.find("\r\n", rn_pos);
+	}
+	return { Match_Core_Return::Success, sub_file_size };
+}
 Match_Core_Return Match::Match::load_srt()
 {
-	using std::ios, std::regex, std::ifstream, std::smatch, std::string;
-	feedback.clear();
-	ifstream tv_srt_file(sub_path.data(), ios::binary | ios::ate);
-	if (!tv_srt_file.is_open()) {
-		feedback += str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Match_Sub_Error, 0));//"\n错误：读取字幕文件失败!"
-		return Match_Core_Return::Sub_Open_Err;
-	}
-	auto srt_file_size = tv_srt_file.tellg();
-	tv_sub_text.resize(srt_file_size, '\0');
-	tv_srt_file.seekg(0);
-	tv_srt_file.read(&tv_sub_text[0], srt_file_size);
-	tv_srt_file.close();
-	while (tv_sub_text.find("\r\n") != string::npos)tv_sub_text = tv_sub_text.replace(tv_sub_text.find("\r\n"), 2, "\n");
+	using std::regex;
+	auto [open_sub_re, srt_file_size] = open_sub();
+	if (open_sub_re != Match_Core_Return::Success)return open_sub_re;
 	if (tv_sub_text.find(" --> ") == std::string::npos) {
 		tv_sub_text.clear();
 		feedback += str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Match_Sub_Error, 1));//"\n错误：输入字幕文件无效！"
@@ -222,48 +232,14 @@ Match_Core_Return Match::Match::load_srt()
 	regex timeline_regex(
 		"\\n[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3} --> [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\\n");
 	regex time_regex("[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}");
-	smatch timeline_match;
-	string temp = content;
-	timeline_list.reserve(srt_file_size / 40);
-	tv_time.reserve(srt_file_size / 40);
-	bd_time.reserve(srt_file_size / 40);
-	nb_timeline = 0;
-	while (regex_search(temp, timeline_match, timeline_regex)) {
-		string match = timeline_match.str();
-		string text = match;
-		temp = timeline_match.suffix();
-		nb_timeline++;
-		smatch time_match;
-		//time
-		int time[2] = { 0,0 };
-		for (int i = 0; i < 2; i++) {
-			regex_search(match, time_match, time_regex);
-			time[i] = time2cs(time_match.str());
-			match = time_match.suffix();
-			//cs to fft
-			time[i] = static_cast<int>(round(static_cast<double>(time[i])* t2f));
-		}
-		int start = time[0];
-		int end = time[1];
-		add_timeline(start, end, false, "", text);//neither comment nor header
-	}
+	decode_sub(srt_file_size, timeline_regex, time_regex, nullptr);
 	return Match_Core_Return::Success;
 }
 Match_Core_Return Match::Match::load_ass()
 {
-	using std::ios, std::regex, std::ifstream, std::smatch, std::string;
-	feedback.clear();
-	ifstream tv_ass_file(sub_path.data(), ios::binary | ios::ate);
-	if (!tv_ass_file.is_open()) {
-		feedback += str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Match_Sub_Error, 0));//"\n错误：读取字幕文件失败!"
-		return Match_Core_Return::Sub_Open_Err;
-	}
-	auto ass_file_size = tv_ass_file.tellg();
-	tv_sub_text.resize(ass_file_size, '\0');
-	tv_ass_file.seekg(0);
-	tv_ass_file.read(&tv_sub_text[0], ass_file_size);
-	tv_ass_file.close();
-	while (tv_sub_text.find("\r\n") != string::npos)tv_sub_text = tv_sub_text.replace(tv_sub_text.find("\r\n"), 2, "\n");
+	using std::regex;
+	auto [open_sub_re, ass_file_size] = open_sub();
+	if (open_sub_re != Match_Core_Return::Success)return open_sub_re;
 	size_t event_pos = tv_sub_text.find("\n[Events]\n");
 	if (event_pos == std::string::npos) {
 		tv_sub_text.clear();
@@ -284,27 +260,38 @@ Match_Core_Return Match::Match::load_ass()
 		"\\n[a-zA-Z]+: [0-9],[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},");
 	regex header_regex("\\n[a-zA-Z]+: [0-9],");
 	regex time_regex("[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2}");
+	decode_sub(ass_file_size, timeline_regex, time_regex, &header_regex);
+	return Match_Core_Return::Success;
+}
+int Match::Match::decode_sub(const size_t& sub_file_size, const std::regex& timeline_regex, const std::regex& time_regex, const std::regex* header_regex_ptr)
+{
+	using std::regex, std::smatch, std::string;
+	size_t file_size_coef = (sub_type == Sub_Type::ASS) ? 60 : 40;
+	timeline_list.reserve(sub_file_size / file_size_coef);
+	tv_time.reserve(sub_file_size / file_size_coef);
+	bd_time.reserve(sub_file_size / file_size_coef);
+	nb_timeline = 0;
 	smatch timeline_match;
 	string temp = content;
-	timeline_list.reserve(ass_file_size / 60);
-	tv_time.reserve(ass_file_size / 60);
-	bd_time.reserve(ass_file_size / 60);
-	nb_timeline = 0;
+	string header, match, text;
+	smatch header_match, time_match;
 	while (regex_search(temp, timeline_match, timeline_regex)) {
-		string match = timeline_match.str();
-		string text = match;
+		match = timeline_match.str();
+		text = match;
 		temp = timeline_match.suffix();
 		nb_timeline++;
-		smatch header_match, time_match;
 		//header
-		regex_search(match, header_match, header_regex);
-		string header = header_match.str();
-		bool iscom = match.find("Comment") == string::npos ? false : true;
+		header = "";
+		if (header_regex_ptr) {
+			regex_search(match, header_match, *header_regex_ptr);
+			header = header_match.str();
+		}
+		bool iscom = (sub_type == Sub_Type::ASS) ? (match.find("Comment") == string::npos ? false : true) : false;
 		//time
 		int time[2] = { 0,0 };
 		for (int i = 0; i < 2; i++) {
 			regex_search(match, time_match, time_regex);
-			time[i] = time2cs(time_match.str());
+			time[i] = time_to_cs(time_match.str());
 			match = time_match.suffix();
 			//cs to fft
 			time[i] = static_cast<int>(round(static_cast<double>(time[i]) * t2f));
@@ -313,44 +300,38 @@ Match_Core_Return Match::Match::load_ass()
 		int end = time[1];
 		add_timeline(start, end, iscom, header, text);
 	}
-	return Match_Core_Return::Success;
+	return 0;
 }
 int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const bool& iscom, 
 	const std::string_view& header, const std::string_view& text)
 {
 	timeline_list.emplace_back(start, end, iscom, header, text);
-	if (iscom) {
+	auto emplace_ignored_line = [&tv_time = tv_time, &bd_time = bd_time, &timeline_list = timeline_list]() {
 		tv_time.emplace_back(-1);
 		bd_time.emplace_back(-1);
 		timeline_list.back().start(-1);
 		timeline_list.back().end(-1);
+	};
+	if (iscom) {
+		emplace_ignored_line();
 		feedback += str_vfmt(lang_pack.get_text(Lang_Type::Notif, 0), 
 			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Info, 0), nb_timeline));//"\n信息：第***行为注释，将不作处理。"
 		return -1;
 	}
 	if (end <= start) {
-		tv_time.emplace_back(-1);
-		bd_time.emplace_back(-1);
-		timeline_list.back().start(-1);
-		timeline_list.back().end(-1);
+		emplace_ignored_line();
 		feedback += str_vfmt(lang_pack.get_text(Lang_Type::Notif, 0), 
 			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Info, 1), nb_timeline));//"\n信息：第***行时长为零，将不作处理。"
 		return -1;
 	}
 	if (double(end) - double(start) > max_length * 100.0 * t2f) {
-		tv_time.emplace_back(-1);
-		bd_time.emplace_back(-1);
-		timeline_list.back().start(-1);
-		timeline_list.back().end(-1);
+		emplace_ignored_line();
 		feedback += str_vfmt(lang_pack.get_text(Lang_Type::Notif, 1), 
 			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Warning, 0), nb_timeline));//"\n警告：第***行时长过长，将不作处理。"
 		return -1;
 	}
 	if (end >= tv_fft_samp_num || (end - search_range_fft) > bd_fft_samp_num) {
-		tv_time.emplace_back(-1);
-		bd_time.emplace_back(-1);
-		timeline_list.back().start(-1);
-		timeline_list.back().end(-1);
+		emplace_ignored_line();
 		feedback += str_vfmt(lang_pack.get_text(Lang_Type::Notif, 1), 
 			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Warning, 1), nb_timeline));//"\n警告：第***行超过音频长度，将不作处理。"
 		return -1;
@@ -362,10 +343,7 @@ int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const b
 		}
 	}
 	if (maxdb <= -128) {
-		tv_time.emplace_back(-1);
-		bd_time.emplace_back(-1);
-		timeline_list.back().start(-1);
-		timeline_list.back().end(-1);
+		emplace_ignored_line();
 		feedback += str_vfmt(lang_pack.get_text(Lang_Type::Notif, 1), 
 			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Warning, 2), nb_timeline));//"\n警告：第***行声音过小，将不作处理。"
 		return -1;
@@ -464,7 +442,7 @@ Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, cons
 	// fast matching parameters
 	int64_t offset = 0; int64_t five_sec = 0; int64_t last_line_time = 0;
 	if (fast_match)five_sec = static_cast<int64_t>(500 * t2f);
-	std::array<int64_t, 3> diffa = { 0 }; // No need to make atomic
+	std::array<int64_t, 3> diffa({ 0 }); // No need to make atomic
 	for (int64_t line_idx = start_line; line_idx < end_line; line_idx++) {
 		if (tv_time[line_idx] >= 0) {
 			if (fast_match && offset && last_line_time > five_sec && tv_time[line_idx - 1] > 0 && llabs(tv_time[line_idx] - last_line_time) < five_sec) {
@@ -526,13 +504,11 @@ Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, cons
 			}
 			bd_se.sort();
 			//accurate match
-			diffa[0] = std::numeric_limits<int64_t>::max();
-			diffa[1] = 0;
 			int min_cnfrm_num_aply = min_cnfrm_num;
 			if (duration <= 75 * overlap_interval)min_cnfrm_num_aply = find_num;
 			else if (fast_match)min_cnfrm_num_aply = min_cnfrm_num / 2 * 3;
 			int64_t check_field = min_cnfrm_num_aply * interval;
-			diffa[2] = min_cnfrm_num_aply;
+			diffa = { std::numeric_limits<int64_t>::max(), 0, min_cnfrm_num_aply };
 			for (size_t j = 0; j < nb_sub_tasks; j++) {
 				size_t se_start = j * nb_per_sub_task;
 				search_result[j][0] = std::numeric_limits<int64_t>::max();
@@ -547,16 +523,16 @@ Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, cons
 
 			//for debug->
 			/*
-			volatile std::string besttimestr = cs2time(besttime * f2t);
+			volatile std::string besttimestr = cs_to_time(besttime * f2t);
 			volatile int bestfind = bd_se.find(besttime, 0);
 			std::string time = "0:03:09.35";
-			int fftindex = static_cast<int>(time2cs(time) * t2f);
+			int fftindex = static_cast<int>(time_to_cs(time) * t2f);
 			fftindex += 1;
 			volatile int pos1 = bd_se.find(fftindex, 0);
 			volatile int64_t lsfeedback = -1;
 			volatile int task_id = static_cast<int>(ceil(pos1 / double(nb_per_sub_task)) - 1.0);
 			if (pos1 > 0)lsfeedback = search_result[task_id][0];
-			volatile std::string besttimestr2 = cs2time(search_result[task_id][1] * f2t);
+			volatile std::string besttimestr2 = cs_to_time(search_result[task_id][1] * f2t);
 			volatile int pos2 = bd_se.find(search_result[task_id][1], 0);
 			*/
 			//cal debug info
@@ -664,10 +640,10 @@ Match_Core_Return Match::Match::output(const std::string_view &output_path)
 			std::string_view former_text;
 			switch (sub_type) {
 			case Sub_Type::ASS:
-				replacetext = std::format("{}{},{},", timeline_list[i].head(), cs2time(start), cs2time(end));
+				replacetext = std::format("{}{},{},", timeline_list[i].head(), cs_to_time(start), cs_to_time(end));
 				break;
 			case Sub_Type::SRT:
-				replacetext = std::format("\n{} --> {}\n", cs2time(start), cs2time(end));
+				replacetext = std::format("\n{} --> {}\n", cs_to_time(start), cs_to_time(end));
 				break;
 			default:
 				break;
@@ -743,7 +719,7 @@ std::string_view Match::Match::get_feedback()
 	return feedback;
 }
 
-std::string Match::Match::cs2time(const int &cs0)
+std::string Match::Match::cs_to_time(const int &cs0)
 {
 	int hh, mm, ss, cs;
 	cs = cs0;
@@ -779,22 +755,26 @@ std::string Match::Match::cs2time(const int &cs0)
 	}
 	return timeout;
 }
-int Match::Match::time2cs(const std::string_view &time)
+int Match::Match::time_to_cs(const std::string_view &time)
 {
-	using std::stoi;
+	auto sv_to_i = [](const std::string_view& sv) {
+		int re = 0;
+		for (auto c : sv)re = re * 10 + (c - '0');
+		return re;
+	};
 	int cs = 0;
 	switch (sub_type) {
 	case Sub_Type::ASS:
-		cs += stoi(time.substr(0, 1).data()) * 360000;
-		cs += stoi(time.substr(2, 2).data()) * 6000;
-		cs += stoi(time.substr(5, 2).data()) * 100;
-		cs += stoi(time.substr(8, 2).data());
+		cs += sv_to_i(time.substr(0, 1)) * 360000;
+		cs += sv_to_i(time.substr(2, 2)) * 6000;
+		cs += sv_to_i(time.substr(5, 2)) * 100;
+		cs += sv_to_i(time.substr(8, 2));
 		break;
 	case Sub_Type::SRT:
-		cs += stoi(time.substr(0, 2).data()) * 360000;
-		cs += stoi(time.substr(3, 2).data()) * 6000;
-		cs += stoi(time.substr(6, 2).data()) * 100;
-		cs += stoi(time.substr(9, 2).data());
+		cs += sv_to_i(time.substr(0, 2)) * 360000;
+		cs += sv_to_i(time.substr(3, 2)) * 6000;
+		cs += sv_to_i(time.substr(6, 2)) * 100;
+		cs += sv_to_i(time.substr(9, 2));
 		break;
 	default:
 		break;
@@ -843,16 +823,8 @@ int Match::Match::caldiff(const int64_t tv_start, const size_t se_start, const s
 			}
 			if (sum > diffa[0])break;
 		}
-		if (sum < feedback[0])
-		{
-			feedback[0] = sum;
-			feedback[1] = bd_start;
-		}
-		if (feedback[0] < diffa[0]) {
-			diffa[0] = feedback[0];
-			diffa[1] = feedback[1];
-			diffa[2] = min_cnfrm_num;
-		}
+		if (sum < feedback[0])feedback = { sum, bd_start };
+		if (feedback[0] < diffa[0])diffa = { feedback[0], feedback[1], min_cnfrm_num };
 		else if (llabs(bd_start - diffa[1]) <= check_field) diffa[2]--;
 		if (diffa[2] <= 0) {
 			re = std::move(feedback);
@@ -906,16 +878,8 @@ int Match::Match_SSE::caldiff(const int64_t tv_start, const size_t se_start, con
 				static_cast<int64_t>(_mm_extract_epi32(sumvector[0], 2));
 			if (sum > diffa[0])break;
 		}
-		if (sum < feedback[0])
-		{
-			feedback[0] = sum;
-			feedback[1] = bd_start;
-		}
-		if (feedback[0] < diffa[0]) {
-			diffa[0] = feedback[0];
-			diffa[1] = feedback[1];
-			diffa[2] = min_cnfrm_num;
-		}
+		if (sum < feedback[0])feedback = { sum, bd_start };
+		if (feedback[0] < diffa[0])diffa = { feedback[0], feedback[1], min_cnfrm_num };
 		else if (llabs(bd_start - diffa[1]) <= check_field) diffa[2]--;
 		if (diffa[2] <= 0) {
 			re = std::move(feedback);
@@ -973,16 +937,8 @@ int Match::Match_AVX2::caldiff(const int64_t tv_start, const size_t se_start, co
 			sum += _mm256_extract_epi64(sumvector[0], 0) + _mm256_extract_epi64(sumvector[0], 2);
 			if (sum > diffa[0])break;
 		}
-		if (sum < feedback[0])
-		{
-			feedback[0] = sum;
-			feedback[1] = bd_start;
-		}
-		if (feedback[0] < diffa[0]) {
-			diffa[0] = feedback[0];
-			diffa[1] = feedback[1];
-			diffa[2] = min_cnfrm_num;
-		}
+		if (sum < feedback[0])feedback = { sum, bd_start };
+		if (feedback[0] < diffa[0])diffa = { feedback[0], feedback[1], min_cnfrm_num };
 		else if (llabs(bd_start - diffa[1]) <= check_field) diffa[2]--;
 		if (diffa[2] <= 0) {
 			re = std::move(feedback);
@@ -992,4 +948,3 @@ int Match::Match_AVX2::caldiff(const int64_t tv_start, const size_t se_start, co
 	re = std::move(feedback);
 	return 0;
 }
-

@@ -110,18 +110,12 @@ Match_Core_Return Decode::Decode::initialize(const std::string_view & file_name0
 	int ffmpeg_return = avformat_open_input(&ffmpeg->filefm, file_name.data(), NULL, NULL);
 	if (ffmpeg_return != 0) {//获取文件格式
 		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 3), lang_pack.get_text(Lang_Type::Decoder_Error, 0), av_err_to_str(ffmpeg_return));//"\n错误：无法打开文件！ 错误信息：{}"
-		return_val = Match_Core_Return::File_Open_Err;
-		clear_ffmpeg();
-		stop_src.request_stop();
-		return return_val;
+		return error_return(Match_Core_Return::File_Open_Err);
 	}
 	ffmpeg_return = avformat_find_stream_info(ffmpeg->filefm, NULL);
 	if (ffmpeg_return < 0) {//获取文件内音视频流的信息
 		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 3), lang_pack.get_text(Lang_Type::Decoder_Error, 1), av_err_to_str(ffmpeg_return));//"\n错误：无法读取文件流信息！ 错误信息：{}"
-		return_val = Match_Core_Return::File_Stream_Err;
-		clear_ffmpeg();
-		stop_src.request_stop();
-		return return_val;
+		return error_return(Match_Core_Return::File_Stream_Err);
 	}
 	ffmpeg->codecfm = NULL;//编码格式
 	ffmpeg->codec = NULL;//解码器
@@ -137,10 +131,7 @@ Match_Core_Return Decode::Decode::initialize(const std::string_view & file_name0
 	if (audio_stream == -1)
 	{
 		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 2));//"\n错误：无音频流！"
-		return_val = Match_Core_Return::No_Audio_Err;
-		clear_ffmpeg();
-		stop_src.request_stop();
-		return return_val; // Didn't find a audio stream
+		return error_return(Match_Core_Return::No_Audio_Err); // Didn't find a audio stream
 	}
 	else if (audio_stream == 0) {
 		audio_only = true;
@@ -150,27 +141,18 @@ Match_Core_Return Decode::Decode::initialize(const std::string_view & file_name0
 	if (!ffmpeg->codec)
 	{
 		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 3));//"\n错误：无法找到音频的对应解码器！"
-		return_val = Match_Core_Return::No_Codec_Err;
-		clear_ffmpeg();
-		stop_src.request_stop();
-		return return_val; // Codec not found codec
+		return error_return(Match_Core_Return::No_Codec_Err); // Codec not found codec
 	}
 	ffmpeg->codecfm = avcodec_alloc_context3(ffmpeg->codec);//音频的编码环境
 	if (!ffmpeg->codecfm)
 	{
 		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 4));//"\n错误：无法构建音频的解码器环境！";
-		return_val = Match_Core_Return::Codec_Ctx_Err;
-		clear_ffmpeg();
-		stop_src.request_stop();
-		return return_val; // Failed to allocate the codec context
+		return error_return(Match_Core_Return::Codec_Ctx_Err); // Failed to allocate the codec context
 	}
 	ffmpeg_return = avcodec_parameters_to_context(ffmpeg->codecfm, ffmpeg->filefm->streams[audio_stream]->codecpar);
 	if (ffmpeg_return < 0) {
 		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 3), lang_pack.get_text(Lang_Type::Decoder_Error, 5), av_err_to_str(ffmpeg_return));//"\n错误：无法复制音频的解码器参数！ 错误信息：{}"
-		return_val = Match_Core_Return::Codec_Copy_Para_Err;
-		clear_ffmpeg();
-		stop_src.request_stop();
-		return return_val; // Failed to copy codec parameters to decoder context
+		return error_return(Match_Core_Return::Codec_Copy_Para_Err); // Failed to copy codec parameters to decoder context
 	}
 
 	feedback += std::format("{0}{1}{0}{2}", lang_pack.get_text(Lang_Type::General, 5),
@@ -181,10 +163,7 @@ Match_Core_Return Decode::Decode::initialize(const std::string_view & file_name0
 	if (ffmpeg_return != 0)
 	{
 		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 3), lang_pack.get_text(Lang_Type::Decoder_Error, 6), av_err_to_str(ffmpeg_return));//"\n错误：无法打开音频的对应解码器！ 错误信息：{}"
-		return_val = Match_Core_Return::Codec_Open_Err;
-		clear_ffmpeg();
-		stop_src.request_stop();
-		return return_val; // Failed to open codec
+		return error_return(Match_Core_Return::Codec_Open_Err); // Failed to open codec
 	}
 	//延迟
 	start_time = ffmpeg->filefm->streams[audio_stream]->start_time;
@@ -215,10 +194,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 		pcm.open(filename, std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!pcm.is_open()) {
 			feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 7));//"\n错误：无法打开要写入的PCM文件！"
-			return_val = Match_Core_Return::PCM_Open_Err;
-			clear_ffmpeg();
-			stop_src.request_stop();
-			return return_val;
+			return error_return(Match_Core_Return::PCM_Open_Err);
 		}
 		pcm.write("RIFF", 4);
 		pcm.write(reinterpret_cast<char*>(&pcmh), 4);//file size
@@ -291,11 +267,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 		ffmpeg->swr_ctx = swr_alloc();
 		if (!ffmpeg->swr_ctx) {
 			feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 8));//"\n错误：无法构建重采样环境！"
-			return_val = Match_Core_Return::Resample_Ctx_Alloc_Err;
-			if (output_pcm)pcm.close();
-			clear_ffmpeg();
-			stop_src.request_stop();
-			return return_val;
+			return error_return(Match_Core_Return::Resample_Ctx_Alloc_Err);
 		}
 		//重采样选项
 		av_opt_set_chlayout(ffmpeg->swr_ctx, "in_chlayout", &(ffmpeg->codecfm->ch_layout), 0);
@@ -309,11 +281,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 		ffmpeg_return = swr_init(ffmpeg->swr_ctx);
 		if (ffmpeg_return < 0) {
 			feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 3), lang_pack.get_text(Lang_Type::Decoder_Error, 9), av_err_to_str(ffmpeg_return));//"\n错误：无法初始化重采样环境！ 错误信息：{}"
-			return_val = Match_Core_Return::Resample_Ctx_Init_Err;
-			if (output_pcm)pcm.close();
-			clear_ffmpeg();
-			stop_src.request_stop();
-			return return_val;
+			return error_return(Match_Core_Return::Resample_Ctx_Init_Err);
 		}
 	}
 	else {
@@ -362,21 +330,13 @@ Match_Core_Return Decode::Decode::decode_audio() {
 			if (!ffmpeg->decoded_frame) {
 				if (!(ffmpeg->decoded_frame = av_frame_alloc())) {
 					feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 10));//"\n错误：无法为音频帧分配内存！"
-					return_val = Match_Core_Return::Frame_Alloc_Err;
-					if (output_pcm)pcm.close();
-					clear_ffmpeg();
-					stop_src.request_stop();
-					return return_val; // Could not allocate frame
+					return error_return(Match_Core_Return::Frame_Alloc_Err); // Could not allocate frame
 				}
 			}
 			ffmpeg_return = avcodec_send_packet(ffmpeg->codecfm, ffmpeg->packet);
 			if (ffmpeg_return != 0) {
 				feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 3), lang_pack.get_text(Lang_Type::Decoder_Error, 11), av_err_to_str(ffmpeg_return));//"\n错误：无法提交音频至解码器！ 错误信息：{}"
-				return_val = Match_Core_Return::Submit_Packet_Err;
-				if (output_pcm)pcm.close();
-				clear_ffmpeg();
-				stop_src.request_stop();
-				return return_val; // Error submitting a packet for decoding
+				return error_return(Match_Core_Return::Submit_Packet_Err); // Error submitting a packet for decoding
 			}
 			while (ffmpeg_return >= 0) {
 				ffmpeg_return = avcodec_receive_frame(ffmpeg->codecfm, ffmpeg->decoded_frame);
@@ -384,22 +344,14 @@ Match_Core_Return Decode::Decode::decode_audio() {
 					break;
 				else if (ffmpeg_return < 0) {
 					feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 3), lang_pack.get_text(Lang_Type::Decoder_Error, 12), av_err_to_str(ffmpeg_return));//"\n错误：音频解码出错！ 错误信息：{}"
-					return_val = Match_Core_Return::Decode_Err;
-					if (output_pcm)pcm.close();
-					clear_ffmpeg();
-					stop_src.request_stop();
-					return return_val; // Error during decoding
+					return error_return(Match_Core_Return::Decode_Err); // Error during decoding
 				}
 				data_size = av_get_bytes_per_sample(ffmpeg->codecfm->sample_fmt);
 				if (data_size < 0) {
 					/* This should not occur, checking just for paranoia */
 					ffmpeg_return = data_size;
 					feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 3), lang_pack.get_text(Lang_Type::Decoder_Error, 13), av_err_to_str(ffmpeg_return));//"\n错误：无法计算音频数据大小！ 错误信息：{}"
-					return_val = Match_Core_Return::Data_Size_Err;
-					if (output_pcm)pcm.close();
-					clear_ffmpeg();
-					stop_src.request_stop();
-					return return_val; // Failed to calculate data size
+					return error_return(Match_Core_Return::Data_Size_Err); // Failed to calculate data size
 				}
 				//从frame中获取数据
 				if (sample_type == 32) {
@@ -415,21 +367,13 @@ Match_Core_Return Decode::Decode::decode_audio() {
 						nb_samples, ffmpeg->codecfm->sample_fmt, 0);
 					if (ffmpeg_return < 0) {
 						feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 3), lang_pack.get_text(Lang_Type::Decoder_Error, 14), av_err_to_str(ffmpeg_return));//"\n错误：无法为重采样数据分配内存！ 错误信息：{}"
-						return_val = Match_Core_Return::Resample_Dst_Alloc_Err;
-						if (output_pcm)pcm.close();
-						clear_ffmpeg();
-						stop_src.request_stop();
-						return return_val; // Could not allocate destination samples
+						return error_return(Match_Core_Return::Resample_Dst_Alloc_Err); // Could not allocate destination samples
 					}
 					ffmpeg_return = swr_convert(ffmpeg->swr_ctx, ffmpeg->dst_data, nb_samples,
 						(const uint8_t **)ffmpeg->decoded_frame->extended_data, ffmpeg->decoded_frame->nb_samples);
 					if (ffmpeg_return < 0) {
 						feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 3), lang_pack.get_text(Lang_Type::Decoder_Error, 15), av_err_to_str(ffmpeg_return));//"\n错误：重采样错误！ 错误信息：{}"
-						return_val = Match_Core_Return::Convert_Err;
-						if (output_pcm)pcm.close();
-						clear_ffmpeg();
-						stop_src.request_stop();
-						return return_val; // Error while converting
+						return error_return(Match_Core_Return::Convert_Err); // Error while converting
 					}
 					audiodata = ffmpeg->dst_data;
 				}
@@ -441,11 +385,8 @@ Match_Core_Return Decode::Decode::decode_audio() {
 				double **normalized_samples = nullptr;
 				int nb_fft_sample = normalize(audiodata, normalized_samples, ffmpeg->sample_seqs, nb_last_seq, nb_samples);
 				if (stop_src.stop_requested()) {
-					return_val = Match_Core_Return::User_Stop;
-					if (output_pcm)pcm.close();
 					clear_normalized_samples(normalized_samples);
-					clear_ffmpeg();
-					return return_val;
+					return error_return(Match_Core_Return::User_Stop);
 				}
 				if (vol_mode != Vol_Mode::Cal_Only) {
 					if (nb_fft_sample > 0) {
@@ -595,6 +536,13 @@ int Decode::Decode::set_vol_coef(const double &input)
 char* Decode::Decode::av_err_to_str(const int& err_code)
 {
 	return av_make_error_string(av_err_buf, AV_ERROR_MAX_STRING_SIZE, err_code);
+}
+Match_Core_Return Decode::Decode::error_return(const Match_Core_Return& err_re)
+{
+	return_val = err_re;
+	clear_ffmpeg();
+	stop_src.request_stop();
+	return err_re;
 }
 void Decode::Decode::sub_prog_back(double val)
 {

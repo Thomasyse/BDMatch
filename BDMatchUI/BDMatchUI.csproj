@@ -14,8 +14,8 @@
     <DefaultLanguage>en-US</DefaultLanguage>
     <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
     <AssemblyName>BDMatch</AssemblyName>
-    <Version>2.0.3</Version>
-    <FileVersion>2.0.3</FileVersion>
+    <Version>2.0.4</Version>
+    <FileVersion>2.0.4</FileVersion>
     <Authors>Thomasys</Authors>
     <Copyright>By Thomasys</Copyright>
     <ApplicationIcon>logo.ico</ApplicationIcon>

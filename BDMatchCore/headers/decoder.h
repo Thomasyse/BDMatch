@@ -77,6 +77,7 @@ namespace Decode {
 		int clear_ffmpeg();
 	protected:
 		char* av_err_to_str(const int &err_code);
+		Match_Core_Return error_return(const Match_Core_Return &err_re);
 		void sub_prog_back(double val);
 		int clear_fft_data();
 		int clear_normalized_samples(double** normalized_samples);
