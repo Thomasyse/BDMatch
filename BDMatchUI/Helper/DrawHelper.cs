@@ -46,18 +46,11 @@ namespace BDMatchUI.Helper
             }
             else
             {
-                if (tv_draw.time_list[timeline - 1, 1] - tv_draw.time_list[timeline - 1, 0] > 2 * half_range)
-                {
-                    tv_start = tv_draw.time_list[timeline - 1, 0];
-                    tv_end = tv_draw.time_list[timeline - 1, 1];
-                    bd_start = bd_draw.time_list[timeline - 1, 0];
-                }
-                else
-                {
-                    tv_start = (tv_draw.time_list[timeline - 1, 0] + tv_draw.time_list[timeline - 1, 1]) / 2 - half_range;
-                    tv_end = tv_start + 2 * half_range;
-                    bd_start = (bd_draw.time_list[timeline - 1, 0] + bd_draw.time_list[timeline - 1, 1]) / 2 - half_range;
-                }
+                Int64 tv_timeline_duration = tv_draw.time_list[timeline - 1, 1] - tv_draw.time_list[timeline - 1, 0];
+                if (tv_timeline_duration > TimeSlider.ActualWidth / 2) half_range = (int)Math.Min(centi_sec / 2, tv_timeline_duration / (1.03 * scale));
+                tv_start = (tv_draw.time_list[timeline - 1, 0] + tv_draw.time_list[timeline - 1, 1]) / 2 - half_range;
+                tv_end = tv_start + 2 * half_range;
+                bd_start = (bd_draw.time_list[timeline - 1, 0] + bd_draw.time_list[timeline - 1, 1]) / 2 - half_range;
                 if (bd_draw.time_list[timeline - 1, 0] == -1) TimeText.Text = AppResources.get_string("BDMatchUI/SpectrumPage/Not_Matched");
                 else
                 {

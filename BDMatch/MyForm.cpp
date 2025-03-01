@@ -4,7 +4,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.6.4"
+#define appversion "1.6.5"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -1156,7 +1156,7 @@ System::Void BDMatch::MyForm::Subtext_DragDrop(System::Object ^ sender, System::
 
 System::Void BDMatch::MyForm::About_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nThis binary distribution is under the GPLv3 license.\n\nBDMatch Project:\nCopyright (c) 2024, Thomasys\n\nDependencies:\nFFmpeg 6.1.1\nFFTW 3.3.10: " +
+	MessageBox::Show(this, "BDMatch\nVersion " + appversion + "\nThis binary distribution is under the GPLv3 license.\n\nBDMatch Project:\nCopyright (c) 2024, Thomasys\n\nDependencies:\nFFmpeg 7.1\nFFTW 3.3.10: " +
 		"Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 216–231 (2005). ", "关于", MessageBoxButtons::OK);
 	return System::Void();
 }

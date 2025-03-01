@@ -11,10 +11,10 @@ namespace BDMatchUI
 {
     static class Constants
     {
-        public const string App_Version = "2.0.4";
-        public const string FFmpeg_Version = "7.0.1";
+        public const string App_Version = "2.0.5";
+        public const string FFmpeg_Version = "7.1";
         public const string FFTW_Version = "3.3.10";
-        public const string CopyRight_Year = "2024";
+        public const string CopyRight_Year = "2025";
     }
     static class AppResources
     {

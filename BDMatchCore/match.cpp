@@ -4,9 +4,9 @@
 #include <immintrin.h>
 #include <cmath>
 
-constexpr int tvmax_num = 12;
-constexpr int tvmin_num = 12;
-constexpr int allowed_offset = 2;
+constexpr int TV_MAXIMUN_CNT = 12;
+constexpr int TV_MINIMUN_CNT = 12;
+constexpr int ALLOWED_OFFSET = 2;
 
 using namespace DataStruct;
 using std::min;
@@ -451,52 +451,50 @@ Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, cons
 				sub_prog_back();
 				continue;
 			}
-			int64_t findstart = static_cast<int64_t>(tv_time[line_idx] - search_range_fft);
-			int64_t findend = static_cast<int64_t>(tv_time[line_idx] + search_range_fft);
+			int64_t find_start = static_cast<int64_t>(tv_time[line_idx] - search_range_fft);
+			int64_t find_end = static_cast<int64_t>(tv_time[line_idx] + search_range_fft);
 			int64_t duration = timeline_list[line_idx].duration();
-			findstart = max(static_cast<int64_t>(0), findstart);
-			findend = static_cast<int64_t>(min(bd_fft_samp_num - duration - 1, findend));
-			int find_num = static_cast<int>((findend - findstart) / interval);
+			find_start = max(static_cast<int64_t>(0), find_start);
+			find_end = static_cast<int64_t>(min(bd_fft_samp_num - duration - 1, find_end));
+			int find_num = static_cast<int>((find_end - find_start) / interval);
 			//初筛
-			int tvmax[tvmax_num]; int64_t tvmaxtime[tvmax_num];
-			int tvmin[tvmin_num]; int64_t tvmintime[tvmin_num];
-			for (auto& j : tvmax) j = -128 * fft_size;
-			for (auto& j : tvmaxtime) j = 0;
-			for (auto& j : tvmin) j = 128 * fft_size;
-			for (auto& j : tvmintime) j = 0;
+			std::array<int, TV_MAXIMUN_CNT> tv_max_arr; std::array <int64_t, TV_MAXIMUN_CNT> tv_max_time_arr{};
+			std::array<int, TV_MINIMUN_CNT> tv_min_arr; std::array <int64_t, TV_MINIMUN_CNT> tv_min_time_arr{};
+			tv_max_arr.fill(-128 * fft_size);
+			tv_min_arr.fill(128 * fft_size);
 			for (int64_t j = 0; j <= duration; j++) {
-				for (int k = 0; k < tvmax_num; k++) {
-					if (tv_fft_data[0][j + tv_time[line_idx]].sum() > tvmax[k] || j == 0) {
-						for (int m = tvmax_num - 1; m > k; m--) {
-							tvmax[m] = tvmax[m - 1];
-							tvmaxtime[m] = tvmaxtime[m - 1];
+				for (int k = 0; k < TV_MAXIMUN_CNT; k++) {
+					if (tv_fft_data[0][j + tv_time[line_idx]].sum() > tv_max_arr[k] || j == 0) {
+						for (int m = TV_MAXIMUN_CNT - 1; m > k; m--) {
+							tv_max_arr[m] = tv_max_arr[m - 1];
+							tv_max_time_arr[m] = tv_max_time_arr[m - 1];
 						}
-						tvmax[k] = tv_fft_data[0][j + tv_time[line_idx]].sum();
-						tvmaxtime[k] = j;
+						tv_max_arr[k] = tv_fft_data[0][j + tv_time[line_idx]].sum();
+						tv_max_time_arr[k] = j;
 						break;
 					}
 				}
-				for (int k = 0; k < tvmin_num; k++) {
-					if (tv_fft_data[0][j + tv_time[line_idx]].sum() < tvmin[k] || j == 0) {
-						for (int m = tvmin_num - 1; m > k; m--) {
-							tvmin[m] = tvmin[m - 1];
-							tvmintime[m] = tvmintime[m - 1];
+				for (int k = 0; k < TV_MINIMUN_CNT; k++) {
+					if (tv_fft_data[0][j + tv_time[line_idx]].sum() < tv_min_arr[k] || j == 0) {
+						for (int m = TV_MINIMUN_CNT - 1; m > k; m--) {
+							tv_min_arr[m] = tv_min_arr[m - 1];
+							tv_min_time_arr[m] = tv_min_time_arr[m - 1];
 						}
-						tvmin[k] = tv_fft_data[0][j + tv_time[line_idx]].sum();
-						tvmintime[k] = j;
+						tv_min_arr[k] = tv_fft_data[0][j + tv_time[line_idx]].sum();
+						tv_min_time_arr[k] = j;
 						break;
 					}
 				}
 			}
 			bd_se.clear();
 			for (int j = 0; j <= find_num; j++) {
-				int64_t bdtimein = findstart + j * interval;
+				int64_t bdtimein = find_start + j * interval;
 				int delta = 0;
-				for (int k = 0; k < tvmax_num; k++) {
-					delta += labs(bd_fft_data[0][bdtimein + tvmaxtime[k]].sum() - tvmax[k]);
+				for (int k = 0; k < TV_MAXIMUN_CNT; k++) {
+					delta += labs(bd_fft_data[0][bdtimein + tv_max_time_arr[k]].sum() - tv_max_arr[k]);
 				}
-				for (int k = 0; k < tvmin_num; k++) {
-					delta += labs(bd_fft_data[0][bdtimein + tvmintime[k]].sum() - tvmin[k]);
+				for (int k = 0; k < TV_MINIMUN_CNT; k++) {
+					delta += labs(bd_fft_data[0][bdtimein + tv_min_time_arr[k]].sum() - tv_min_arr[k]);
 				}
 				delta = delta >> right_shift;
 				//bd_se.push(bdtimein, delta);
@@ -592,13 +590,13 @@ Match_Core_Return Match::Match::output(const std::string_view &output_path)
 			temp = tv_time[i] - tv_time[i - 1] >= 0 ? 1 : -1;
 			temp *= bd_time[i] - bd_time[i - 1] >= 0 ? 1 : -1;
 			if (temp < 0) check = 1;
-			if (llabs(time_diff[i] - time_diff[i - 1]) > allowed_offset * interval) check2 = false;
+			if (llabs(time_diff[i] - time_diff[i - 1]) > ALLOWED_OFFSET * interval) check2 = false;
 		}
 		if (check == 0 && i < nb_timeline - 1 && tv_time[i + 1] != -1) {
 			temp = tv_time[i + 1] - tv_time[i] >= 0 ? 1 : -1;
 			temp *= bd_time[i + 1] - bd_time[i] >= 0 ? 1 : -1;
 			if (temp < 0) check = 2;
-			if (llabs(time_diff[i] - time_diff[i + 1]) > allowed_offset * interval && !check2) check = 3;
+			if (llabs(time_diff[i] - time_diff[i + 1]) > ALLOWED_OFFSET * interval && !check2) check = 3;
 		}
 		switch (check) {
 		case 1:

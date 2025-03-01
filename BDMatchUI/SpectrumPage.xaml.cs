@@ -1,5 +1,6 @@
 using BDMatchUI.Helper;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
@@ -120,15 +121,26 @@ namespace BDMatchUI
 
         private void ScaleSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
-            if (ScaleSlider.Value > 1)
+            const double small_scale_step = 0.1, large_scale_step = 0.5;
+            const double small_scale_step_end = 1.3, large_scale_step_start = 1.5;
+            if (ScaleSlider.Value > small_scale_step_end)
             {
-                ScaleSlider.SmallChange = 0.5;
-                ScaleSlider.StepFrequency = 0.5;
+                ScaleSlider.SmallChange = large_scale_step;
+                ScaleSlider.StepFrequency = large_scale_step;
+                if (ScaleSlider.Value < (large_scale_step_start + (large_scale_step / 2)))
+                {
+                    if (ScaleSlider.Value > (small_scale_step_end + large_scale_step_start) / 2) ScaleSlider.Value = large_scale_step_start;
+                    else ScaleSlider.Value = small_scale_step_end;
+                    double intermediate_step = Math.Round(large_scale_step_start - small_scale_step_end, 1);
+                    ScaleSlider.SmallChange = intermediate_step;
+                    ScaleSlider.StepFrequency = intermediate_step;
+                }
+                else if (ScaleSlider.Value < (large_scale_step_start + large_scale_step)) ScaleSlider.Value = large_scale_step_start + large_scale_step;
             }
             else
             {
-                ScaleSlider.SmallChange = 0.1;
-                ScaleSlider.StepFrequency = 0.1;
+                ScaleSlider.SmallChange = small_scale_step;
+                ScaleSlider.StepFrequency = small_scale_step;
             }
             if (!drawing) draw_spec();
         }
