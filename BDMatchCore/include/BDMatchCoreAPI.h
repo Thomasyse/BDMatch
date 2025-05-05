@@ -23,7 +23,7 @@ namespace BDMatchCoreAPI {
 			const bool& output_pcm = false, const bool& parallel_decode = false, const bool& vol_match = false,
 			const int& min_cnfrm_num = 100, const int& search_range = 10, const int& sub_offset = 0, const int& max_length = 20,
 			const bool& match_ass = true, const bool& fast_match = false, const bool& debug_mode = false);
-		BDMatchCore_API Match_Core_Return decode(const char* tv_path, const char* bd_path);
+		BDMatchCore_API Match_Core_Return decode(const char* tv_path, const char* bd_path); // UTF-8 required
 		BDMatchCore_API Match_Core_Return match_1(const char* sub_path, const char* encoded_tv_path = nullptr, const char* encoded_bd_path = nullptr);
 		BDMatchCore_API Match_Core_Return match_2(const char* output_path);
 		BDMatchCore_API int clear_match();

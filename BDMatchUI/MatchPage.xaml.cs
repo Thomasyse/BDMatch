@@ -782,14 +782,7 @@ namespace BDMatchUI
                     CoreHelper.clear_match();
                     return match_ass_re;
                 };
-                Encoding encoder = Encoding.UTF8;
-                byte[] tv_path_encoded = new byte[encoder.GetByteCount(tv_path)];
-                encoder.GetBytes(tv_path, tv_path_encoded);
-                tv_path_encoded[^1] = 0;
-                byte[] bd_path_encoded = new byte[encoder.GetByteCount(bd_path)];
-                encoder.GetBytes(bd_path, bd_path_encoded);
-                bd_path_encoded[^1] = 0;
-                re = CoreHelper.match_1(sub_path, tv_path_encoded, bd_path_encoded);
+                re = CoreHelper.match_1(sub_path, tv_path, bd_path);
                 if (re != MatchReturn.Success) return return_match_ass_err(re);
 
                 //ªÊÕºœ‡πÿ

@@ -101,7 +101,7 @@ int Decode::Decode::load_settings(const int &fft_num0, const bool &output_pcm0,
 	return 0;
 }
 
-Match_Core_Return Decode::Decode::initialize(const std::string_view & file_name0)
+Match_Core_Return Decode::Decode::initialize(const std::string_view &file_name0)
 {
 	feedback.clear();
 	file_name = file_name0;
@@ -533,11 +533,11 @@ int Decode::Decode::set_vol_coef(const double &input)
 	return 0;
 }
 
-char* Decode::Decode::av_err_to_str(const int& err_code)
+char* Decode::Decode::av_err_to_str(const int &err_code)
 {
 	return av_make_error_string(av_err_buf, AV_ERROR_MAX_STRING_SIZE, err_code);
 }
-Match_Core_Return Decode::Decode::error_return(const Match_Core_Return& err_re)
+Match_Core_Return Decode::Decode::error_return(const Match_Core_Return &err_re)
 {
 	return_val = err_re;
 	clear_ffmpeg();

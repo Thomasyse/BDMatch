@@ -38,10 +38,10 @@ namespace BDMatchUI.Helper
             in bool match_ass, in bool fast_match, in bool debug_mode);
 
         [DllImport(@"BDMatchCore.dll", EntryPoint = "decode", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public static extern MatchReturn decode([MarshalAs(UnmanagedType.LPStr)] string tv_path, [MarshalAs(UnmanagedType.LPStr)] string bd_path);
+        public static extern MatchReturn decode([MarshalAs(UnmanagedType.LPUTF8Str)] string tv_path, [MarshalAs(UnmanagedType.LPUTF8Str)] string bd_path);
 
         [DllImport(@"BDMatchCore.dll", EntryPoint = "match_1", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public static extern MatchReturn match_1([MarshalAs(UnmanagedType.LPStr)] string sub_path, [MarshalAs(UnmanagedType.LPArray)] byte[] tv_path, [MarshalAs(UnmanagedType.LPArray)] byte[] bd_path);
+        public static extern MatchReturn match_1([MarshalAs(UnmanagedType.LPStr)] string sub_path, [MarshalAs(UnmanagedType.LPUTF8Str)] string tv_path, [MarshalAs(UnmanagedType.LPUTF8Str)] string bd_path);
 
         [DllImport(@"BDMatchCore.dll", EntryPoint = "match_2", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public static extern MatchReturn match_2([MarshalAs(UnmanagedType.LPStr)] string output_path);

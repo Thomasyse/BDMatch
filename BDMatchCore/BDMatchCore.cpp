@@ -174,9 +174,9 @@ Match_Core_Return BDMatchCore::match_1(const char *sub_path0, const char* encode
 		// read tv and bd paths
 		std::string_view tv_file_name, bd_file_name;
 		if (encoded_tv_path)tv_file_name = encoded_tv_path;
-		else tv_file_name = tv_decode->get_file_name();
+		else tv_file_name = tv_decode->get_file_name().data();
 		if (encoded_bd_path)bd_file_name = encoded_bd_path;
-		else bd_file_name = bd_decode->get_file_name();
+		else bd_file_name = bd_decode->get_file_name().data();
 		//
 		if (stop_src->stop_requested()) {
 			return Match_Core_Return::User_Stop;
@@ -315,7 +315,8 @@ int BDMatchCore::feedback_tv(const std::string_view& tv_path)
 		feedback += std::format("{}{}", lang_pack.get_text(Lang_Type::Core, 0),
 			lang_pack.get_text(Lang_Type::General, 1));//"\nTV文件：  "
 		feed_func(feedback.c_str(), feedback.length());
-		feed_func(tv_path.substr(tv_path.find_last_of("\\") + 1).data(), -1);
+		std::string_view tv_file_name = tv_path.substr(tv_path.find_last_of("\\") + 1);
+		feed_func(reinterpret_cast<const char*>(tv_file_name.data()), tv_file_name.size());
 		feedback.clear();
 		std::string_view decoder_feedback = tv_decode->get_feedback();
 		feedback.reserve(decoder_feedback.size() + 3);
@@ -335,7 +336,8 @@ int BDMatchCore::feedback_bd(const std::string_view& bd_path, const double& bd_p
 		feedback += std::format("{}{}", lang_pack.get_text(Lang_Type::Core, 1),
 			lang_pack.get_text(Lang_Type::General, 1));//"\nBD文件：  "
 		feed_func(feedback.c_str(), feedback.length());
-		feed_func(bd_path.substr(bd_path.find_last_of("\\") + 1).data(), -1);
+		std::string_view bd_file_name = bd_path.substr(bd_path.find_last_of("\\") + 1);
+		feed_func(reinterpret_cast<const char*>(bd_file_name.data()), bd_file_name.size());
 		feedback.clear();
 		std::string_view decoder_feedback = bd_decode->get_feedback();
 		feedback.reserve(decoder_feedback.size() + 3);

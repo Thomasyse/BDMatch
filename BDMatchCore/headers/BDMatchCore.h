@@ -19,7 +19,7 @@ public:
 		const bool& output_pcm0 = false, const bool& parallel_decode0 = false, const bool& vol_match0 = false,
 		const int& min_cnfrm_num0 = 100, const int& search_range0 = 10, const int& sub_offset0 = 0, const int& max_length0 = 20,
 		const bool& match_ass0 = true, const bool& fast_match0 = false, const bool& debug_mode0 = false);
-	Match_Core_Return decode(const char* tv_path0, const char* bd_path0);
+	Match_Core_Return decode(const char* tv_path0, const char* bd_path0); // UTF-8 required
 	Match_Core_Return match_1(const char* sub_path0, const char* encoded_tv_path0 = nullptr, const char* encoded_bd_path0 = nullptr);
 	Match_Core_Return match_2(const char* output_path0);
 	int clear_match();

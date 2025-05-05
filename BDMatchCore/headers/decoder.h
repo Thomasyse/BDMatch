@@ -54,11 +54,11 @@ namespace Decode {
 	class Decode
 	{
 	public:
-		Decode(const Language_Pack& lang_pack0, std::stop_source &stop_src0);
+		Decode(const Language_Pack &lang_pack0, std::stop_source &stop_src0);
 		virtual ~Decode();
 		int load_settings(const int &fft_num0, const bool &output_pcm0, const int &min_db0, 
 			const int &resamp_rate0, const Prog_Mode &prog_type0, fftw_plan plan0, const prog_func &prog_single0 = nullptr);
-		Match_Core_Return initialize(const std::string_view &file_name0);
+		Match_Core_Return initialize(const std::string_view &file_name0); // UTF-8 required
 		Match_Core_Return decode_audio();
 		std::string_view get_feedback();
 		std::string_view get_file_name();
@@ -110,7 +110,7 @@ namespace Decode {
 		char* fft_spec_mem = nullptr;
 		char av_err_buf[AV_ERROR_MAX_STRING_SIZE] = { 0 };
 		//audio info
-		std::string_view file_name;
+		std::string_view file_name; // UTF-8 required
 		int out_bit_depth = 0;
 		int audio_stream = 0;
 		int64_t centi_sec = 0;

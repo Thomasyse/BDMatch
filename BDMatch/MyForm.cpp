@@ -4,7 +4,7 @@
 #pragma managed
 #include <msclr\marshal_cppstd.h>
 
-#define appversion "1.6.5"
+#define appversion "1.6.6"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -68,7 +68,7 @@ Match_Core_Return BDMatch::MyForm::match(String^ sub_text, String^ tv_text, Stri
 	const char* bd_path = convert.marshal_as<const char*>(bd_text);
 	const char* sub_path = convert.marshal_as<const char*>(sub_text);
 	const char* output_path0 = convert.marshal_as<const char*>(output_path);
-	//convert tv paths to UTF-8
+	//convert tv path to UTF-8
 	UTF8Encoding^ utf8 = gcnew UTF8Encoding;
 	array<Byte>^ encoded_tv_path = utf8->GetBytes(tv_text);
 	int tv_path_size = Marshal::SizeOf(encoded_tv_path[0]) * encoded_tv_path->Length;
@@ -76,7 +76,7 @@ Match_Core_Return BDMatch::MyForm::match(String^ sub_text, String^ tv_text, Stri
 	Marshal::Copy(encoded_tv_path, 0, tv_pnt, encoded_tv_path->Length);
 	char* tv_path_ptr = static_cast<char*>(tv_pnt.ToPointer());
 	tv_path_ptr[tv_path_size] = 0;
-	//convert bd paths to UTF-8
+	//convert bd path to UTF-8
 	array<Byte>^ encoded_bd_path = utf8->GetBytes(bd_text);
 	int bd_path_size = Marshal::SizeOf(encoded_bd_path[0]) * encoded_bd_path->Length;
 	IntPtr bd_pnt = Marshal::AllocHGlobal(bd_path_size + 1);
@@ -84,13 +84,13 @@ Match_Core_Return BDMatch::MyForm::match(String^ sub_text, String^ tv_text, Stri
 	char* bd_path_ptr = static_cast<char*>(bd_pnt.ToPointer());
 	bd_path_ptr[bd_path_size] = 0;
 	//decode
-	re = BDMatchCoreAPI::decode(tv_path, bd_path);
+	re = BDMatchCoreAPI::decode(tv_path_ptr, bd_path_ptr);
 	if (re != Match_Core_Return::Success) {
 		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;
 	}
 	if (setting->match_ass) {
-		re = write_ass(sub_path, output_path0, tv_path_ptr, bd_path_ptr);
+		re = write_ass(sub_path, output_path0, nullptr, nullptr);
 	}
 	else {
 		prog_single(3, 0);

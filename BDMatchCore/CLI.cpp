@@ -8,9 +8,9 @@ A simple example of command line usage of BDMatchCore
 #include <iostream>
 #include "headers/BDMatchCore.h"
 
-constexpr const char* version = "1.1.5";
+constexpr const char* version = "1.1.6";
 
-void print(const char* in, const int64_t len) {
+void print(const char* in, const int64_t len) { // Encoded with system code page if len == -1, otherwise UTF-8
 	std::cout << in;
 }
 
@@ -24,7 +24,7 @@ public:
 };
 
 int main(int argc, char* argv[]) {
-	//Setteings(default value as below):
+	// Setteings (Default value as below):
 	std::vector<setting<bool>> bool_settings = { 
 		{false, "-opcm", "output decoded wave file"},
 		{false, "-padec", "parallel decode, recommended for disk with good performance"},
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 		{20, "-maxlen", "the max length of the timeline to be matched, with the unit of second (default: 20)"} };
 		{0, "-lang", "Language (en-US: 0, zh-CN: 1)" }
 };
-	//help
+	// Help
 	std::string help_s = "--help";
 	if (argc == 2) {
 		if (argc == 2 && std::string(argv[1]) == help_s) {
@@ -65,12 +65,12 @@ int main(int argc, char* argv[]) {
 		std::cout << "insufficient inputs, type 'bdmatch " << help_s << "' for help." << std::endl;
 		return 0;
 	}
-	//file paths
-	const char* tv_path = argv[1];//TV file path
-	const char* bd_path = argv[2];//BD file path
-	const char* sub_path = argv[3];//subtitle file path
-	const char* output_path = "";//output ASS file path, "" for auto rename.
-	//read argv
+	// File paths
+	const char* tv_path = argv[1]; // TV file path (UTF-8 required)
+	const char* bd_path = argv[2]; // BD file path (UTF-8 required)
+	const char* sub_path = argv[3]; // Subtitle file path (System code page required)
+	const char* output_path = ""; // Output ASS file path, "" for auto rename (System code page required)
+	// Rread argv
 	for (int i = 4; i < argc; i++) {
 		bool fin = false;
 		std::string str = argv[i];
@@ -102,10 +102,10 @@ int main(int argc, char* argv[]) {
 			return 0;
 		}
 	}
-	//set up BDMatchCore
+	// Set up BDMatchCore
 	BDMatchCore* match_core = new BDMatchCore;
-	prog_func prog_ptr = nullptr;//function pointer to show progress: prog_func(int phase(0-3), double percent);
-	feedback_func feedback_ptr = print;//function pointer to show feedback: feedback_func(const char* feedback_string);
+	prog_func prog_ptr = nullptr; // Function pointer to show progress: prog_func(int phase(0-3), double percent);
+	feedback_func feedback_ptr = print; // Function pointer to show feedback: feedback_func(const char* feedback_string);
 	if (int_settings[7].val == 1)match_core->set_language("zh-CN");
 	else match_core->set_language("en-US");
 	match_core->load_interface(prog_ptr, feedback_ptr);
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
 		int_settings[3].val, int_settings[4].val, int_settings[5].val, int_settings[6].val,
 		!bool_settings[3].val, bool_settings[4].val, bool_settings[5].val);
 	match_core->start_process();
-	//decode
+	// Decode
 	int re = 0;
 	re = match_core->decode(tv_path, bd_path);
 	if (re < 0) return re;
