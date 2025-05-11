@@ -22,19 +22,29 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock x:Name="HelpText" x:Uid="BDMatchUI/HelpPage/HelpText" Grid.Row="0" Grid.Column="0" FontSize="40" Margin="25, 10, 20, 10" TextWrapping="WrapWholeWords" />
+                <TextBlock x:Name="HelpText" x:Uid="BDMatchUI/HelpPage/HelpText" Text="{x:Bind text_helper.HelpText, Mode=OneWay}" Grid.Row="0" Grid.Column="0" FontSize="40" Margin="25, 10, 20, 10" TextWrapping="WrapWholeWords" />
                 <StackPanel x:Name="HelpPanel" Margin="5,0,125,5" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center"
                             SizeChanged="HelpPanel_SizeChanged">
-                    <TextBlock x:Name="BatchProcessingHeader" x:Uid="BDMatchUI/HelpPage/BatchProcessingHeader" Margin="20,20,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="22" TextWrapping="WrapWholeWords"/>
-                    <TextBlock x:Name="BatchProcessingText" x:Uid="BDMatchUI/HelpPage/BatchProcessingText" Margin="60,10,5,0" VerticalAlignment="Center" FontSize="18" TextWrapping="WrapWholeWords"/>
-                    <TextBlock x:Name="OneToMultiHeader" x:Uid="BDMatchUI/HelpPage/OneToMultiHeader" Margin="20,40,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
-                    <TextBlock x:Name="OneToMultiText" x:Uid="BDMatchUI/HelpPage/OneToMultiText" Margin="60,10,5,0" VerticalAlignment="Center" FontSize="18" TextWrapping="WrapWholeWords"/>
-                    <TextBlock x:Name="UsingRegexHeader" x:Uid="BDMatchUI/HelpPage/UsingRegexHeader" Margin="20,40,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="22" TextWrapping="WrapWholeWords"/>
-                    <TextBlock x:Name="UsingRegexText" x:Uid="BDMatchUI/HelpPage/UsingRegexText" Margin="60,10,5,0" VerticalAlignment="Center" FontSize="18" TextWrapping="WrapWholeWords"/>
-                    <TextBlock x:Name="ExcludeSubExprHeader" x:Uid="BDMatchUI/HelpPage/ExcludeSubExprHeader" Margin="20,40,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="22" TextWrapping="WrapWholeWords"/>
-                    <TextBlock x:Name="ExcludeSubExprText" x:Uid="BDMatchUI/HelpPage/ExcludeSubExprText" Margin="60,10,5,0" VerticalAlignment="Center" FontSize="18" TextWrapping="WrapWholeWords"/>
-                    <TextBlock x:Name="FastRegexHeader" x:Uid="BDMatchUI/HelpPage/FastRegexHeader" Margin="20,40,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="22" TextWrapping="WrapWholeWords"/>
-                    <TextBlock x:Name="FastRegexText" x:Uid="BDMatchUI/HelpPage/FastRegexText" Margin="60,10,5,0" VerticalAlignment="Center" FontSize="18" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="BatchProcessingHeader" x:Uid="BDMatchUI/HelpPage/BatchProcessingHeader" Text="{x:Bind text_helper.BatchProcessingHeader, Mode=OneWay}"
+                               Margin="20,20,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="22" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="BatchProcessingText" x:Uid="BDMatchUI/HelpPage/BatchProcessingText" Text="{x:Bind text_helper.BatchProcessingText, Mode=OneWay}"
+                               Margin="60,10,5,0" VerticalAlignment="Center" FontSize="18" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="OneToMultiHeader" x:Uid="BDMatchUI/HelpPage/OneToMultiHeader" Text="{x:Bind text_helper.OneToMultiHeader, Mode=OneWay}"
+                               Margin="20,40,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="OneToMultiText" x:Uid="BDMatchUI/HelpPage/OneToMultiText" Text="{x:Bind text_helper.OneToMultiText, Mode=OneWay}"
+                               Margin="60,10,5,0" VerticalAlignment="Center" FontSize="18" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="UsingRegexHeader" x:Uid="BDMatchUI/HelpPage/UsingRegexHeader" Text="{x:Bind text_helper.UsingRegexHeader, Mode=OneWay}"
+                               Margin="20,40,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="22" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="UsingRegexText" x:Uid="BDMatchUI/HelpPage/UsingRegexText" Text="{x:Bind text_helper.UsingRegexText, Mode=OneWay}"
+                               Margin="60,10,5,0" VerticalAlignment="Center" FontSize="18" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="ExcludeSubExprHeader" x:Uid="BDMatchUI/HelpPage/ExcludeSubExprHeader" Text="{x:Bind text_helper.ExcludeSubExprHeader, Mode=OneWay}"
+                               Margin="20,40,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="22" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="ExcludeSubExprText" x:Uid="BDMatchUI/HelpPage/ExcludeSubExprText" Text="{x:Bind text_helper.ExcludeSubExprText, Mode=OneWay}"
+                               Margin="60,10,5,0" VerticalAlignment="Center" FontSize="18" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="FastRegexHeader" x:Uid="BDMatchUI/HelpPage/FastRegexHeader" Text="{x:Bind text_helper.FastRegexHeader, Mode=OneWay}"
+                               Margin="20,40,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="22" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="FastRegexText" x:Uid="BDMatchUI/HelpPage/FastRegexText" Text="{x:Bind text_helper.FastRegexText, Mode=OneWay}"
+                               Margin="60,10,5,0" VerticalAlignment="Center" FontSize="18" TextWrapping="WrapWholeWords"/>
                 </StackPanel>
             </Grid>
         </ScrollView>

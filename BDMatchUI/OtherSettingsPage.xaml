@@ -25,11 +25,12 @@
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock x:Name="OtherSettingsText" x:Uid="BDMatchUI/OtherSettingsPage/OtherSettingsText" Grid.Row="0" Grid.Column="0" FontSize="40" Margin="25, 10, 20, 10" TextWrapping="WrapWholeWords" />
+                <TextBlock x:Name="OtherSettingsText" x:Uid="BDMatchUI/OtherSettingsPage/OtherSettingsText" Text="{x:Bind text_helper.OtherSettingsText, Mode=OneWay}" Grid.Row="0" Grid.Column="0" FontSize="40" Margin="25, 10, 20, 10" TextWrapping="WrapWholeWords" />
                 
                 <StackPanel Grid.Row="2" Grid.Column="0" Margin="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                     <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock x:Name="LanguageText" x:Uid="BDMatchUI/OtherSettingsPage/LanguageText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                        <TextBlock x:Name="LanguageText" x:Uid="BDMatchUI/OtherSettingsPage/LanguageText" Text="{x:Bind text_helper.LanguageText, Mode=OneWay}" 
+                                   Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
                         <ComboBox x:Name="LanguageCombo" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="18"
                                   SelectionChanged="LanguageCombo_SelectionChanged">
                         </ComboBox>
@@ -38,7 +39,7 @@
                 
                 <StackPanel Grid.Row="3" Grid.Column="0" Margin="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                     <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock x:Name="ThemeText" x:Uid="BDMatchUI/OtherSettingsPage/ThemeText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                        <TextBlock x:Name="ThemeText" x:Uid="BDMatchUI/OtherSettingsPage/ThemeText" Text="{x:Bind text_helper.ThemeText, Mode=OneWay}" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
                         <ComboBox x:Name="ThemeCombo" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="18"
                                   SelectionChanged="ThemeCombo_SelectionChanged">
                         </ComboBox>

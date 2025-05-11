@@ -28,11 +28,13 @@
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock x:Name="DecodeSettingsText" x:Uid="BDMatchUI/DeccodeSettingsPage/DecodeSettingsText" Grid.Row="0" Grid.Column="0" FontSize="40" Margin="25, 10, 20, 10" TextWrapping="WrapWholeWords" />
+                <TextBlock x:Name="DecodeSettingsText" x:Uid="BDMatchUI/DeccodeSettingsPage/DecodeSettingsText" Text="{x:Bind text_helper.DecodeSettingsText, Mode=OneWay}"
+                           Grid.Row="0" Grid.Column="0" FontSize="40" Margin="25, 10, 20, 10" TextWrapping="WrapWholeWords" />
                 
                 <StackPanel Grid.Row="2" Grid.Column="0" Margin="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                     <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock x:Name="FFTNumText" x:Uid="BDMatchUI/DeccodeSettingsPage/FFTNumText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                        <TextBlock x:Name="FFTNumText" x:Uid="BDMatchUI/DeccodeSettingsPage/FFTNumText" Text="{x:Bind text_helper.FFTNumText, Mode=OneWay}"
+                                   Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
                         <ComboBox x:Name="FFTNum" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="18"
                                   SelectionChanged="FFTNum_SelectionChanged">
                             <x:String>64</x:String>
@@ -46,44 +48,57 @@
                             <x:String>16384</x:String>
                         </ComboBox>
                     </StackPanel>
-                    <TextBlock x:Name="FFTNumElbr" x:Uid="BDMatchUI/DeccodeSettingsPage/FFTNumElbr" Margin="60,10,5,0" VerticalAlignment="Center" FontSize="15" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="FFTNumElbr" x:Uid="BDMatchUI/DeccodeSettingsPage/FFTNumElbr" Text="{x:Bind text_helper.FFTNumElbr, Mode=OneWay}"
+                               Margin="60,10,5,0" VerticalAlignment="Center" FontSize="15" TextWrapping="WrapWholeWords"/>
                 </StackPanel>
                 
                 <StackPanel Grid.Row="3" Grid.Column="0" Margin="5,20,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                     <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock x:Name="MinFindDBText" x:Uid="BDMatchUI/DeccodeSettingsPage/MinFindDBText" Grid.Row="0" Grid.Column="0" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                        <TextBlock x:Name="MinFindDBText" x:Uid="BDMatchUI/DeccodeSettingsPage/MinFindDBText" Text="{x:Bind text_helper.MinFindDBText, Mode=OneWay}"
+                                   Grid.Row="0" Grid.Column="0" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
                         <NumberBox x:Name="MinFindDB" SpinButtonPlacementMode="Inline" Grid.Row="0" Grid.Column="1" Minimum="-80" Maximum="5" SmallChange="1" LargeChange="10" Margin="10,0,10,0" FontSize="18" HorizontalAlignment="Stretch"
                                   ValueChanged="MinFindDB_ValueChanged"/>
-                        <TextBlock x:Name="DecibelText" x:Uid="BDMatchUI/DeccodeSettingsPage/DecibelText" Grid.Row="0" Grid.Column="2" Margin="0,0,5,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                        <TextBlock x:Name="DecibelText" x:Uid="BDMatchUI/DeccodeSettingsPage/DecibelText" Text="{x:Bind text_helper.DecibelText, Mode=OneWay}"
+                                   Grid.Row="0" Grid.Column="2" Margin="0,0,5,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
                     </StackPanel>
-                    <TextBlock x:Name="MinFindDBElbr" x:Uid="BDMatchUI/DeccodeSettingsPage/MinFindDBElbr" Margin="60,10,5,0" VerticalAlignment="Center" FontSize="15" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="MinFindDBElbr" x:Uid="BDMatchUI/DeccodeSettingsPage/MinFindDBElbr" Text="{x:Bind text_helper.MinFindDBElbr, Mode=OneWay}"
+                               Margin="60,10,5,0" VerticalAlignment="Center" FontSize="15" TextWrapping="WrapWholeWords"/>
                 </StackPanel>
                 
                 <StackPanel Grid.Row="4" Grid.Column="0" Margin="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                     <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock x:Name="OutputPCMText" x:Uid="BDMatchUI/DeccodeSettingsPage/OutputPCMText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
-                        <ToggleSwitch AutomationProperties.Name="simple ToggleSwitch" x:Name="OutputPCM" x:Uid="BDMatchUI/DeccodeSettingsPage/OutputPCM" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                        <TextBlock x:Name="OutputPCMText" x:Uid="BDMatchUI/DeccodeSettingsPage/OutputPCMText" Text="{x:Bind text_helper.OutputPCMText, Mode=OneWay}"
+                                   Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                        <ToggleSwitch AutomationProperties.Name="simple ToggleSwitch" x:Name="OutputPCM" x:Uid="BDMatchUI/DeccodeSettingsPage/OutputPCM" OnContent="{x:Bind text_helper.OnText, Mode=OneWay}" OffContent="{x:Bind text_helper.OffText, Mode=OneWay}"
+                                      Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
                                      Toggled="OutputPCM_Toggled" FontSize="15"/>
                     </StackPanel>
-                    <TextBlock x:Name="OutputPCMElbr" x:Uid="BDMatchUI/DeccodeSettingsPage/OutputPCMElbr" Margin="60,10,5,0" VerticalAlignment="Center" FontSize="15" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="OutputPCMElbr" x:Uid="BDMatchUI/DeccodeSettingsPage/OutputPCMElbr" Text="{x:Bind text_helper.OutputPCMElbr, Mode=OneWay}"
+                               Margin="60,10,5,0" VerticalAlignment="Center" FontSize="15" TextWrapping="WrapWholeWords"/>
                 </StackPanel>
                 
                 <StackPanel Grid.Row="5" Grid.Column="0" Margin="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                     <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock x:Name="ParallelDecodeText" x:Uid="BDMatchUI/DeccodeSettingsPage/ParallelDecodeText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
-                        <ToggleSwitch AutomationProperties.Name="simple ToggleSwitch" x:Name="ParallelDecode" x:Uid="BDMatchUI/DeccodeSettingsPage/ParallelDecode" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                        <TextBlock x:Name="ParallelDecodeText" x:Uid="BDMatchUI/DeccodeSettingsPage/ParallelDecodeText" Text="{x:Bind text_helper.ParallelDecodeText, Mode=OneWay}"
+                                   Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                        <ToggleSwitch AutomationProperties.Name="simple ToggleSwitch" x:Name="ParallelDecode" x:Uid="BDMatchUI/DeccodeSettingsPage/ParallelDecode" OnContent="{x:Bind text_helper.OnText, Mode=OneWay}" OffContent="{x:Bind text_helper.OffText, Mode=OneWay}"
+                                      Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
                                      Toggled="ParallelDecode_Toggled" FontSize="15"/>
                     </StackPanel>
-                    <TextBlock x:Name="ParallelDecodeElbr" x:Uid="BDMatchUI/DeccodeSettingsPage/ParallelDecodeElbr" Margin="60,10,5,0" VerticalAlignment="Center" FontSize="15" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="ParallelDecodeElbr" x:Uid="BDMatchUI/DeccodeSettingsPage/ParallelDecodeElbr" Text="{x:Bind text_helper.ParallelDecodeElbr, Mode=OneWay}"
+                               Margin="60,10,5,0" VerticalAlignment="Center" FontSize="15" TextWrapping="WrapWholeWords"/>
                 </StackPanel>
                 
                 <StackPanel Grid.Row="6" Grid.Column="0" Margin="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                     <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock x:Name="VolMatchText" x:Uid="BDMatchUI/DeccodeSettingsPage/VolMatchText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
-                        <ToggleSwitch AutomationProperties.Name="simple ToggleSwitch" x:Name="VolMatch" x:Uid="BDMatchUI/DeccodeSettingsPage/VolMatch" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                     Toggled="VolMatch_Toggled" FontSize="15"/>
+                        <TextBlock x:Name="VolMatchText" x:Uid="BDMatchUI/DeccodeSettingsPage/VolMatchText" Text="{x:Bind text_helper.VolMatchText, Mode=OneWay}"
+                                   Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                        <ToggleSwitch AutomationProperties.Name="simple ToggleSwitch" x:Name="VolMatch" x:Uid="BDMatchUI/DeccodeSettingsPage/VolMatch" OnContent="{x:Bind text_helper.OnText, Mode=OneWay}" OffContent="{x:Bind text_helper.OffText, Mode=OneWay}"
+                                      Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                      Toggled="VolMatch_Toggled" FontSize="15"/>
                     </StackPanel>
-                    <TextBlock x:Name="VolMatchElbr" x:Uid="BDMatchUI/DeccodeSettingsPage/VolMatchElbr" Margin="60,10,5,0" VerticalAlignment="Center" FontSize="15" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="VolMatchElbr" x:Uid="BDMatchUI/DeccodeSettingsPage/VolMatchElbr" Text="{x:Bind text_helper.VolMatchElbr, Mode=OneWay}"
+                               Margin="60,10,5,0" VerticalAlignment="Center" FontSize="15" TextWrapping="WrapWholeWords"/>
                 </StackPanel>
             </Grid>
         </ScrollViewer>

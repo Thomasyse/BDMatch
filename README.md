@@ -34,7 +34,7 @@ For users of other platforms, [`BDMatchCore`](/BDMatchCore), including the core 
 1. Windows 10 1809 (17763) or newer
 2. CPU with AVX instruction set
 3. .Net 8 or newer (Release with .Net runtime is available in [`Releases`](https://github.com/Thomasyse/BDMatch/releases))
-4. [Windows App SDK](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/downloads) 1.5.2 or newer (Releases from 2.0.1 onwards include this runtime by default)
+4. [Windows App SDK](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/downloads) 1.7 or newer (Releases from 2.0.1 onwards include this runtime by default)
 5. Microsoft Visual C++ Redistributable for Visual Studio 2022
 
 ### BDMatchCore Compilation:

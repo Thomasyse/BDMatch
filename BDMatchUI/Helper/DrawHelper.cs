@@ -37,7 +37,7 @@ namespace BDMatchUI.Helper
             Int64 centi_sec = Math.Max(tv_draw.centi_sec, bd_draw.centi_sec);
             int half_range = (int)Math.Min(centi_sec / 2, TimeSlider.ActualWidth / 4 / scale);
             Int64 tv_start = 0, tv_end = 0, bd_start = 0;
-            if (jump_sel == SpectrumPage.JumpSel_Time)
+            if (jump_sel == Draw_Control.JumpSel_Time)
             {
                 tv_start = (Int64)(Math.Round((TimeSlider.Value - half_range) * tv_draw.cs_to_fft));
                 tv_end = (Int64)(Math.Round((TimeSlider.Value + half_range) * tv_draw.cs_to_fft));
@@ -46,6 +46,11 @@ namespace BDMatchUI.Helper
             }
             else
             {
+                if (timeline <= 0 || timeline > tv_draw.line_num)
+                {
+                    TimeText.Text = AppResources.get_string("BDMatchUI/SpectrumPage/Invalid_TImeline");
+                    return -1;
+                }
                 Int64 tv_timeline_duration = tv_draw.time_list[timeline - 1, 1] - tv_draw.time_list[timeline - 1, 0];
                 if (tv_timeline_duration > TimeSlider.ActualWidth / 2) half_range = (int)Math.Min(centi_sec / 2, tv_timeline_duration / (1.03 * scale));
                 tv_start = (tv_draw.time_list[timeline - 1, 0] + tv_draw.time_list[timeline - 1, 1]) / 2 - half_range;
@@ -73,7 +78,7 @@ namespace BDMatchUI.Helper
             }
             Int64 duration = (Int64)(tv_end - tv_start + 1);
 
-            if (channel >= Math.Min(tv_draw.ch_cnt, bd_draw.ch_cnt))
+            if (channel >= Math.Min(tv_draw.ch_cnt, bd_draw.ch_cnt) || channel < 0)
             {
                 TimeText.Text = AppResources.get_string("BDMatchUI/SpectrumPage/Channel_Invalid");
                 return -2;
@@ -99,11 +104,11 @@ namespace BDMatchUI.Helper
                         {
                             if (line_start <= x + sec_start && line_end >= x + sec_start)
                             {
-                                if (line_idx == timeline - 1 || jump_sel == SpectrumPage.JumpSel_Time) in_line = InLine.This;
+                                if (line_idx == timeline - 1 || jump_sel == Draw_Control.JumpSel_Time) in_line = InLine.This;
                                 else if (in_line == InLine.None) in_line = InLine.Other;
                                 if (line_start == x + sec_start || line_end == x + sec_start)
                                 {
-                                    if (line_idx == timeline - 1 || jump_sel == SpectrumPage.JumpSel_Time)
+                                    if (line_idx == timeline - 1 || jump_sel == Draw_Control.JumpSel_Time)
                                     {
                                         if (line_start == x + sec_start) edge = Edge.Start;
                                         else if (edge != Edge.Start) edge = Edge.End;

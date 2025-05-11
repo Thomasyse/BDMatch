@@ -17,5 +17,16 @@ namespace BDMatchUI.Helper
             }
             return (SolidColorBrush)Application.Current.Resources["InfoBrush"];
         }
+
+        public static Style badge_style(LogLevel level)
+        {
+            switch (level)
+            {
+                case LogLevel.Info: return (Style)Application.Current.Resources["AttentionValueInfoBadgeStyle"];
+                case LogLevel.Warning: return (Style)Application.Current.Resources["CautionValueInfoBadgeStyle"];
+                case LogLevel.Error: return (Style)Application.Current.Resources["CriticalValueInfoBadgeStyle"];
+            }
+            return (Style)Application.Current.Resources["AttentionValueInfoBadgeStyle"];
+        }
     }
 }

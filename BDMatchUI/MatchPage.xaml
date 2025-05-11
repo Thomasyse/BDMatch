@@ -44,10 +44,11 @@
                         <RowDefinition Height="*" MinHeight="45" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock x:Name="SubText" x:Uid="BDMatchUI/MatchPage/SubText" Grid.Row="0" Grid.Column="0" Margin="20,0,5,10" Text="Sub" VerticalAlignment="Center" FontSize="25"/>
-                    <TextBox x:Name="SubPath" x:Uid="BDMatchUI/MatchPage/SubPath" AllowDrop="True" Grid.Row="0" Grid.Column="1" Margin="5,0,0,10" FontSize="20" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AutomationProperties.Name="multi-line TextBox" AcceptsReturn="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                DragOver="Path_DragOver" Drop="Path_Drop"/>
-                    <Button x:Name="SubHisButton" Grid.Row="0" Grid.Column="2" Background="Transparent" BorderBrush="Transparent" Margin="0,0,0,10" Click="Regexer_Click" VerticalAlignment="Stretch" FontSize="15">
+                    <TextBlock x:Name="SubText" x:Uid="BDMatchUI/MatchPage/SubText" Text="{x:Bind text_helper.SubText, Mode=OneWay}" Grid.Row="0" Grid.Column="0" Margin="20,0,5,10" VerticalAlignment="Center" FontSize="25"/>
+                    <TextBox x:Name="SubPath" x:Uid="BDMatchUI/MatchPage/SubPath" PlaceholderText="{x:Bind text_helper.SubPathPlaceholderText, Mode=OneWay}" AllowDrop="True" Grid.Row="0" Grid.Column="1"
+                             Margin="5,0,0,10" FontSize="20" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AutomationProperties.Name="multi-line TextBox" AcceptsReturn="True" TextWrapping="Wrap"
+                             ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.VerticalScrollBarVisibility="Auto" DragOver="Path_DragOver" Drop="Path_Drop"/>
+                    <Button x:Name="SubHisButton" Grid.Row="0" Grid.Column="2" Background="Transparent" BorderBrush="Transparent" Margin="0,0,0,10" VerticalAlignment="Stretch" FontSize="15">
                         <FontIcon Glyph="&#xE81C;" />
                         <Button.Flyout>
                             <Flyout x:Name="SubPathFlyout" Placement="LeftEdgeAlignedTop">
@@ -60,10 +61,11 @@
                         <FontIcon Glyph="&#xE712;" />
                     </Button>
 
-                    <TextBlock x:Name="TVText" x:Uid="BDMatchUI/MatchPage/TVText" Grid.Row="1" Grid.Column="0" Margin="20,0,5,10" Text="TV" VerticalAlignment="Center" FontSize="25"/>
-                    <TextBox x:Name="TVPath" x:Uid="BDMatchUI/MatchPage/TVPath" AllowDrop="True" Grid.Row="1" Grid.Column="1" Margin="5,0,0,10" FontSize="20" AutomationProperties.Name="multi-line TextBox" AcceptsReturn="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                DragOver="Path_DragOver" Drop="Path_Drop"/>
-                    <Button x:Name="TVHisButton" Grid.Row="1" Grid.Column="2" Background="Transparent" BorderBrush="Transparent" Margin="0,0,0,10" Click="Regexer_Click" VerticalAlignment="Stretch" FontSize="15">
+                    <TextBlock x:Name="TVText" x:Uid="BDMatchUI/MatchPage/TVText" Text="{x:Bind text_helper.TVText, Mode=OneWay}" Grid.Row="1" Grid.Column="0" Margin="20,0,5,10" VerticalAlignment="Center" FontSize="25"/>
+                    <TextBox x:Name="TVPath" x:Uid="BDMatchUI/MatchPage/TVPath" PlaceholderText="{x:Bind text_helper.TVPathPlaceholderText, Mode=OneWay}" AllowDrop="True" Grid.Row="1" Grid.Column="1"
+                             Margin="5,0,0,10" FontSize="20" AutomationProperties.Name="multi-line TextBox" AcceptsReturn="True" TextWrapping="Wrap" 
+                             ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.VerticalScrollBarVisibility="Auto" DragOver="Path_DragOver" Drop="Path_Drop"/>
+                    <Button x:Name="TVHisButton" Grid.Row="1" Grid.Column="2" Background="Transparent" BorderBrush="Transparent" Margin="0,0,0,10" VerticalAlignment="Stretch" FontSize="15">
                         <FontIcon Glyph="&#xE81C;" />
                         <Button.Flyout>
                             <Flyout x:Name="TVPathFlyout" Placement="LeftEdgeAlignedTop">
@@ -76,10 +78,11 @@
                         <FontIcon Glyph="&#xE712;" />
                     </Button>
 
-                    <TextBlock x:Name="BDText" x:Uid="BDMatchUI/MatchPage/BDText" Grid.Row="2" Grid.Column="0" Margin="20,0,5,10" Text="BD" VerticalAlignment="Center" FontSize="25"/>
-                    <TextBox x:Name="BDPath" x:Uid="BDMatchUI/MatchPage/BDPath" AllowDrop="True" Grid.Row="2" Grid.Column="1" Margin="5,0,0,10" FontSize="20" AutomationProperties.Name="multi-line TextBox" AcceptsReturn="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                DragOver="Path_DragOver" Drop="Path_Drop"/>
-                    <Button x:Name="BDHisButton" Grid.Row="2" Grid.Column="2" Background="Transparent" BorderBrush="Transparent" Margin="0,0,0,10" Click="Regexer_Click" VerticalAlignment="Stretch" FontSize="15">
+                    <TextBlock x:Name="BDText" x:Uid="BDMatchUI/MatchPage/BDText" Text="{x:Bind text_helper.BDText, Mode=OneWay}" Grid.Row="2" Grid.Column="0" Margin="20,0,5,10" VerticalAlignment="Center" FontSize="25"/>
+                    <TextBox x:Name="BDPath" x:Uid="BDMatchUI/MatchPage/BDPath" PlaceholderText="{x:Bind text_helper.BDPathPlaceholderText, Mode=OneWay}" AllowDrop="True" Grid.Row="2" Grid.Column="1"
+                             Margin="5,0,0,10" FontSize="20" AutomationProperties.Name="multi-line TextBox" AcceptsReturn="True" TextWrapping="Wrap"
+                             ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.VerticalScrollBarVisibility="Auto" DragOver="Path_DragOver" Drop="Path_Drop"/>
+                    <Button x:Name="BDHisButton" Grid.Row="2" Grid.Column="2" Background="Transparent" BorderBrush="Transparent" Margin="0,0,0,10" VerticalAlignment="Stretch" FontSize="15">
                         <FontIcon Glyph="&#xE81C;" />
                         <Button.Flyout>
                             <Flyout x:Name="BDPathFlyout" Placement="LeftEdgeAlignedTop">
@@ -94,18 +97,18 @@
                 </Grid>
 
                 <StackPanel x:Name="MatchPanel" Grid.Row="3" Grid.ColumnSpan="1" Margin="5,0,5,5" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Top">
-                    <Button x:Name="MatchButton" x:Uid="BDMatchUI/MatchPage/MatchButton" Click="MatchButton_Click" Margin="0, 0, 0, 0" FontSize="28">Match</Button>
+                    <Button x:Name="MatchButton" x:Uid="BDMatchUI/MatchPage/MatchButton" Content="{x:Bind text_helper.MatchButtonContent, Mode=OneWay}" Click="MatchButton_Click" Margin="0, 0, 0, 0" FontSize="28"></Button>
                 </StackPanel>
 
                 <StackPanel x:Name="StatusPanel" Grid.Row="4" Grid.ColumnSpan="1" Margin="5, 5, 5, 5">
                     <StackPanel Orientation="Vertical" Margin="20, 10, 20, 0">
                         <StackPanel Orientation="Horizontal">
                             <ProgressRing x:Name="MatchProgressRing" IsActive="False" Maximum="1" Margin="15, 0" FontSize="10"/>
-                            <TextBlock x:Name="MatchProgressText" x:Uid="BDMatchUI/MatchPage/MatchProgressText" Text="Ready" VerticalAlignment="Center" FontSize="18"/>
+                            <TextBlock x:Name="MatchProgressText" x:Uid="BDMatchUI/MatchPage/MatchProgressText" Text="{x:Bind text_helper.MatchProgressText, Mode=OneWay}" VerticalAlignment="Center" FontSize="18"/>
                         </StackPanel>
                         <ProgressBar x:Name="MatchProgressBar" Value="0" Maximum="1" Margin="0, 12"/>
                         <InfoBar x:Name="MatchInfoBar" IsOpen="False" IsIconVisible="True" IsClosable="True" FontSize="20"/>
-                        <Button x:Name="LogButton" x:Uid="BDMatchUI/MatchPage/LogButton" Click="LogButton_Click"/>
+                        <Button x:Name="LogButton" x:Uid="BDMatchUI/MatchPage/LogButton" Content="{x:Bind text_helper.LogButtonContent, Mode=OneWay}" Click="LogButton_Click"/>
                     </StackPanel>
                 </StackPanel>
             </Grid>

@@ -6,12 +6,13 @@
 #include <queue>
 #include <thread>
 #include <stop_token>
+#include <chrono>
 
 #include "targetver.h"
 
 class fixed_thread_pool {
 public:
-	explicit fixed_thread_pool(size_t thread_count, std::stop_source &stop_src)
+	explicit fixed_thread_pool(size_t thread_count, std::stop_source& stop_src)
 		: data_(std::make_shared<data>()) {
 		for (size_t i = 0; i < thread_count; ++i) {
 			std::jthread([stop_tk = stop_src.get_token(), data = data_] {
@@ -19,11 +20,11 @@ public:
 				for (;;) {
 					if (!data->tasks_.empty()) {
 						if (stop_tk.stop_requested()) {
+							data->task_num_ -= data->tasks_.size();
 							data->tasks_.clear();
-							data->task_num_ = 0;
-							if (data->task_num_ == 0)data->fin_.notify_one();
-							lk.unlock();
-							lk.lock();
+							if (data->task_num_ == 0) {
+								data->fin_.notify_one();
+							}
 						}
 						else {
 							auto current = std::move(data->tasks_.front());
@@ -36,6 +37,7 @@ public:
 								data->fin_.notify_one();
 							}
 						}
+
 					}
 					else if (data->is_shutdown_) {
 						break;
@@ -44,7 +46,7 @@ public:
 						data->cond_.wait(lk);
 					}
 				}
-			}).detach();
+				}).detach();
 		}
 	}
 
@@ -60,22 +62,24 @@ public:
 			data_->cond_.notify_all();
 		}
 	}
-	
+
 	template <class F>
 	void execute(F&& task) {
 		{
 			std::lock_guard<std::mutex> lk(data_->mtx_);
 			data_->tasks_.emplace_back(std::forward<F>(task));
+			data_->task_num_++;
 		}
-		data_->task_num_++;
 		data_->cond_.notify_one();
 	}
 
 	template <class F>
-	void execute_batch(const std::vector<F> &batch) {
-		std::lock_guard<std::mutex> lk(data_->mtx_);
-		data_->tasks_.insert(data_->tasks_.end(), batch.begin(), batch.end());
-		data_->task_num_ += batch.size();
+	void execute_batch(const std::vector<F>& batch) {
+		{
+			std::lock_guard<std::mutex> lk(data_->mtx_);
+			data_->tasks_.insert(data_->tasks_.end(), batch.begin(), batch.end());
+			data_->task_num_ += batch.size();
+		}
 		data_->cond_.notify_all();
 	}
 
@@ -90,7 +94,7 @@ private:
 		std::mutex mtx_;
 		std::condition_variable cond_;
 		std::condition_variable fin_;
-		std::atomic<size_t> task_num_ = 0;
+		size_t task_num_ = 0;
 		bool is_shutdown_ = false;
 		std::deque<std::function<void()>> tasks_;
 	};

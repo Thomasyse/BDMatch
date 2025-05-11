@@ -17,44 +17,18 @@ namespace BDMatchUI
         public MatchSettingsPage()
         {
             this.InitializeComponent();
-            load_control_text();
         }
 
-        private void load_control_text()
-        {
-            MatchSettingsText.Text = AppResources.get_string("BDMatchUI/MainWindow/Navi/Match_Settings/Content");
-            MatchEnText.Text = AppResources.get_string("BDMatchUI/MatchSettingsPage/MatchEnText/Text");
-            MatchEn.OffContent = AppResources.get_string("BDMatchUI/Common/Text_Off");
-            MatchEn.OnContent = AppResources.get_string("BDMatchUI/Common/Text_On");
-            MatchEnElbr.Text = AppResources.get_string("BDMatchUI/MatchSettingsPage/MatchEnElbr/Text");
-            SearchRangeText.Text = AppResources.get_string("BDMatchUI/MatchSettingsPage/SearchRangeText/Text");
-            SecText.Text = AppResources.get_string("BDMatchUI/Common/Text_Sec");
-            SearchRangeElbr.Text = AppResources.get_string("BDMatchUI/MatchSettingsPage/SearchRangeElbr/Text");
-            MaxLengthText.Text = AppResources.get_string("BDMatchUI/MatchSettingsPage/MaxLengthText/Text");
-            SecText2.Text = AppResources.get_string("BDMatchUI/Common/Text_Sec");
-            MaxLengthElbr.Text = AppResources.get_string("BDMatchUI/MatchSettingsPage/MaxLengthElbr/Text");
-            MinCnfrmNumText.Text = AppResources.get_string("BDMatchUI/MatchSettingsPage/MinCnfrmNumText/Text");
-            MinCnfrmNumElbr.Text = AppResources.get_string("BDMatchUI/MatchSettingsPage/MinCnfrmNumElbr/Text");
-            SubOffsetText.Text = AppResources.get_string("BDMatchUI/Common/Text_SubTimeDelay");
-            CentiSecText.Text = AppResources.get_string("BDMatchUI/Common/Text_CentiSec");
-            SubOffsetElbr.Text = AppResources.get_string("BDMatchUI/MatchSettingsPage/SubOffsetElbr/Text");
-            FastMatchText.Text = AppResources.get_string("BDMatchUI/MatchSettingsPage/FastMatchText/Text");
-            FastMatch.OffContent = AppResources.get_string("BDMatchUI/Common/Text_Off");
-            FastMatch.OnContent = AppResources.get_string("BDMatchUI/Common/Text_On");
-            FastMatchElbr.Text = AppResources.get_string("BDMatchUI/MatchSettingsPage/FastMatchElbr/Text");
-
-            current_language = new string(AppResources.current_language);
-        }
-
-        SharingHelper sharing_helper;
-        SettingHelper settings;
-        string current_language = null;
+        SharingHelper sharing_helper = null;
+        SettingHelper settings = null;
+        TextHelper text_helper = null;
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             if (e.Parameter is SharingHelper && e.Parameter != null)
             {
                 sharing_helper = e.Parameter as SharingHelper;
                 settings = sharing_helper.settings;
+                text_helper = sharing_helper.text_helper;
                 MatchEn.IsOn = Convert.ToBoolean(settings[SettingType.MatchAss]);
                 FastMatch.IsOn = Convert.ToBoolean(settings[SettingType.FastMatch]);
                 SearchRange.Value = settings[SettingType.SearchRange];
@@ -62,7 +36,6 @@ namespace BDMatchUI
                 MinCnfrmNum.Value = settings[SettingType.MinCnfrmNum];
                 SubOffset.Value = settings[SettingType.SubOffset];
             }
-            if (current_language != AppResources.current_language)load_control_text();
             base.OnNavigatedTo(e);
         }
 

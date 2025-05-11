@@ -384,7 +384,7 @@ FFTW {2}: Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 21
   <data name="BDMatchUI/OtherSettingsPage/LanguageText.Text" xml:space="preserve">
     <value>Language: </value>
   </data>
-  <data name="BDMatchUI/OtherSettingsPage/ThemeText/Text" xml:space="preserve">
+  <data name="BDMatchUI/OtherSettingsPage/ThemeText.Text" xml:space="preserve">
     <value>Theme: </value>
   </data>
   <data name="BDMatchUI/Regex/FoundNMatch" xml:space="preserve">
@@ -440,5 +440,8 @@ FFTW {2}: Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 21
   </data>
   <data name="BDMatchUI/Warning/Prefix" xml:space="preserve">
     <value>Warning: </value>
+  </data>
+  <data name="BDMatchUI/SpectrumPage/Invalid_TImeline" xml:space="preserve">
+    <value>Invalid Timelline!</value>
   </data>
 </root>

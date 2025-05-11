@@ -13,7 +13,7 @@ Language_Pack::Language_Pack(const Language& language)
 		decoder_error_texts = { u8"Failed to open file!", u8"Failed to read file stream information!", u8"Didn't find a audio stream!", u8"Codec not found!",
 			u8"Failed to allocate the codec context!", u8"Failed to copy codec parameters to decoder context!", u8"Failed to open codec!", u8"Failed to open PCM file for writing!",
 			u8"Failed to allocate resampling context!", u8"Failed to initialize resampling context!", u8"Could not allocate frame!", u8"Error submitting a packet for decoding!", u8"Error during decoding!",
-			u8"Failed to calculate audio data size!", u8"Could not allocate destination samples!", u8"Error while converting!" };
+			u8"Failed to calculate audio data size!", u8"Could not allocate destination samples!", u8"Error while converting!", u8"Number of audio track channels exceeded limit!" };
 		decoder_info_texts = { u8"Channel: {}", u8"Total Frame Number: {}", u8"Format: {}",
 			u8"Sampling Rate: {} Hz", u8"Sampling Bits: {} bit",  u8"Sampling Format: {}", u8"Delay: {} ms",
 			u8"\nOutput decoded audio: {}",
@@ -25,8 +25,8 @@ Language_Pack::Language_Pack(const Language& language)
 			u8"Possible matching error in line {}: The order with the following line is inconsistent!", u8"Possible matching error in line {}: The time differences with the previous and following lines are inconsistent!" };
 		match_error_texts = { u8"Failed to read subtitle file!", u8"Original subtitle file is invalid!",
 			u8"Failed to open the output subtitle file!", u8"Failed to write the subtitle file!" };
-		match_debug_texts = { u8"Average Found Index = {:.6f}%", u8"Max Found Index = {:.6f}%", u8"Max Found Line = {}",
-			u8"Max Delta = {}", u8"Diffa Consistency = {:.6f}%" };
+		match_debug_texts = { u8"Average Found Index = {:.6f}%", u8"Average Task Index = {:.6f}%", u8"Max Found Index = {:.6f}%", u8"Max Found Line = {}",
+			u8"Max MM Delta = {}", u8"Diffa Consistency = {:.6f}%" };
 		break;
 	}
 }

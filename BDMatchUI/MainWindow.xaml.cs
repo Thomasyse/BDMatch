@@ -173,15 +173,20 @@ namespace BDMatchUI
             }
         }
 
-        SharingHelper sharing_helper = new SharingHelper();
+        public SharingHelper sharing_helper = new SharingHelper();
+        TextHelper text_helper = null;
         public MainWindow()
         {
             // Settings
+            text_helper = sharing_helper.text_helper;
             sharing_helper.settings.load_settings();
             int win_width = sharing_helper.settings[SettingType.WindowWidth] <= 0 ? 800 : sharing_helper.settings[SettingType.WindowWidth];
             int win_height = sharing_helper.settings[SettingType.WindowHeight] <= 0 ? 800 : sharing_helper.settings[SettingType.WindowHeight];
             SizeInt32 win_size = new SizeInt32(win_width, win_height);
             AppWindow.Resize(win_size);
+
+            // Text
+            sharing_helper.text_helper.load_text_resouce();
 
             // Controls
             InitializeComponent();
@@ -191,7 +196,6 @@ namespace BDMatchUI
             SetBackdrop(sharing_helper.settings.backdrop);
 
             sharing_helper.navi_view = this.NavigationViewControl;
-            load_control_text();
             NavigationViewControl.SelectedItem = LogsPage_Item;
             NavigationViewControl.SelectedItem = MatchPage_Item;
             add_theme_change_actions();
@@ -215,26 +219,15 @@ namespace BDMatchUI
             sharing_helper.settings.save_settings();
         }
 
-        public void load_control_text()
-        {
-            Match_and_Result_Header.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Match_and_Result/Content");
-            MatchPage_Item.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Match/Content");
-            LogsPage_Item.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Logs/Content");
-            SpectrumPage_Item.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Spectrum/Content");
-            Settings_Header.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Settings/Content");
-            MatchSettingsPage_Item.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Match_Settings/Content");
-            DecodeSettingsPage_Item.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Decode_Settings/Content");
-            SpectrumSettingsPage_Item.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Spectrum_Settings/Content");
-            OtherSettingsPage_Item.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Other_Settings/Content");
-            Others_Header.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Others/Content");
-            HelpPage_Item.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/Help/Content");
-            AboutPage_Item.Content = AppResources.get_string("BDMatchUI/MainWindow/Navi/About/Content");
-        }
-
         private void MainWindow_SizeChanged(object sender, WindowSizeChangedEventArgs args)
         {
             sharing_helper.settings[SettingType.WindowWidth] = AppWindow.Size.Width;
             sharing_helper.settings[SettingType.WindowHeight] = AppWindow.Size.Height;
+        }
+
+        private void LogsPage_Item_Badge_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
+        {
+            sharing_helper.log.badge.Value = 0;
         }
     }
 }

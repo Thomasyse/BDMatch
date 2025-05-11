@@ -4,13 +4,45 @@
 #include <immintrin.h>
 #include <cmath>
 
-constexpr int TV_MAXIMUN_CNT = 12;
-constexpr int TV_MINIMUN_CNT = 12;
-constexpr int ALLOWED_OFFSET = 2;
-
 using namespace DataStruct;
-using std::min;
-using std::max;
+
+namespace Match {
+	inline static char m128i_i8(__m128i& vec, const int& index)
+	{
+#ifndef _CLI_ // Windows
+		return vec.m128i_i8[index];
+#else // Other platforms
+		return reinterpret_cast<const char*>(&vec)[index];
+#endif 
+	}
+
+	inline static int32_t m128i_i32(__m128i& vec, const int& index)
+	{
+#ifndef _CLI_ // Windows
+		return vec.m128i_i32[index];
+#else // Other platforms
+		return reinterpret_cast<const int32_t*>(&vec)[index];
+#endif 
+	}
+
+	inline static char m256i_i8(__m256i& vec, const int& index)
+	{
+#ifndef _CLI_ // Windows
+		return vec.m256i_i8[index];
+#else // Other platforms
+		return reinterpret_cast<const char*>(&vec)[index];
+#endif 
+	}
+
+	inline static int32_t m256i_i32(__m256i& vec, const int& index)
+	{
+#ifndef _CLI_ // Windows
+		return vec.m256i_i32[index];
+#else // Other platforms
+		return reinterpret_cast<const int32_t*>(&vec)[index];
+#endif 
+	}
+}
 
 Match::Timeline::Timeline(const int64_t& start0, const int64_t& end0, const bool& iscom0,
 	const std::string_view &head0, const std::string_view &text0)
@@ -21,19 +53,19 @@ Match::Timeline::Timeline(const int64_t& start0, const int64_t& end0, const bool
 	head_ = head0;
 	former_text_ = text0;
 }
-int64_t Match::Timeline::start()
+int64_t Match::Timeline::start() const
 {
 	return start_;
 }
-int64_t Match::Timeline::end()
+int64_t Match::Timeline::end() const
 {
 	return end_;
 }
-int64_t Match::Timeline::duration()
+int64_t Match::Timeline::duration() const
 {
 	return end_ - start_;
 }
-bool Match::Timeline::iscom()
+bool Match::Timeline::iscom() const
 {
 	return iscom_;
 }
@@ -69,14 +101,14 @@ int Match::Timeline::head(std::string_view &head0)
 Match::BDSearch::BDSearch()
 {
 }
-int Match::BDSearch::reserve(const int &num)
+int Match::BDSearch::allocate(const int& num)
 {
-	bd_items.reserve(num);
+	bd_items.assign(num, {});
 	return 0;
 }
-int Match::BDSearch::push(const int64_t& time, const int64_t& diff)
+int Match::BDSearch::assign(const size_t& pos, const int64_t& time, const int64_t& delta)
 {
-	bd_items.push_back({ diff, time });
+	bd_items[pos] = { delta, time };
 	return 0;
 }
 int64_t Match::BDSearch::read(const size_t &pos) const
@@ -147,7 +179,6 @@ int Match::Match::load_decode_info(Spec_Node ** const & tv_fft_data0, Spec_Node 
 	fft_size = tv_fft_data[0][0].size();
 	tv_fft_samp_num = tv_fft_samp_num0;
 	bd_fft_samp_num = bd_fft_samp_num0;
-	right_shift = static_cast<int>(log2(fft_size) + 1.0);//search parameter
 	//conversion paras between time and fft data
 	t2f = static_cast<double>(tv_samp_rate) / (static_cast<double>(fft_size) * 2.0 * 100.0);
 	f2t = static_cast<double>(fft_size) * 2.0 * 100.0 / static_cast<double>(tv_samp_rate);
@@ -158,7 +189,7 @@ int Match::Match::load_decode_info(Spec_Node ** const & tv_fft_data0, Spec_Node 
 	//channels
 	tv_ch = tv_ch0;
 	bd_ch = bd_ch0;
-	ch = min(tv_ch, bd_ch);
+	ch = std::min(tv_ch, bd_ch);
 	//time of audio
 	tv_centi_sec = tv_centi_sec0;
 	bd_centi_sec = bd_centi_sec0;
@@ -169,8 +200,9 @@ int Match::Match::load_decode_info(Spec_Node ** const & tv_fft_data0, Spec_Node 
 	search_range_fft = static_cast<int64_t>(round(static_cast<double>(serach_range) * 100.0 * t2f));
 	//multithreading parameters
 	nb_sub_threads = std::thread::hardware_concurrency();
-	nb_per_sub_task = std::max(50ULL, std::min(100ULL, search_range_fft / nb_sub_threads / interval));
-	nb_sub_tasks = static_cast<size_t>(ceil(static_cast<double>(2LL * search_range_fft / interval) / static_cast<double>(nb_per_sub_task)));
+	nb_per_sub_task = std::max(NB_PER_SUB_TASK_MIN, std::min(NB_PER_SUB_TASK_MAX, search_range_fft / nb_sub_threads / interval));
+	size_t search_cnt = (2LL * search_range_fft / interval) + (((2LL * search_range_fft) % interval) ? 1 : 0);
+	nb_sub_tasks = search_cnt / nb_per_sub_task + ((search_cnt % nb_per_sub_task) ? 1 : 0);
 	nb_batch_threads = std::thread::hardware_concurrency();
 	//other info
 	bd_audio_only = bd_audio_only0;
@@ -210,6 +242,7 @@ std::pair<Match_Core_Return, size_t> Match::Match::open_sub()
 	tv_sub_file.close();
 	size_t rn_pos = tv_sub_text.find("\r\n");
 	while (rn_pos != std::string::npos) {
+		if (stop_src.stop_requested())return { Match_Core_Return::User_Stop, 0 };
 		tv_sub_text = tv_sub_text.replace(rn_pos, 2, "\n");
 		rn_pos = tv_sub_text.find("\r\n", rn_pos);
 	}
@@ -232,8 +265,7 @@ Match_Core_Return Match::Match::load_srt()
 	regex timeline_regex(
 		"\\n[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3} --> [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\\n");
 	regex time_regex("[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}");
-	decode_sub(srt_file_size, timeline_regex, time_regex, nullptr);
-	return Match_Core_Return::Success;
+	return decode_sub(srt_file_size, timeline_regex, time_regex, nullptr);
 }
 Match_Core_Return Match::Match::load_ass()
 {
@@ -260,10 +292,9 @@ Match_Core_Return Match::Match::load_ass()
 		"\\n[a-zA-Z]+: [0-9],[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2},");
 	regex header_regex("\\n[a-zA-Z]+: [0-9],");
 	regex time_regex("[0-9]:[0-9]{2}:[0-9]{2}\\.[0-9]{2}");
-	decode_sub(ass_file_size, timeline_regex, time_regex, &header_regex);
-	return Match_Core_Return::Success;
+	return decode_sub(ass_file_size, timeline_regex, time_regex, &header_regex);
 }
-int Match::Match::decode_sub(const size_t& sub_file_size, const std::regex& timeline_regex, const std::regex& time_regex, const std::regex* header_regex_ptr)
+Match_Core_Return Match::Match::decode_sub(const size_t& sub_file_size, const std::regex& timeline_regex, const std::regex& time_regex, const std::regex* header_regex_ptr)
 {
 	using std::regex, std::smatch, std::string;
 	size_t file_size_coef = (sub_type == Sub_Type::ASS) ? 60 : 40;
@@ -276,6 +307,7 @@ int Match::Match::decode_sub(const size_t& sub_file_size, const std::regex& time
 	string header, match, text;
 	smatch header_match, time_match;
 	while (regex_search(temp, timeline_match, timeline_regex)) {
+		if (stop_src.stop_requested())return Match_Core_Return::User_Stop;
 		match = timeline_match.str();
 		text = match;
 		temp = timeline_match.suffix();
@@ -300,7 +332,7 @@ int Match::Match::decode_sub(const size_t& sub_file_size, const std::regex& time
 		int end = time[1];
 		add_timeline(start, end, iscom, header, text);
 	}
-	return 0;
+	return Match_Core_Return::Success;
 }
 int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const bool& iscom, 
 	const std::string_view& header, const std::string_view& text)
@@ -336,13 +368,12 @@ int Match::Match::add_timeline(const int64_t& start, const int64_t& end, const b
 			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Warning, 1), nb_timeline));//"\n警告：第***行超过音频长度，将不作处理。"
 		return -1;
 	}
-	int maxdb = -128;
+	int max_db = -128;
 	for (int64_t j = start; j <= end; j++) {
-		if (tv_fft_data[0][j].maxv() > maxdb) {
-			maxdb = tv_fft_data[0][j].maxv();
-		}
+		int frame_max_db = cal_node_max_v(tv_fft_data[0][j]);
+		if (frame_max_db > max_db)max_db = frame_max_db;
 	}
-	if (maxdb <= -128) {
+	if (max_db <= -128) {
 		emplace_ignored_line();
 		feedback += str_vfmt(lang_pack.get_text(Lang_Type::Notif, 1), 
 			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Warning, 2), nb_timeline));//"\n警告：第***行声音过小，将不作处理。"
@@ -400,15 +431,17 @@ Match_Core_Return Match::Match::match()
 
 	// output debug info
 	if (debug_mode) {
-		for (int i = 0; i < nb_timeline; i++) {
+		feedback += "\nDebug Info:\n     Line | MM Delta | Found Index | Task Index | Min Diff | Diffa[0]";
+		for (int64_t i = 0; i < nb_timeline; i++) {
 			const auto &deb_line = deb_info.lines[i];
 			if (deb_line.found_index > -2) {
 				deb_info.nb_line++;
 				if (deb_line.delta_1 > deb_info.max_delta)deb_info.max_delta = deb_line.delta_1;
-				feedback += std::format("\n{}, {}", i + 1, deb_line.delta_1);//"\n i, delta"
+				feedback += std::format("\n    {:^6} | {:^12} | {:^10f}%  | {:^8f}%", i + 1, deb_line.delta_1, deb_line.found_index * 100.0, deb_line.task_index * 100.0);//"\n    i | minmax delta | found_index"
 				if (deb_line.min_diff == deb_line.diffa_0)deb_info.diffa_consis++;
-				else feedback += std::format(", {}, {}", deb_line.min_diff, deb_line.diffa_0);//", min_diff, diffa[0]"
-				deb_info.ave_index = deb_info.ave_index + deb_line.found_index;
+				else feedback += std::format(" | {:^10} | {:^9}", deb_line.min_diff, deb_line.diffa_0);//" | min_diff | diffa[0]"
+				deb_info.ave_index += deb_line.found_index;
+				deb_info.ave_task_index += deb_line.task_index;
 				if (deb_line.found_index > deb_info.max_index && timeline_list[i].duration() > 75 * interval) {
 					deb_info.max_index = deb_line.found_index;
 					deb_info.max_line = i + 1;
@@ -417,14 +450,16 @@ Match_Core_Return Match::Match::match()
 		}
 		
 		deb_info.ave_index = deb_info.ave_index * 100.0 / static_cast<double>(deb_info.nb_line);
+		deb_info.ave_task_index = deb_info.ave_task_index * 100.0 / static_cast<double>(deb_info.nb_line);
 		deb_info.max_index = deb_info.max_index * 100.0;
 		deb_info.diffa_consis = deb_info.diffa_consis * 100.0 / static_cast<double>(deb_info.nb_line);
-		feedback += std::format("\n{1}{0}{2}\n{3}{0}{4}\n{5}", lang_pack.get_text(Lang_Type::General, 5),
-			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 0), deb_info.ave_index),  // "\nAverage Found Index = ***%    "
-			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 1), deb_info.max_index),  // "Max Found Index = ***%\n"
-			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 2), deb_info.max_line),   // "Max Found Line = ***    "
-			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 3), deb_info.max_delta),  // "Max Delta= ***\n"
-			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 4), deb_info.diffa_consis)// "Diffa Consistency = ***%"
+		feedback += std::format("\n{1}{0}{2}\n{3}{0}{4}\n{5}{0}{6}", lang_pack.get_text(Lang_Type::General, 5),
+			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 0), deb_info.ave_index),      // "\nAverage Found Index = ***%    "
+			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 1), deb_info.ave_task_index), // "Average Task Index = ***%\n"
+			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 2), deb_info.max_index),      // "Max Found Index = ***%    "
+			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 3), deb_info.max_line),       // "Max Found Line = ***    "
+			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 4), deb_info.max_delta),      // "Max MM Delta= ***\n"
+			str_vfmt(lang_pack.get_text(Lang_Type::Match_Sub_Debug, 5), deb_info.diffa_consis)    // "Diffa Consistency = ***%"
 		);
 	}
 	return Match_Core_Return::Success;
@@ -432,17 +467,17 @@ Match_Core_Return Match::Match::match()
 
 Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, const int64_t end_line)
 {
-	// multithreading
+	// Multithreading
 	std::vector<std::function<int()>> tasks;
 	tasks.reserve(nb_sub_tasks);
 	fixed_thread_pool sub_task_pool(nb_sub_threads, stop_src);
 	// search vars
 	BDSearch bd_se;
 	std::vector<Se_Re> search_result(nb_sub_tasks, { std::numeric_limits<int64_t>::max() , 0 });
-	// fast matching parameters
+	// Fast matching parameters
 	int64_t offset = 0; int64_t five_sec = 0; int64_t last_line_time = 0;
 	if (fast_match)five_sec = static_cast<int64_t>(500 * t2f);
-	std::array<int64_t, 3> diffa({ 0 }); // No need to make atomic
+	Diffa_t diffa;
 	for (int64_t line_idx = start_line; line_idx < end_line; line_idx++) {
 		if (tv_time[line_idx] >= 0) {
 			if (fast_match && offset && last_line_time > five_sec && tv_time[line_idx - 1] > 0 && llabs(tv_time[line_idx] - last_line_time) < five_sec) {
@@ -454,75 +489,79 @@ Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, cons
 			int64_t find_start = static_cast<int64_t>(tv_time[line_idx] - search_range_fft);
 			int64_t find_end = static_cast<int64_t>(tv_time[line_idx] + search_range_fft);
 			int64_t duration = timeline_list[line_idx].duration();
-			find_start = max(static_cast<int64_t>(0), find_start);
-			find_end = static_cast<int64_t>(min(bd_fft_samp_num - duration - 1, find_end));
+			find_start = std::max(static_cast<int64_t>(0), find_start);
+			find_end = static_cast<int64_t>(std::min(bd_fft_samp_num - duration - 1, find_end));
 			int find_num = static_cast<int>((find_end - find_start) / interval);
 			//初筛
-			std::array<int, TV_MAXIMUN_CNT> tv_max_arr; std::array <int64_t, TV_MAXIMUN_CNT> tv_max_time_arr{};
-			std::array<int, TV_MINIMUN_CNT> tv_min_arr; std::array <int64_t, TV_MINIMUN_CNT> tv_min_time_arr{};
-			tv_max_arr.fill(-128 * fft_size);
-			tv_min_arr.fill(128 * fft_size);
-			for (int64_t j = 0; j <= duration; j++) {
-				for (int k = 0; k < TV_MAXIMUN_CNT; k++) {
-					if (tv_fft_data[0][j + tv_time[line_idx]].sum() > tv_max_arr[k] || j == 0) {
-						for (int m = TV_MAXIMUN_CNT - 1; m > k; m--) {
-							tv_max_arr[m] = tv_max_arr[m - 1];
-							tv_max_time_arr[m] = tv_max_time_arr[m - 1];
-						}
-						tv_max_arr[k] = tv_fft_data[0][j + tv_time[line_idx]].sum();
-						tv_max_time_arr[k] = j;
+			std::array<Samp_Info, TV_MAXIMUN_CNT + TV_MINIMUN_CNT> tv_samp_arr;
+			const int64_t uniform_samp_interval = duration / (TV_MINIMUN_CNT - 1);
+			int64_t tv_samp_sum = 0;
+			for (int64_t j = 0, uniform_j = 0; j <= duration; j++) {
+				int tv_line_sum_ch0 = get_node_sum(tv_fft_data[0][j + tv_time[line_idx]]);
+				int tv_line_sum_max = tv_line_sum_ch0, tv_line_sum_max_ch = 0;
+				int tv_line_sum_min = tv_line_sum_ch0, tv_line_sum_min_ch = 0;
+				if (ch > 1) {
+					int tv_line_sum_ch1 = get_node_sum(tv_fft_data[1][j + tv_time[line_idx]]);
+					tv_line_sum_max = std::max(tv_line_sum_ch0, tv_line_sum_ch1);
+					tv_line_sum_max_ch = tv_line_sum_ch0 < tv_line_sum_ch1 ? 1 : 0;
+					tv_line_sum_min = std::min(tv_line_sum_ch0, tv_line_sum_ch1);
+					tv_line_sum_min_ch = tv_line_sum_ch0 > tv_line_sum_ch1 ? 1 : 0;
+				}
+				if (j == 0)tv_samp_arr.fill({ tv_line_sum_min, tv_line_sum_min_ch, 0 });
+				for (size_t k = 0; k < TV_MAXIMUN_CNT; k++) {
+					if (tv_line_sum_max > std::get<0>(tv_samp_arr[k]) || (j == 0 && k == 0)) {
+						for (size_t m = TV_MAXIMUN_CNT - 1; m > k; m--)tv_samp_arr[m] = tv_samp_arr[m - 1];
+						tv_samp_sum += tv_line_sum_max;
+						tv_samp_arr[k] = { tv_line_sum_max, tv_line_sum_max_ch, j };
 						break;
 					}
 				}
-				for (int k = 0; k < TV_MINIMUN_CNT; k++) {
-					if (tv_fft_data[0][j + tv_time[line_idx]].sum() < tv_min_arr[k] || j == 0) {
-						for (int m = TV_MINIMUN_CNT - 1; m > k; m--) {
-							tv_min_arr[m] = tv_min_arr[m - 1];
-							tv_min_time_arr[m] = tv_min_time_arr[m - 1];
-						}
-						tv_min_arr[k] = tv_fft_data[0][j + tv_time[line_idx]].sum();
-						tv_min_time_arr[k] = j;
+				for (size_t k = 0; k < TV_MINIMUN_CNT; k++) {
+					if (tv_line_sum_min < std::get<0>(tv_samp_arr[k + TV_MAXIMUN_CNT]) || (j == 0 && k == 0)) {
+						for (size_t m = TV_MINIMUN_CNT + TV_MAXIMUN_CNT - 1; m > k + TV_MAXIMUN_CNT; m--)tv_samp_arr[m] = tv_samp_arr[m - 1];
+						tv_samp_arr[k + TV_MAXIMUN_CNT] = { tv_line_sum_min, tv_line_sum_min_ch, j };
 						break;
 					}
 				}
 			}
-			bd_se.clear();
-			for (int j = 0; j <= find_num; j++) {
-				int64_t bdtimein = find_start + j * interval;
-				int delta = 0;
-				for (int k = 0; k < TV_MAXIMUN_CNT; k++) {
-					delta += labs(bd_fft_data[0][bdtimein + tv_max_time_arr[k]].sum() - tv_max_arr[k]);
-				}
-				for (int k = 0; k < TV_MINIMUN_CNT; k++) {
-					delta += labs(bd_fft_data[0][bdtimein + tv_min_time_arr[k]].sum() - tv_min_arr[k]);
-				}
-				delta = delta >> right_shift;
-				//bd_se.push(bdtimein, delta);
-				if (delta < 600)bd_se.push(bdtimein, delta);
+			int32_t tv_samp_avg = static_cast<int32_t>(tv_samp_sum / tv_samp_arr.size());
+			auto tv_samp_time_cmp = [](const Samp_Info& a, const Samp_Info& b) { return std::get<1>(a) <= std::get<1>(b) && std::get<2>(a) < std::get<2>(b); };
+			std::sort(tv_samp_arr.begin(), tv_samp_arr.end(), tv_samp_time_cmp);
+			size_t nb_se_sub_tasks = find_num / NB_PER_SE_SUB_TASK;
+			size_t nb_per_se_sub_task = find_num / nb_se_sub_tasks + ((find_num % nb_se_sub_tasks) ? 1 : 0);
+			bd_se.allocate(find_num);
+			for (size_t se_start = 0, bd_time_start = find_start; se_start < find_num; se_start += nb_per_se_sub_task, bd_time_start += interval * nb_per_se_sub_task) {
+				tasks.emplace_back(std::bind(&Match::cal_se_delta, this, bd_time_start, se_start, std::min(se_start + nb_per_se_sub_task, bd_se.size()), std::ref(bd_se), tv_samp_avg, std::ref(tv_samp_arr)));
 			}
+			sub_task_pool.execute_batch(tasks);
+			sub_task_pool.wait();
+			tasks.clear();
+			if (stop_src.stop_requested())
+				return Match_Core_Return::User_Stop;
 			bd_se.sort();
-			//accurate match
+			// Accurate match
 			int min_cnfrm_num_aply = min_cnfrm_num;
 			if (duration <= 75 * overlap_interval)min_cnfrm_num_aply = find_num;
 			else if (fast_match)min_cnfrm_num_aply = min_cnfrm_num / 2 * 3;
 			int64_t check_field = min_cnfrm_num_aply * interval;
 			diffa = { std::numeric_limits<int64_t>::max(), 0, min_cnfrm_num_aply };
-			for (size_t j = 0; j < nb_sub_tasks; j++) {
-				size_t se_start = j * nb_per_sub_task;
-				search_result[j][0] = std::numeric_limits<int64_t>::max();
-				tasks.emplace_back(std::bind(&Match::caldiff, this, tv_time[line_idx], se_start, min(se_start + nb_per_sub_task, bd_se.size()), duration,
-					min_cnfrm_num_aply, check_field, std::ref(bd_se), std::ref(diffa), std::ref(search_result[j])));
+			for (size_t j = 0, se_start = 0; j < nb_sub_tasks; j++, se_start += nb_per_sub_task) {
+				search_result[j] = { std::numeric_limits<int64_t>::max(), 0 };
+				if (se_start < bd_se.size()) {
+					tasks.emplace_back(std::bind(&Match::cal_diff, this, tv_time[line_idx], se_start, std::min(se_start + nb_per_sub_task, bd_se.size()), duration,
+						min_cnfrm_num_aply, check_field, std::ref(bd_se), std::ref(diffa), std::ref(search_result[j])));
+				}
 			}
 			sub_task_pool.execute_batch(tasks);
 			sub_task_pool.wait();
 			tasks.clear();
-			const auto& [min_diff, besttime] = *std::min_element(search_result.begin(), search_result.end(), [](const Se_Re& left, const Se_Re& right) { return left[0] < right[0]; });
-			bd_time[line_idx] = besttime;
+			const auto& [min_diff, best_time] = *std::min_element(search_result.begin(), search_result.end(), [](const Se_Re& left, const Se_Re& right) { return left[0] < right[0]; });
+			bd_time[line_idx] = best_time;
 
-			//for debug->
+			// For debug->
 			/*
-			volatile std::string besttimestr = cs_to_time(besttime * f2t);
-			volatile int bestfind = bd_se.find(besttime, 0);
+			volatile std::string besttimestr = cs_to_time(best_time * f2t);
+			volatile int bestfind = bd_se.find(best_time, 0);
 			std::string time = "0:03:09.35";
 			int fftindex = static_cast<int>(time_to_cs(time) * t2f);
 			fftindex += 1;
@@ -533,13 +572,15 @@ Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, cons
 			volatile std::string besttimestr2 = cs_to_time(search_result[task_id][1] * f2t);
 			volatile int pos2 = bd_se.find(search_result[task_id][1], 0);
 			*/
-			//cal debug info
+			// Cal debug info
 			if (debug_mode) {
 				auto& deb_line = deb_info.lines[line_idx];
-				deb_line.delta_1 = bd_se.find(besttime, 1);
+				deb_line.delta_1 = bd_se.find(best_time, 1);
 				deb_line.min_diff = min_diff;
 				deb_line.diffa_0 = diffa[0];
-				deb_line.found_index = bd_se.find(besttime, 0) / (double)find_num;
+				int64_t se_idx = bd_se.find(best_time, 0);
+				deb_line.found_index = bd_se.find(best_time, 0) / static_cast<double>(find_num);
+				deb_line.task_index = (se_idx % nb_per_sub_task) / static_cast<double>(nb_per_sub_task);
 			}
 			//
 			if (fast_match) {
@@ -547,10 +588,8 @@ Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, cons
 				last_line_time = tv_time[line_idx];
 			}
 		}
-		if (stop_src.stop_requested()) {
-			search_result.clear();
+		if (stop_src.stop_requested())
 			return Match_Core_Return::User_Stop;
-		}
 		sub_prog_back();
 	}
 	search_result.clear();
@@ -694,7 +733,7 @@ Match_Core_Return Match::Match::output()
 	return output(output_path);
 }
 
-int64_t Match::Match::get_nb_timeline()
+int64_t Match::Match::get_nb_timeline() const
 {
 	return nb_timeline;
 }
@@ -753,7 +792,7 @@ std::string Match::Match::cs_to_time(const int &cs0)
 	}
 	return timeout;
 }
-int Match::Match::time_to_cs(const std::string_view &time)
+int Match::Match::time_to_cs(const std::string_view &time) const
 {
 	auto sv_to_i = [](const std::string_view& sv) {
 		int re = 0;
@@ -793,16 +832,132 @@ void Match::Match::sub_prog_back()
 	}
 }
 
-int Match::Match::caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num, 
-	const int64_t check_field, const BDSearch &bd_se, std::array<int64_t, 3> &diffa, Se_Re &re)
+int Match::Match::get_node_sum(Spec_Node& node)
 {
-	Se_Re feedback{ std::numeric_limits<int64_t>::max(), 0 };
-	if (diffa[2] <= 0) {
-		re = std::move(feedback);
-		return -1;
+	int sum = node.get_sum();
+	if (sum == std::numeric_limits<int>::min())sum = cal_node_sum(node);
+	return sum;
+}
+char Match::Match::cal_node_max_v(Spec_Node& node)
+{
+	char* data = node.getdata();
+	char max_v = *data;
+	for (int i = 1; i < node.size(); i++)
+		if (data[i] > max_v)max_v = data[i];
+	return max_v;
+}
+int Match::Match::cal_node_sum(Spec_Node& node)
+{
+	char* data = node.getdata();
+	int sum = 0;
+	for (int i = 0; i < node.size(); i++)sum += data[i];
+	node.set_sum(sum);
+	return sum;
+}
+
+char Match::Match_SSE::cal_node_max_v(Spec_Node& node)
+{
+	char* data = node.getdata();
+	__m128i vec = _mm_load_si128(reinterpret_cast<__m128i*>(data));
+	for (int i = 1; i < node.size() / 16; i++) {
+		data += 16;
+		vec = _mm_max_epi8(vec, _mm_load_si128(reinterpret_cast<__m128i*>(data)));
 	}
+	char max_v = m128i_i8(vec, 0);
+	for (int i = 1; i < 16; i++)max_v = std::max(max_v, m128i_i8(vec, 1));
+	return max_v;
+}
+int Match::Match_SSE::cal_node_sum(Spec_Node& node)
+{
+	char* data = node.getdata();
+	__m128i sum_vec = _mm_setzero_si128();
+	for (int i = 0; i < node.size() / 16; i++) {
+		__m128i vec = _mm_load_si128(reinterpret_cast<__m128i*>(data));
+		__m128i temp16 = _mm_cvtepi8_epi16(vec);
+		vec = _mm_bsrli_si128(vec, 64);
+		temp16 = _mm_add_epi16(temp16, _mm_cvtepi8_epi16(vec));
+		__m128i temp32 = _mm_cvtepi16_epi32(temp16);
+		temp16 = _mm_bsrli_si128(temp16, 64);
+		temp32 = _mm_add_epi32(temp32, _mm_cvtepi16_epi32(temp16));
+		sum_vec = _mm_add_epi32(sum_vec, temp32);
+		data += 16;
+	}
+	int sum = 0;
+	for (int i = 0; i < 4; i++)sum += m128i_i32(sum_vec, i);
+	node.set_sum(sum);
+	return sum;
+}
+
+char Match::Match_AVX2::cal_node_max_v(Spec_Node& node)
+{
+	char* data = node.getdata();
+	__m256i vec = _mm256_load_si256(reinterpret_cast<__m256i*>(data));
+	for (int i = 1; i < node.size() / 32; i++) {
+		data += 32;
+		vec = _mm256_max_epi8(vec, _mm256_load_si256(reinterpret_cast<__m256i*>(data)));
+	}
+	char max_v = m256i_i8(vec, 0);
+	for (int i = 1; i < 32; i++)max_v = std::max(max_v, m256i_i8(vec, i));
+	return max_v;
+}
+int Match::Match_AVX2::cal_node_sum(Spec_Node& node)
+{
+	char* data = node.getdata();
+	__m256i sum_vec = _mm256_setzero_si256();
+	for (int i = 0; i < node.size() / 32; i++) {
+		__m256i vec = _mm256_load_si256(reinterpret_cast<__m256i*>(data));
+		__m128i temp8_1 = _mm256_extracti128_si256(vec, 0);
+		__m128i temp8_2 = _mm256_extracti128_si256(vec, 1);
+		__m256i temp16 = _mm256_add_epi16(_mm256_cvtepi8_epi16(temp8_1), _mm256_cvtepi8_epi16(temp8_2));
+		__m128i temp16_1 = _mm256_extracti128_si256(temp16, 0);
+		__m128i temp16_2 = _mm256_extracti128_si256(temp16, 1);
+		__m256i temp32 = _mm256_add_epi32(_mm256_cvtepi16_epi32(temp16_1), _mm256_cvtepi16_epi32(temp16_2));
+		sum_vec = _mm256_add_epi32(sum_vec, temp32);
+		data += 32;
+	}
+	int sum = 0;
+	for (int i = 0; i < 8; i++)sum += m256i_i32(sum_vec, i);
+	node.set_sum(sum);
+	return sum;
+}
+
+int Match::Match::cal_se_delta(const int64_t bd_time_start, const size_t se_start, const size_t se_end, BDSearch& bd_se, const int32_t& tv_samp_avg, const std::array<Samp_Info, TV_MAXIMUN_CNT + TV_MINIMUN_CNT>& tv_samp_arr)
+{
+	int64_t bd_time = bd_time_start;
+	std::array<int32_t, TV_MAXIMUN_CNT + TV_MINIMUN_CNT> bd_samp_arr;
+	for (size_t se_index = se_start; se_index < se_end; se_index++) {
+		int64_t delta = 0, bd_samp_sum = 0;
+		for (int i = 0; i < tv_samp_arr.size(); i++) {
+			int bd_samp_line_sum = get_node_sum(bd_fft_data[std::get<1>(tv_samp_arr[i])][bd_time + std::get<2>(tv_samp_arr[i])]);
+			bd_samp_arr[i] = bd_samp_line_sum;
+			delta += std::abs(bd_samp_line_sum - static_cast<int32_t>(std::get<0>(tv_samp_arr[i])));
+			bd_samp_sum += bd_samp_line_sum;
+		}
+		int32_t bd_samp_avg = static_cast<int32_t>(bd_samp_sum / tv_samp_arr.size());
+		for (int i = 0; i < tv_samp_arr.size(); i++)
+			delta += std::abs((std::get<0>(tv_samp_arr[i]) - tv_samp_avg) - (bd_samp_arr[i] - bd_samp_avg)) * 8;
+		bd_se.assign(se_index, bd_time, delta);
+		bd_time += interval;
+	}
+	return 0;
+}
+
+int Match::Match::sync_match_res(Diffa_t& diffa, Se_Re& feedback, const int& min_cnfrm_num, const int64_t& bd_start, const int64_t& check_field, const int64_t& sum)
+{
+	if (sum < feedback[0])feedback = { sum, bd_start };
+	if (feedback[0] < diffa[0])diffa = { feedback[0], feedback[1], min_cnfrm_num };
+	else if (llabs(bd_start - diffa[1]) <= check_field)diffa[2]--;
+	if (diffa[2] <= 0)return -1;
+	return 0;
+}
+
+int Match::Match::cal_diff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
+	const int64_t check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re)
+{
+	if (diffa[2] <= 0)return -1;
+	Se_Re feedback{ std::numeric_limits<int64_t>::max(), 0 };
 	int64_t sum = 0;
-	const char* tv_data[8], * bd_data[8];
+	const char* tv_data[Decode::MAX_CHANNEL_CNT], * bd_data[Decode::MAX_CHANNEL_CNT];
 	for (size_t se_index = se_start; se_index < se_end; se_index++) {
 		int64_t bd_start = bd_se.read(se_index);
 		sum = 0;
@@ -821,10 +976,7 @@ int Match::Match::caldiff(const int64_t tv_start, const size_t se_start, const s
 			}
 			if (sum > diffa[0])break;
 		}
-		if (sum < feedback[0])feedback = { sum, bd_start };
-		if (feedback[0] < diffa[0])diffa = { feedback[0], feedback[1], min_cnfrm_num };
-		else if (llabs(bd_start - diffa[1]) <= check_field) diffa[2]--;
-		if (diffa[2] <= 0) {
+		if (sync_match_res(diffa, feedback, min_cnfrm_num, bd_start, check_field, sum) < 0) {
 			re = std::move(feedback);
 			return -1;
 		}
@@ -832,54 +984,48 @@ int Match::Match::caldiff(const int64_t tv_start, const size_t se_start, const s
 	re = std::move(feedback);
 	return 0;
 }
-int Match::Match_SSE::caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
-	const int64_t check_field, const BDSearch &bd_se, std::array<int64_t, 3> &diffa, Se_Re &re)
+int Match::Match_SSE::cal_diff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
+	const int64_t check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re)
 {
+	if (diffa[2] <= 0)return -1;
 	Se_Re feedback{ std::numeric_limits<int64_t>::max(), 0 };
-	if (diffa[2] <= 0) {
-		re = std::move(feedback);
-		return -1;
-	}
 	int64_t sum = 0;
-	int vectornum = fft_size / 8;
-	const char* tvdata[8], * bddata[8];
-	__m128i tvvector, bdvector, difvector[2];
-	__m128i sumvector[2] = { _mm_setzero_si128(),_mm_setzero_si128() };
-	const __m128i w1vector = _mm_set1_epi16(129);
+	int vector_cnt = fft_size / 8;
+	const char* tv_data[Decode::MAX_CHANNEL_CNT], * bd_data[Decode::MAX_CHANNEL_CNT];
+	__m128i tv_vector, bd_vector, diff_vector[2];
+	__m128i sum_vector[2] = { _mm_setzero_si128(),_mm_setzero_si128() };
+	const __m128i w1_vector = _mm_set1_epi16(129);
 	for (size_t se_index = se_start; se_index < se_end; se_index++) {
 		int64_t bd_start = bd_se.read(se_index);
 		sum = 0;
 		for (int i = 0; i < ch; i++) {
-			tvdata[i] = tv_fft_data[i][tv_start].getdata();
-			bddata[i] = bd_fft_data[i][bd_start].getdata();
+			tv_data[i] = tv_fft_data[i][tv_start].getdata();
+			bd_data[i] = bd_fft_data[i][bd_start].getdata();
 		}
 		for (int64_t i = 0; i <= duration; i++) {
-			sumvector[0] = _mm_setzero_si128();
-			sumvector[1] = _mm_setzero_si128();
+			sum_vector[0] = _mm_setzero_si128();
+			sum_vector[1] = _mm_setzero_si128();
 			for (int j = 0; j < ch; j++) {
-				for (int k = 0; k < vectornum; k++) {
-					tvvector = _mm_cvtepi8_epi16(_mm_load_si128(reinterpret_cast<const __m128i*>(tvdata[j])));
-					bdvector = _mm_cvtepi8_epi16(_mm_load_si128(reinterpret_cast<const __m128i*>(bddata[j])));
-					difvector[0] = _mm_mullo_epi16(_mm_abs_epi16(_mm_sub_epi16(tvvector, bdvector)),
-						_mm_add_epi16(tvvector, w1vector));
-					difvector[1] = _mm_mulhi_epi16(_mm_abs_epi16(_mm_sub_epi16(tvvector, bdvector)),
-						_mm_add_epi16(tvvector, w1vector));
-					sumvector[0] = _mm_add_epi32(_mm_unpacklo_epi16(difvector[0], difvector[1]), sumvector[0]);
-					sumvector[1] = _mm_add_epi32(_mm_unpackhi_epi16(difvector[0], difvector[1]), sumvector[1]);
-					tvdata[j] += 8;
-					bddata[j] += 8;
+				for (int k = 0; k < vector_cnt; k++) {
+					tv_vector = _mm_cvtepi8_epi16(_mm_load_si128(reinterpret_cast<const __m128i*>(tv_data[j])));
+					bd_vector = _mm_cvtepi8_epi16(_mm_load_si128(reinterpret_cast<const __m128i*>(bd_data[j])));
+					diff_vector[0] = _mm_mullo_epi16(_mm_abs_epi16(_mm_sub_epi16(tv_vector, bd_vector)),
+						_mm_add_epi16(tv_vector, w1_vector));
+					diff_vector[1] = _mm_mulhi_epi16(_mm_abs_epi16(_mm_sub_epi16(tv_vector, bd_vector)),
+						_mm_add_epi16(tv_vector, w1_vector));
+					sum_vector[0] = _mm_add_epi32(_mm_unpacklo_epi16(diff_vector[0], diff_vector[1]), sum_vector[0]);
+					sum_vector[1] = _mm_add_epi32(_mm_unpackhi_epi16(diff_vector[0], diff_vector[1]), sum_vector[1]);
+					tv_data[j] += 8;
+					bd_data[j] += 8;
 				}
 			}
-			sumvector[0] = _mm_add_epi32(sumvector[0], sumvector[1]);
-			sumvector[0] = _mm_add_epi32(_mm_srli_epi64(sumvector[0], 32), sumvector[0]);
-			sum += static_cast<int64_t>(_mm_extract_epi32(sumvector[0], 0)) + 
-				static_cast<int64_t>(_mm_extract_epi32(sumvector[0], 2));
+			sum_vector[0] = _mm_add_epi32(sum_vector[0], sum_vector[1]);
+			sum_vector[0] = _mm_add_epi32(_mm_srli_epi64(sum_vector[0], 32), sum_vector[0]);
+			sum += static_cast<int64_t>(_mm_extract_epi32(sum_vector[0], 0)) + 
+				static_cast<int64_t>(_mm_extract_epi32(sum_vector[0], 2));
 			if (sum > diffa[0])break;
 		}
-		if (sum < feedback[0])feedback = { sum, bd_start };
-		if (feedback[0] < diffa[0])diffa = { feedback[0], feedback[1], min_cnfrm_num };
-		else if (llabs(bd_start - diffa[1]) <= check_field) diffa[2]--;
-		if (diffa[2] <= 0) {
+		if (sync_match_res(diffa, feedback, min_cnfrm_num, bd_start, check_field, sum) < 0) {
 			re = std::move(feedback);
 			return -1;
 		}
@@ -887,58 +1033,77 @@ int Match::Match_SSE::caldiff(const int64_t tv_start, const size_t se_start, con
 	re = std::move(feedback);
 	return 0;
 }
-int Match::Match_AVX2::caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
-	const int64_t check_field, const BDSearch &bd_se, std::array<int64_t, 3> &diffa, Se_Re &re)
+int Match::Match_AVX2::cal_diff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
+	const int64_t check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re)
 {
+	if (diffa[2] <= 0)return -1;
 	Se_Re feedback{ std::numeric_limits<int64_t>::max(), 0 };
-	if (diffa[2] <= 0) {
-		re = std::move(feedback);
-		return -1;
-	}
 	int64_t sum = 0;
-	int vectornum = fft_size / 16;
-	const __m128i* tvdata[8], * bddata[8];
-	__m256i tvvector, bdvector, difvector[2];
-	__m256i sumvector[2] = { _mm256_setzero_si256(),_mm256_setzero_si256() };
-	__m128i sumvector8[2];
-	const __m256i w1vector = _mm256_set1_epi16(129);
+	int vector_cnt = fft_size / 32;
+	const __m256i* tv_data[Decode::MAX_CHANNEL_CNT], * bd_data[Decode::MAX_CHANNEL_CNT];
+	__m256i tv_vector[2], bd_vector[2], diff_vector[4];
+	__m256i sum_vector[4] = { _mm256_setzero_si256(), _mm256_setzero_si256(), _mm256_setzero_si256(), _mm256_setzero_si256() };
+	__m128i sum_vector_128[4], tv_data_128[2], bd_data_128[2];
+	const __m256i w1_vector = _mm256_set1_epi16(129);
 	for (size_t se_index = se_start; se_index < se_end; se_index++) {
 		int64_t bd_start = bd_se.read(se_index);
 		sum = 0;
 		for (int i = 0; i < ch; i++) {
-			tvdata[i] = reinterpret_cast<__m128i*>(tv_fft_data[i][tv_start].getdata());
-			bddata[i] = reinterpret_cast<__m128i*>(bd_fft_data[i][bd_start].getdata());
+			tv_data[i] = reinterpret_cast<__m256i*>(tv_fft_data[i][tv_start].getdata());
+			bd_data[i] = reinterpret_cast<__m256i*>(bd_fft_data[i][bd_start].getdata());
 		}
 		for (int64_t i = 0; i <= duration; i++) {
-			sumvector[0] = _mm256_setzero_si256();
-			sumvector[1] = _mm256_setzero_si256();
+			sum_vector[0] = _mm256_setzero_si256();
+			sum_vector[1] = _mm256_setzero_si256();
+			sum_vector[2] = _mm256_setzero_si256();
+			sum_vector[3] = _mm256_setzero_si256();
 			for (int j = 0; j < ch; j++) {
-				for (int k = 0; k < vectornum; k++) {
-					tvvector = _mm256_cvtepi8_epi16(_mm_load_si128(tvdata[j]));
-					bdvector = _mm256_cvtepi8_epi16(_mm_load_si128(bddata[j]));
-					difvector[0] = _mm256_mullo_epi16(_mm256_abs_epi16(_mm256_sub_epi16(tvvector, bdvector)),
-						_mm256_add_epi16(tvvector, w1vector));
-					difvector[1] = _mm256_mulhi_epi16(_mm256_abs_epi16(_mm256_sub_epi16(tvvector, bdvector)),
-						_mm256_add_epi16(tvvector, w1vector));
-					sumvector[0] = _mm256_add_epi32(_mm256_unpacklo_epi16(difvector[0], difvector[1]), sumvector[0]);
-					sumvector[1] = _mm256_add_epi32(_mm256_unpackhi_epi16(difvector[0], difvector[1]), sumvector[1]);
-					tvdata[j]++;
-					bddata[j]++;
+				for (int k = 0; k < vector_cnt; k++) {
+					tv_vector[0] = _mm256_load_si256(tv_data[j]);
+					bd_vector[0] = _mm256_load_si256(bd_data[j]);
+					tv_data_128[0] = _mm256_extracti128_si256(tv_vector[0], 0);
+					tv_data_128[1] = _mm256_extracti128_si256(tv_vector[0], 1);
+					bd_data_128[0] = _mm256_extracti128_si256(bd_vector[0], 0);
+					bd_data_128[1] = _mm256_extracti128_si256(bd_vector[0], 1);
+					tv_vector[0] = _mm256_cvtepi8_epi16(tv_data_128[0]);
+					tv_vector[1] = _mm256_cvtepi8_epi16(tv_data_128[1]);
+					bd_vector[0] = _mm256_cvtepi8_epi16(bd_data_128[0]);
+					bd_vector[1] = _mm256_cvtepi8_epi16(bd_data_128[1]);
+					diff_vector[0] = _mm256_mullo_epi16(_mm256_abs_epi16(_mm256_sub_epi16(tv_vector[0], bd_vector[0])),
+						_mm256_add_epi16(tv_vector[0], w1_vector));
+					diff_vector[1] = _mm256_mulhi_epi16(_mm256_abs_epi16(_mm256_sub_epi16(tv_vector[0], bd_vector[0])),
+						_mm256_add_epi16(tv_vector[0], w1_vector));
+					diff_vector[2] = _mm256_mullo_epi16(_mm256_abs_epi16(_mm256_sub_epi16(tv_vector[1], bd_vector[1])),
+						_mm256_add_epi16(tv_vector[1], w1_vector));
+					diff_vector[3] = _mm256_mulhi_epi16(_mm256_abs_epi16(_mm256_sub_epi16(tv_vector[1], bd_vector[1])),
+						_mm256_add_epi16(tv_vector[1], w1_vector));
+					sum_vector[0] = _mm256_add_epi32(_mm256_unpacklo_epi16(diff_vector[0], diff_vector[1]), sum_vector[0]);
+					sum_vector[1] = _mm256_add_epi32(_mm256_unpackhi_epi16(diff_vector[0], diff_vector[1]), sum_vector[1]);
+					sum_vector[2] = _mm256_add_epi32(_mm256_unpacklo_epi16(diff_vector[2], diff_vector[3]), sum_vector[2]);
+					sum_vector[3] = _mm256_add_epi32(_mm256_unpackhi_epi16(diff_vector[2], diff_vector[3]), sum_vector[3]);
+					tv_data[j]++;
+					bd_data[j]++;
 				}
 			}
-			sumvector[0] = _mm256_add_epi32(sumvector[0], sumvector[1]);
-			sumvector[0] = _mm256_add_epi32(_mm256_srli_epi64(sumvector[0], 32), sumvector[0]);
-			sumvector8[0] = _mm256_extracti128_si256(sumvector[0], 0);
-			sumvector8[1] = _mm256_extracti128_si256(sumvector[0], 1);
-			sumvector8[0] = _mm_add_epi32(sumvector8[1], sumvector8[0]);
-			sumvector[0] = _mm256_cvtepi32_epi64(sumvector8[0]);
-			sum += _mm256_extract_epi64(sumvector[0], 0) + _mm256_extract_epi64(sumvector[0], 2);
+			sum_vector[0] = _mm256_add_epi32(sum_vector[0], sum_vector[1]);
+			sum_vector[0] = _mm256_add_epi32(_mm256_srli_epi64(sum_vector[0], 32), sum_vector[0]);
+			sum_vector[2] = _mm256_add_epi32(sum_vector[2], sum_vector[3]);
+			sum_vector[2] = _mm256_add_epi32(_mm256_srli_epi64(sum_vector[2], 32), sum_vector[2]);
+			sum_vector_128[0] = _mm256_extracti128_si256(sum_vector[0], 0);
+			sum_vector_128[1] = _mm256_extracti128_si256(sum_vector[0], 1);
+			sum_vector_128[2] = _mm256_extracti128_si256(sum_vector[2], 0);
+			sum_vector_128[3] = _mm256_extracti128_si256(sum_vector[2], 1);
+			sum_vector[0] = _mm256_cvtepi32_epi64(sum_vector_128[0]);
+			sum_vector[1] = _mm256_cvtepi32_epi64(sum_vector_128[1]);
+			sum_vector[2] = _mm256_cvtepi32_epi64(sum_vector_128[2]);
+			sum_vector[3] = _mm256_cvtepi32_epi64(sum_vector_128[3]);
+			sum_vector[0] = _mm256_add_epi64(sum_vector[0], sum_vector[1]);
+			sum_vector[2] = _mm256_add_epi64(sum_vector[2], sum_vector[3]);
+			sum_vector[0] = _mm256_add_epi64(sum_vector[0], sum_vector[2]);
+			sum += _mm256_extract_epi64(sum_vector[0], 0) + _mm256_extract_epi64(sum_vector[0], 2);
 			if (sum > diffa[0])break;
 		}
-		if (sum < feedback[0])feedback = { sum, bd_start };
-		if (feedback[0] < diffa[0])diffa = { feedback[0], feedback[1], min_cnfrm_num };
-		else if (llabs(bd_start - diffa[1]) <= check_field) diffa[2]--;
-		if (diffa[2] <= 0) {
+		if (sync_match_res(diffa, feedback, min_cnfrm_num, bd_start, check_field, sum) < 0) {
 			re = std::move(feedback);
 			return -1;
 		}

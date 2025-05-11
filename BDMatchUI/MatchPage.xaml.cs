@@ -33,25 +33,10 @@ namespace BDMatchUI
         public MatchPage()
         {
             this.InitializeComponent();
-            load_control_text();
             prog_cb = new ProgressCallback(prog_single);
             feedback_cb = new FeedbackCallback(feedback);
         }
 
-        private void load_control_text()
-        {
-            SubPath.PlaceholderText = AppResources.get_string("BDMatchUI/MatchPage/SubPath/PlaceholderText");
-            TVPath.PlaceholderText = AppResources.get_string("BDMatchUI/MatchPage/TVPath/PlaceholderText");
-            BDPath.PlaceholderText = AppResources.get_string("BDMatchUI/MatchPage/BDPath/PlaceholderText");
-            SubText.Text = AppResources.get_string("BDMatchUI/Common/Text_Sub");
-            TVText.Text = AppResources.get_string("BDMatchUI/Common/Text_TV");
-            BDText.Text = AppResources.get_string("BDMatchUI/Common/Text_BD");
-            MatchButton.Content = AppResources.get_string("BDMatchUI/Common/Text_Match");
-            MatchProgressText.Text = AppResources.get_string("BDMatchUI/Common/Text_Ready");
-            LogButton.Content = AppResources.get_string("BDMatchUI/MatchPage/LogButton/Content");
-
-            current_language = new string(AppResources.current_language);
-        }
         private void load_control_theme()
         {
             MatchProgressText.Foreground = StyleHelper.color_brush(last_prog_level);
@@ -67,17 +52,17 @@ namespace BDMatchUI
 
         SharingHelper sharing_helper = null;
         SettingHelper settings = null;
-        string current_language = null;
+        TextHelper text_helper = null;
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             if (e.Parameter is SharingHelper && e.Parameter != null)
             {
                 bool first_navigated = (sharing_helper == null);
                 sharing_helper = e.Parameter as SharingHelper;
+                text_helper = sharing_helper.text_helper;
                 settings = sharing_helper.settings;
                 if (first_navigated) sharing_helper.theme_change_action_list.Add(MatchPage_ActualThemeChanged);
             }
-            if (current_language != AppResources.current_language) load_control_text();
             load_control_theme();
             base.OnNavigatedTo(e);
         }
@@ -87,7 +72,7 @@ namespace BDMatchUI
             PathGrid.MaxHeight = Math.Max(this.ActualHeight - MatchPanel.ActualHeight - StatusPanel.ActualHeight - 80, (SubPath.FontSize + 20) * 3);
             PathGrid.MaxWidth = this.ActualWidth;
             StatusPanel.MaxWidth = this.ActualWidth;
-            Style flyout_style = new Style { TargetType = typeof(FlyoutPresenter) };
+            Style flyout_style = new() { TargetType = typeof(FlyoutPresenter) };
             flyout_style.Setters.Add(new Setter(WidthProperty, SubPath.ActualWidth.ToString()));
             flyout_style.Setters.Add(new Setter(MaxWidthProperty, "1000000000000000"));
             flyout_style.Setters.Add(new Setter(ScrollViewer.HorizontalScrollModeProperty, "Auto"));
@@ -108,10 +93,12 @@ namespace BDMatchUI
             if (openPicker == null)
             {
                 // Create a file picker
-                openPicker = new Windows.Storage.Pickers.FileOpenPicker();
-                // Set options for your file picker
-                openPicker.ViewMode = PickerViewMode.Thumbnail;
-                openPicker.SuggestedStartLocation = PickerLocationId.VideosLibrary;
+                openPicker = new Windows.Storage.Pickers.FileOpenPicker
+                {
+                    // Set options for your file picker
+                    ViewMode = PickerViewMode.Thumbnail,
+                    SuggestedStartLocation = PickerLocationId.VideosLibrary
+                };
             }
 
             // Initialize the file picker with the window handle (HWND).
@@ -126,7 +113,7 @@ namespace BDMatchUI
             IReadOnlyList<StorageFile> files = await openPicker.PickMultipleFilesAsync();
             if (files.Count > 0)
             {
-                StringBuilder output = new StringBuilder("");
+                StringBuilder output = new("");
                 foreach (StorageFile file in files)
                 {
                     output.Append(file.Path);
@@ -144,7 +131,7 @@ namespace BDMatchUI
             TextBox path_box = regexer.Name == "TVRegexer" ? TVPath : (regexer.Name == "BDRegexer" ? BDPath : SubPath);
             var path_section_list = path_box.Text.Split('\"');
             bool is_regex = path_box.Text.StartsWith('\"');
-            StringBuilder regex_sb = new StringBuilder();
+            StringBuilder regex_sb = new();
             foreach (var section in path_section_list)
             {
                 if (is_regex)
@@ -217,7 +204,7 @@ namespace BDMatchUI
             if (e.DataView.Contains(StandardDataFormats.StorageItems))
             {
                 var items = await e.DataView.GetStorageItemsAsync();
-                StringBuilder item_strs = new StringBuilder();
+                StringBuilder item_strs = new();
                 foreach (var item in items)
                 {
                     item_strs.Append(item.Path);
@@ -233,11 +220,11 @@ namespace BDMatchUI
             ListBox PathHistory = sender as ListBox;
             if (PathHistory.SelectedIndex != -1)
             {
-                var path_select = (TextBox path, ListBox his_list, Button his_button) =>
+                static void path_select(TextBox path, ListBox his_list, Button his_button)
                 {
                     path.Text = his_list.Items[his_list.SelectedIndex].ToString();
                     his_button.Flyout.Hide();
-                };
+                }
                 if (PathHistory.Name == "SubPathHistory") path_select(SubPath, PathHistory, SubHisButton);
                 if (PathHistory.Name == "TVPathHistory") path_select(TVPath, PathHistory, TVHisButton);
                 if (PathHistory.Name == "BDPathHistory") path_select(BDPath, PathHistory, BDHisButton);
@@ -247,17 +234,17 @@ namespace BDMatchUI
         }
         private void add_path_to_history(string sub_path_all, string tv_path_all, string bd_path_all)
         {
-            var add_path_his = (ListBox his_list, string path) =>
+            static void add_path_his(ListBox his_list, string path)
             {
                 if (his_list.Items.Count == 0 || path != his_list.Items[^1].ToString()) his_list.Items.Add(path);
-            };
+            }
             add_path_his(SubPathHistory, sub_path_all);
             add_path_his(TVPathHistory, tv_path_all);
             add_path_his(BDPathHistory, bd_path_all);
         }
 
         // Progress Bar/Ring
-        double[] prog_val = [ 0, 0, 0 ];
+        double[] prog_val = [0, 0, 0];
         double find_field_ratio = 1.0;
         private void prog_single(Prog_Mode mode, double val)
         {
@@ -299,8 +286,8 @@ namespace BDMatchUI
         }
 
         // Feedback
-        UInt64 warning_cnt = 0, err_cnt = 0;
-        StringBuilder fb_builder = new StringBuilder();
+        UInt64 warning_cnt = 0, err_cnt = 0, info_cnt = 0;
+        readonly StringBuilder fb_builder = new();
         private void log_fb_builder_info()
         {
             if (fb_builder.Length > 0)
@@ -326,6 +313,7 @@ namespace BDMatchUI
             {
                 bool err_line = line.Trim().StartsWith(AppResources.get_string("BDMatchUI/Common/Text_Error"));
                 bool warning_line = line.Trim().StartsWith(AppResources.get_string("BDMatchUI/Common/Text_Warning"));
+                bool info_line = line.Trim().StartsWith(AppResources.get_string("BDMatchUI/Common/Text_Info"));
                 if (err_line || warning_line)
                 {
                     fb_builder_trim_end();
@@ -347,6 +335,7 @@ namespace BDMatchUI
                 }
                 else
                 {
+                    if (info_line)info_cnt++;
                     fb_builder.Append(line);
                     fb_builder.Append('\n');
                 }
@@ -386,16 +375,10 @@ namespace BDMatchUI
             if (sharing_helper != null)
             {
                 while (!DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () => {
-                    Paragraph paragraph = new Paragraph();
-                    Run run = new Run();
-                    run.Text = message;
-                    run.FontSize = 20;
-                    run.Foreground = StyleHelper.color_brush(level);
-                    paragraph.Inlines.Add(run);
-                    sharing_helper.logs.Add(Tuple.Create(paragraph, level));
+                    sharing_helper.log.logs.Add(Tuple.Create(message, level));
                     if (sharing_helper.navi_view != null && sharing_helper.navi_view.SelectedItem == sharing_helper.navi_view.MenuItems[2])
                     {
-                        if (sharing_helper.load_log != null) sharing_helper.load_log();
+                        sharing_helper.log.load_log?.Invoke();
                     }
                 })) ;
             }
@@ -406,22 +389,13 @@ namespace BDMatchUI
         {
             string cpu_isa_str = Marshal.PtrToStringAnsi(CoreHelper.get_CPU_brand());
             ISA_Mode isa_mode = (ISA_Mode)CoreHelper.search_ISA_mode();
-            switch (isa_mode)
+            cpu_isa_str += isa_mode switch
             {
-                case ISA_Mode.AVX2_FMA:
-                    cpu_isa_str += AppResources.get_string("BDMatchUI/Common/Text_ISA_AVX2");
-                    break;
-                case ISA_Mode.AVX:
-                    cpu_isa_str += AppResources.get_string("BDMatchUI/Common/Text_ISA_AVX");
-                    break;
-                case ISA_Mode.SSE:
-                    cpu_isa_str += AppResources.get_string("BDMatchUI/Common/Text_ISA_SSE");
-                    break;
-                case ISA_Mode.No_SIMD:
-                default:
-                    cpu_isa_str += AppResources.get_string("BDMatchUI/Common/Text_ISA_NO_SIMD");
-                    break;
-            }
+                ISA_Mode.AVX2_FMA => AppResources.get_string("BDMatchUI/Common/Text_ISA_AVX2"),
+                ISA_Mode.AVX => AppResources.get_string("BDMatchUI/Common/Text_ISA_AVX"),
+                ISA_Mode.SSE => AppResources.get_string("BDMatchUI/Common/Text_ISA_SSE"),
+                _ => AppResources.get_string("BDMatchUI/Common/Text_ISA_NO_SIMD"),
+            };
             log(cpu_isa_str);
         }
 
@@ -445,7 +419,7 @@ namespace BDMatchUI
                 cancel_source = new CancellationTokenSource();
                 CoreHelper.start_process();
                 string sub_path_text = SubPath.Text, tv_path_text = TVPath.Text, bd_path_text = BDPath.Text;
-                Task<MatchReturn> match_task = new Task<MatchReturn>(() => match_complex(sub_path_text, tv_path_text, bd_path_text), TaskCreationOptions.LongRunning);
+                Task<MatchReturn> match_task = new(() => match_complex(sub_path_text, tv_path_text, bd_path_text), TaskCreationOptions.LongRunning);
                 MatchProgressBar.ShowError = false;
                 MatchProgressBar.ShowPaused = false;
                 MatchProgressRing.IsIndeterminate = true;
@@ -491,10 +465,12 @@ namespace BDMatchUI
         }
 
         int total_match_task_cnt = 0, fin_match_task_cnt = 0;
-        Stopwatch stopwatch = new Stopwatch();
+        readonly Stopwatch stopwatch = new();
+        [GeneratedRegex("[\r\n]+", RegexOptions.Multiline)]
+        private static partial Regex EOLRegx();
         private MatchReturn match_complex(string sub_path_all, string tv_path_all, string bd_path_all)
         {
-            var replace_ret_syb = (ref string str) => { str = Regex.Replace(str.Trim(), "[\r\n]+", "\n", RegexOptions.Multiline); };
+            static void replace_ret_syb(ref string str) { str = EOLRegx().Replace(str.Trim(), "\n"); }
             replace_ret_syb(ref sub_path_all);
             replace_ret_syb(ref tv_path_all);
             replace_ret_syb(ref bd_path_all);
@@ -516,31 +492,32 @@ namespace BDMatchUI
             else // 匹配模式
             {
                 search_ISA();
-                var batch_no_draw = () =>
+                void batch_no_draw()
                 {
                     if (total_match_task_cnt > 1 && Convert.ToBoolean(settings[SettingType.DrawSpec]))
                     {
                         while (!DispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () =>
                         {
                             print_info(AppResources.get_string("BDMatchUI/Common/Text_Info"), AppResources.get_string("BDMatchUI/Info/Batch_No_Draw"));
-                        }));
+                        })) ;
                     }
-                };
+                }
                 if (settings[SettingType.SubOffset] != 0)
                 {
-                    StringBuilder offset_str = new StringBuilder();
+                    StringBuilder offset_str = new();
                     offset_str.Append(AppResources.get_string("BDMatchUI/Common/Text_SubTimeDelay"));
-                    offset_str.Append(" ");
-                    offset_str.Append(settings[SettingType.SubOffset].ToString());
-                    offset_str.Append(" ");
+                    offset_str.Append(' ');
+                    offset_str.Append(settings[SettingType.SubOffset]);
+                    offset_str.Append(' ');
                     offset_str.Append(AppResources.get_string("BDMatchUI/Common/Text_CentiSec"));
                     log(offset_str.ToString());
                 }
-                var get_last_dot_index = (string str) => {
+                int get_last_dot_index(string str)
+                {
                     return str.LastIndexOf('.') >= 0 ? str.LastIndexOf('.') : str.Length;
-                };
+                }
                 fin_match_task_cnt = 0;
-                warning_cnt = 0; err_cnt = 0;
+                warning_cnt = 0; err_cnt = 0; info_cnt = 0;
                 if (sub_path_list.Length == 1 && tv_path_list.Length == 1 && bd_path_list.Length > 1) // 1对多模式
                 {
                     total_match_task_cnt = bd_path_list.Length;
@@ -549,7 +526,7 @@ namespace BDMatchUI
                     {
                         log(AppResources.get_string("BDMatchUI/Common/Text_Dash_Line"), false);
                         string bd_path = bd_path_untrim.Trim();
-                        string output_path = bd_path.Substring(0, get_last_dot_index(bd_path)) + ".matched" + sub_path_all.Substring(get_last_dot_index(sub_path_all));
+                        string output_path = string.Concat(bd_path.AsSpan(0, get_last_dot_index(bd_path)), ".matched", sub_path_all.AsSpan(get_last_dot_index(sub_path_all)));
                         MatchReturn single_re = match(sub_path_all, tv_path_all, bd_path, output_path, false);
                         if (single_re != MatchReturn.Success) re = single_re;
                         else fin_match_task_cnt++;
@@ -573,7 +550,7 @@ namespace BDMatchUI
                     {
                         log(AppResources.get_string("BDMatchUI/Common/Text_Dash_Line"), false);
                         string sub_path = sub_path_list[path_idx].Trim(), tv_path = tv_path_list[path_idx].Trim(), bd_path = bd_path_list[path_idx].Trim();
-                        string output_path = sub_path.Substring(0, get_last_dot_index(sub_path)) + ".matched" + sub_path.Substring(get_last_dot_index(sub_path));
+                        string output_path = string.Concat(sub_path.AsSpan(0, get_last_dot_index(sub_path)), ".matched", sub_path.AsSpan(get_last_dot_index(sub_path)));
                         MatchReturn single_re = match(sub_path, tv_path, bd_path, output_path, draw_apply);
                         if (single_re != MatchReturn.Success) re = single_re;
                         else fin_match_task_cnt++;
@@ -593,6 +570,13 @@ namespace BDMatchUI
             log(string.Format("\n{0}\n{0}\n", AppResources.get_string("BDMatchUI/Common/Text_Dash_Line")), false);
             while (!DispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () => { 
                 match_control(true);
+                if (sharing_helper.navi_view != null && (sharing_helper.navi_view.SelectedItem != sharing_helper.navi_view.MenuItems[2] || 
+                    sharing_helper.log.scrollAncherType != Scroll_Anchor_Type.End))
+                {
+                    sharing_helper.log.badge.Value += (int)(err_cnt + warning_cnt + info_cnt);
+                    sharing_helper.log.badge.log_level = err_cnt > 0 ? LogLevel.Error : (warning_cnt > 0 ? LogLevel.Warning : LogLevel.Info);
+                    sharing_helper.log.badge.BStyle = StyleHelper.badge_style(sharing_helper.log.badge.log_level);
+                }
                 if (re == MatchReturn.Success)
                 {
                     TaskBarHelper.set_state(get_hwnd(), TBPFLAG.TBPF_NOPROGRESS);
@@ -607,7 +591,7 @@ namespace BDMatchUI
         private MatchReturn search_regex_path(string [] sub_path_list, string [] tv_path_list, string [] bd_path_list, bool sub_path_all_any_quote, bool tv_path_all_any_quote)
         {
             prog_log(AppResources.get_string("BDMatchUI/Regex/Searching"));
-            var match_regex_path = (string path) =>
+            Tuple<MatchReturn, List<PathMatch>> match_regex_path(string path)
             {
                 if (RegexHelper.verif_regex_path(path))
                 {
@@ -617,16 +601,16 @@ namespace BDMatchUI
                     return Tuple.Create(MatchReturn.Success, matches);
                 }
                 else return Tuple.Create<MatchReturn, List<PathMatch>>(match_error(MatchReturn.InvalidRegex, true, path), null);
-            };
+            }
             if (!sub_path_all_any_quote && sub_path_list.Length == 1 && !tv_path_all_any_quote && tv_path_list.Length == 1) // 1对多模式
             {
-                StringBuilder new_bd_path_all = new StringBuilder();
+                StringBuilder new_bd_path_all = new();
                 int all_match_cnt = 0;
                 foreach (string bd_path_untrim in bd_path_list)
                 {
                     int match_cnt = 0;
                     string bd_path = bd_path_untrim.Trim();
-                    if (bd_path.Contains("\""))
+                    if (bd_path.Contains('"'))
                     {
                         (MatchReturn regex_match_re, var matches) = match_regex_path(bd_path);
                         if (regex_match_re != MatchReturn.Success) return regex_match_re;
@@ -653,7 +637,7 @@ namespace BDMatchUI
             else // 1对1模式
             {
                 int path_list_min_length = Math.Min(Math.Min(sub_path_list.Length, tv_path_list.Length), bd_path_list.Length);
-                StringBuilder new_sub_path_all = new StringBuilder(), new_tv_path_all = new StringBuilder(), new_bd_path_all = new StringBuilder();
+                StringBuilder new_sub_path_all = new(), new_tv_path_all = new(), new_bd_path_all = new();
                 int all_pair_match_cnt = 0;
                 for (int path_idx = 0; path_idx < path_list_min_length; path_idx++)
                 {
@@ -676,7 +660,7 @@ namespace BDMatchUI
                         bool[] sub_matched = new bool[sub_matches.Count];
                         bool[] tv_matched = new bool[tv_matches.Count];
                         bool[] bd_matched = new bool[bd_matches.Count];
-                        var cmp_match_pattern = (List<string> left, List<string> right) =>
+                        bool cmp_match_pattern(List<string> left, List<string> right)
                         {
                             if (left.Count != right.Count) return false;
                             bool[] pattern_matched = new bool[left.Count];
@@ -693,12 +677,13 @@ namespace BDMatchUI
                                 }
                             }
                             return matched_pattern_cnt == left.Count;
-                        };
+                        }
                         int pair_match_cnt = 0;
                         foreach (var sub_match in sub_matches)
                         {
                             int tv_match_idx = -1, bd_match_idx = -1;
-                            var enumerate_matches = (List<PathMatch> matches, bool[] matched, ref int match_idx) => {
+                            void enumerate_matches(List<PathMatch> matches, bool[] matched, ref int match_idx)
+                            {
                                 for (int i = 0; i < matches.Count; i++)
                                 {
                                     if (!matched[i] && cmp_match_pattern(sub_match.pattern, matches[i].pattern))
@@ -707,7 +692,7 @@ namespace BDMatchUI
                                         break;
                                     }
                                 }
-                            };
+                            }
                             enumerate_matches(tv_matches, tv_matched, ref tv_match_idx);
                             enumerate_matches(bd_matches, bd_matched, ref bd_match_idx);
                             if (tv_match_idx >= 0 && bd_match_idx >= 0)
@@ -749,8 +734,8 @@ namespace BDMatchUI
             return MatchReturn.Success;
         }
 
-        ProgressCallback prog_cb;
-        FeedbackCallback feedback_cb;
+        readonly ProgressCallback prog_cb;
+        readonly FeedbackCallback feedback_cb;
         private MatchReturn match(string sub_path, string tv_path, string bd_path, string output_path, bool draw)
         {
             draw_pre();
@@ -765,25 +750,21 @@ namespace BDMatchUI
             
             prog_log(string.Format(AppResources.get_string("BDMatchUI/Common/Text_ProgStat"), fin_match_task_cnt + 1, total_match_task_cnt, AppResources.get_string("BDMatchUI/Common/Text_Decoding")));
             MatchReturn re = CoreHelper.decode(tv_path, bd_path);
-            if (re != MatchReturn.Success)
+            MatchReturn return_error(MatchReturn re_err)
             {
                 if (re != MatchReturn.User_Stop) log_fb_builder_info();
                 else fb_builder.Clear();
-                return re;
+                CoreHelper.clear_data();
+                return re_err;
             }
+            if (re != MatchReturn.Success) return return_error(re);
 
             if (Convert.ToBoolean(settings[SettingType.MatchAss]))
             {
                 prog_log(string.Format(AppResources.get_string("BDMatchUI/Common/Text_ProgStat"), fin_match_task_cnt + 1, total_match_task_cnt, AppResources.get_string("BDMatchUI/Common/Text_Matching")));
-                var return_match_ass_err = (MatchReturn match_ass_re) =>
-                {
-                    if (re != MatchReturn.User_Stop) log_fb_builder_info();
-                    else fb_builder.Clear();
-                    CoreHelper.clear_match();
-                    return match_ass_re;
-                };
+
                 re = CoreHelper.match_1(sub_path, tv_path, bd_path);
-                if (re != MatchReturn.Success) return return_match_ass_err(re);
+                if (re != MatchReturn.Success) return return_error(re);
 
                 //绘图相关
                 UInt64 nb_timeline = CoreHelper.get_nb_timeline();
@@ -802,7 +783,7 @@ namespace BDMatchUI
                 }
 
                 re = CoreHelper.match_2(output_path);
-                if (re != MatchReturn.Success) return return_match_ass_err(re);
+                if (re != MatchReturn.Success) return return_error(re);
 
                 //绘图相关
                 if (draw)
@@ -853,13 +834,16 @@ namespace BDMatchUI
                 bd_draw.cs_to_fft = CoreHelper.get_decode_info(Decode_File.TV_Decode, Decode_Info.Samp_Rate) / (bd_draw.fft_num * 100.0);
                 tv_draw.spec = CoreHelper.get_decode_spec(Decode_File.TV_Decode);
                 bd_draw.spec = CoreHelper.get_decode_spec(Decode_File.BD_Decode);
+                while (!DispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () => {
+                    sharing_helper.draw_ctrl.reset_control();
+                    sharing_helper.draw_ctrl.draw_spec?.Invoke();
+                })) ;
             }
             else
             {
                 sharing_helper.tv_draw = null;
                 sharing_helper.bd_draw = null;
-                if (re == MatchReturn.Success)
-                    CoreHelper.clear_data();
+                CoreHelper.clear_data();
             }
         }
     }

@@ -1,3 +1,4 @@
+using BDMatchUI.Helper;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -27,31 +28,18 @@ namespace BDMatchUI
         public HelpPage()
         {
             this.InitializeComponent();
-            load_control_text();
-            HelpScrollBar_Load_Labels();
         }
 
-        private void load_control_text()
-        {
-            HelpText.Text = AppResources.get_string("BDMatchUI/MainWindow/Navi/Help/Content");
-            BatchProcessingHeader.Text = AppResources.get_string("BDMatchUI/HelpPage/BatchProcessingHeader/Text");
-            BatchProcessingText.Text = AppResources.get_string("BDMatchUI/HelpPage/BatchProcessingText/Text");
-            OneToMultiHeader.Text = AppResources.get_string("BDMatchUI/HelpPage/OneToMultiHeader/Text");
-            OneToMultiText.Text = AppResources.get_string("BDMatchUI/HelpPage/OneToMultiText/Text");
-            UsingRegexHeader.Text = AppResources.get_string("BDMatchUI/HelpPage/UsingRegexHeader/Text");
-            UsingRegexText.Text = AppResources.get_string("BDMatchUI/HelpPage/UsingRegexText/Text");
-            ExcludeSubExprHeader.Text = AppResources.get_string("BDMatchUI/HelpPage/ExcludeSubExprHeader/Text");
-            ExcludeSubExprText.Text = AppResources.get_string("BDMatchUI/HelpPage/ExcludeSubExprText/Text");
-            FastRegexHeader.Text = AppResources.get_string("BDMatchUI/HelpPage/FastRegexHeader/Text");
-            FastRegexText.Text = AppResources.get_string("BDMatchUI/HelpPage/FastRegexText/Text");
-
-            current_language = new string(AppResources.current_language);
-        }
-
-        string current_language = null;
+        SharingHelper sharing_helper = null;
+        TextHelper text_helper = null;
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            if (current_language != AppResources.current_language) load_control_text();
+            if (e.Parameter is SharingHelper && e.Parameter != null)
+            {
+                sharing_helper = e.Parameter as SharingHelper;
+                text_helper = sharing_helper.text_helper;
+            }
+            HelpScrollBar_Load_Labels();
             base.OnNavigatedTo(e);
         }
 

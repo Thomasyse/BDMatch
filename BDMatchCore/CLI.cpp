@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 		{false, "-debug", "show some debug info"} };
 	std::vector<setting<int>> int_settings = {
 		{3, "-isa", "ISA mode:0 for no SIMD, 1 for SSE/SSE2/SSE4.1, 2 for AVX, 3 for AVX2 (default: 3)"},
-		{512, "-fftn", "FFT window size, larger for speed, smaller for precision(uncertain), should be a power of 2 (default: 512)"},
+		{512, "-fftn", "FFT window size, larger for speed, smaller for precision(uncertain), should be a power of 2 (default: 512, minimun: 64)"},
 		{-14, "-mindb", "volume(db) threshold for noise filter(default: -14)"},
 		{100, "-mincfn", "confirm times for match results, larger(ie. 10000) for precision, smaller for speed (default: 100)"},
 		{10, "-range", "range for searching the results(-xx -> +xx), with the unit of second (default: 10)"},

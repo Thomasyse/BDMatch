@@ -1,5 +1,4 @@
 ﻿#include "headers/decoder.h"
-#include <immintrin.h>
 #include <algorithm>
 #include <fstream>
 #include "headers/multithreading.h"
@@ -9,7 +8,7 @@
 constexpr double MaxdB = 20.0;
 
 namespace Decode {
-	inline double m256d_f64(const __m256d& vec, const int& index)
+	inline static double m256d_f64(__m256d& vec, const int& index)
 	{
 #ifndef _CLI_ // Windows
 		return vec.m256d_f64[index];
@@ -17,8 +16,17 @@ namespace Decode {
 		return reinterpret_cast<const double*>(&vec)[index];
 #endif 
 	}
+	
+	inline static uint64_t m256i_u64(const __m256i& vec, const int& index)
+	{
+#ifndef _CLI_ // Windows
+		return vec.m256i_u64[index];
+#else // Other platforms
+		return reinterpret_cast<const uint64_t*>(&vec)[index];
+#endif 
+	}
 
-	inline __m128d _mm_log10_pd_cmpt(const __m128d& vec)
+	inline static __m128d _mm_log10_pd_cmpt(const __m128d& vec)
 	{
 #ifndef _NO_SVML_ // Platforms which support _mm_log10_pd
 		return _mm_log10_pd(vec);
@@ -31,7 +39,7 @@ namespace Decode {
 #endif 
 	}
 
-	inline __m256d _mm256_log10_pd_cmpt(const __m256d& vec)
+	inline static __m256d _mm256_log10_pd_cmpt(const __m256d& vec)
 	{
 #ifndef _NO_SVML_ // Platforms which support _mm256_log10_pd
 		return _mm256_log10_pd(vec);
@@ -122,7 +130,7 @@ Match_Core_Return Decode::Decode::initialize(const std::string_view &file_name0)
 	unsigned int j;
 	// Find the first audio stream
 	audio_stream = -1;
-	for (j = 0; j < ffmpeg->filefm->nb_streams; j++)//找到音频对应的stream
+	for (j = 0; j < ffmpeg->filefm->nb_streams; j++)//找到音频对应的stream，默认只支持第一条音轨
 		if (ffmpeg->filefm->streams[j]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
 		{
 			audio_stream = j;
@@ -171,6 +179,11 @@ Match_Core_Return Decode::Decode::initialize(const std::string_view &file_name0)
 	sample_rate = ffmpeg->codecfm->sample_rate;
 	//声道
 	channels = ffmpeg->codecfm->ch_layout.nb_channels;
+	if (channels > MAX_CHANNEL_CNT)
+	{
+		feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 2), lang_pack.get_text(Lang_Type::Decoder_Error, 16));//"\n错误：音轨声道数量超出限制！"
+		return error_return(Match_Core_Return::Channel_Limit_Err); // Number of audio track channels exceeded limit
+	}
 	//vol
 	total_vol = 0.0;
 	return Match_Core_Return::Success;
@@ -358,7 +371,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 					if (ffmpeg->codecfm->bits_per_raw_sample == 24)sample_type = 24;
 				}
 				int nb_samples;
-				uint8_t **audiodata;
+				uint8_t **audio_data;
 				//重采样
 				if (resamp) {
 					nb_samples = static_cast<int>(
@@ -375,15 +388,15 @@ Match_Core_Return Decode::Decode::decode_audio() {
 						feedback = str_vfmt(lang_pack.get_text(Lang_Type::Notif, 3), lang_pack.get_text(Lang_Type::Decoder_Error, 15), av_err_to_str(ffmpeg_return));//"\n错误：重采样错误！ 错误信息：{}"
 						return error_return(Match_Core_Return::Convert_Err); // Error while converting
 					}
-					audiodata = ffmpeg->dst_data;
+					audio_data = ffmpeg->dst_data;
 				}
 				else {
 					nb_samples = ffmpeg->decoded_frame->nb_samples;
-					audiodata = ffmpeg->decoded_frame->extended_data;
+					audio_data = ffmpeg->decoded_frame->extended_data;
 				}
 				//处理数据
 				double **normalized_samples = nullptr;
-				int nb_fft_sample = normalize(audiodata, normalized_samples, ffmpeg->sample_seqs, nb_last_seq, nb_samples);
+				int nb_fft_sample = normalize(audio_data, normalized_samples, ffmpeg->sample_seqs, nb_last_seq, nb_samples);
 				if (stop_src.stop_requested()) {
 					clear_normalized_samples(normalized_samples);
 					return error_return(Match_Core_Return::User_Stop);
@@ -405,12 +418,12 @@ Match_Core_Return Decode::Decode::decode_audio() {
 				if (output_pcm) {
 					if (!isplanar) {
 						data_size *= channels;
-						pcm.write(reinterpret_cast<char*>(audiodata[0]), size_t(nb_samples) * size_t(data_size));
+						pcm.write(reinterpret_cast<char*>(audio_data[0]), size_t(nb_samples) * size_t(data_size));
 					}
 					else {
 						for (int i = 0; i < nb_samples; i++)
 							for (int ch = 0; ch < real_ch; ch++)
-								pcm.write(reinterpret_cast<char*>(audiodata[ch] + size_t(i) * size_t(data_size)), data_size);
+								pcm.write(reinterpret_cast<char*>(audio_data[ch] + size_t(i) * size_t(data_size)), data_size);
 					}
 				}
 				if (ffmpeg->dst_data) {
@@ -477,35 +490,35 @@ std::string_view Decode::Decode::get_feedback()
 {
 	return feedback;
 }
-std::string_view Decode::Decode::get_file_name()
+std::string_view Decode::Decode::get_file_name() const
 {
 	return file_name;
 }
-Match_Core_Return Decode::Decode::get_return()
+Match_Core_Return Decode::Decode::get_return() const
 {
 	return return_val;
 }
-int64_t Decode::Decode::get_fft_samp_num()
+int64_t Decode::Decode::get_fft_samp_num() const
 {
 	return fft_samp_num;
 }
-int64_t Decode::Decode::get_centi_sec()
+int64_t Decode::Decode::get_centi_sec() const
 {
 	return centi_sec;
 }
-int Decode::Decode::get_channels()
+int Decode::Decode::get_channels() const
 {
 	return data_channels;
 }
-int Decode::Decode::get_samp_rate()
+int Decode::Decode::get_samp_rate() const
 {
 	return sample_rate;
 }
-int Decode::Decode::get_fft_num()
+int Decode::Decode::get_fft_num() const
 {
 	return fft_num;
 }
-bool Decode::Decode::get_audio_only()
+bool Decode::Decode::get_audio_only() const
 {
 	return audio_only;
 }
@@ -518,7 +531,7 @@ char ** Decode::Decode::get_fft_spec()
 	return fft_spec;
 }
 
-double Decode::Decode::get_avg_vol()
+double Decode::Decode::get_avg_vol() const
 {
 	return total_vol / static_cast<double>(e_fft_num);
 }
@@ -590,7 +603,13 @@ int Decode::Decode::clear_normalized_samples(double** normalized_samples)
 }
 
 
-int Decode::Decode::normalize(uint8_t ** const &audiodata, double **&normalized_samples, double **& seqs, int &nb_last, const int &nb_samples)
+int Decode::Decode::move_data(double* src, double* dst, const size_t& size)
+{
+	for (size_t i = 0; i < size; i++)dst[i] = src[i];
+	return 0;
+}
+
+int Decode::Decode::normalize(uint8_t ** const &audio_data, double **&normalized_samples, double **& seqs, int &nb_last, const int &nb_samples)
 {
 	int nb_last_next = (nb_samples + nb_last) % fft_num;
 	int length = nb_samples + nb_last - nb_last_next;
@@ -603,25 +622,25 @@ int Decode::Decode::normalize(uint8_t ** const &audiodata, double **&normalized_
 		switch (sample_type)
 		{
 		case 1:
-			transfer_audio_data_planar<float>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<float>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 2:
-			transfer_audio_data_planar<double>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<double>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 8:
-			transfer_audio_data_planar<char>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int8_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 16:
-			transfer_audio_data_planar<short>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int16_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 24:
-			transfer_audio_data_planar<int, 24>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int32_t, 24>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 32:
-			transfer_audio_data_planar<int>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int32_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 64:
-			transfer_audio_data_planar<int64_t>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int64_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		default:
 			break;
@@ -630,25 +649,25 @@ int Decode::Decode::normalize(uint8_t ** const &audiodata, double **&normalized_
 		switch (sample_type)
 		{
 		case 1:
-			transfer_audio_data_packed<float>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<float>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 2:
-			transfer_audio_data_packed<double>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<double>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 8:
-			transfer_audio_data_packed<char>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<int8_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 16:
-			transfer_audio_data_packed<short>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<int16_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 24:
-			transfer_audio_data_packed<int, 24>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<int32_t, 24>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 32:
-			transfer_audio_data_packed<int>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<int32_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 64:
-			transfer_audio_data_packed<int64_t>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<int64_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		default:
 			break;
@@ -708,7 +727,6 @@ int Decode::Decode::FD8(double * inseq, DataStruct::Spec_Node * outseq)
 	return 0;
 }
 
-
 int Decode::Decode_SSE::FD8(double * inseq, DataStruct::Spec_Node * outseq)
 {
 	char *out = outseq->getdata();
@@ -717,9 +735,9 @@ int Decode::Decode_SSE::FD8(double * inseq, DataStruct::Spec_Node * outseq)
 	__m128d const_mindb = _mm_set1_pd(c_min_db);
 	__m128d const127 = _mm_set1_pd(static_cast<double>(std::numeric_limits<char>::max()));
 	__m128d constm128 = _mm_set1_pd(static_cast<double>(std::numeric_limits<char>::min()));
-	for (int i = 0; i < fft_num / 4; i++) {
-		__m128d seq1 = _mm_load_pd(inseq);
-		__m128d seq2 = _mm_load_pd(inseq + 2);
+	auto fd8_4 = [&const10, &const_maxdb, &const_mindb, &const127, &constm128](const double* data) {
+		__m128d seq1 = _mm_load_pd(data);
+		__m128d seq2 = _mm_load_pd(data + 2);
 		seq1 = _mm_mul_pd(seq1, seq1);
 		seq2 = _mm_mul_pd(seq2, seq2);
 		__m128d temp = _mm_hadd_pd(seq1, seq2);
@@ -731,203 +749,125 @@ int Decode::Decode_SSE::FD8(double * inseq, DataStruct::Spec_Node * outseq)
 		temp = _mm_min_pd(temp, const127);
 		temp = _mm_max_pd(temp, constm128);
 		temp = _mm_round_pd(temp, _MM_FROUND_TO_NEAREST_INT);
-		__m128i temp_int = _mm_cvtpd_epi32(temp);
-		char* temp_char = reinterpret_cast<char*>(&temp_int);
-		out[0] = temp_char[0];
-		out[1] = temp_char[4];
-		inseq += 4;
-		out += 2;
+		__m128i res_int32 = _mm_cvtpd_epi32(temp);
+		return res_int32;
+	};
+	for (int i = 0; i < fft_num / 16; i++) {
+		__m128i res_1 = fd8_4(inseq);
+		__m128i res_2 = fd8_4(inseq + 4);
+		__m128i res_3 = fd8_4(inseq + 8);
+		__m128i res_4 = fd8_4(inseq + 12);
+		__m128i res_int16_1 = _mm_packs_epi32(res_1, res_2);
+		__m128i res_int16_2 = _mm_packs_epi32(res_3, res_4);
+		__m128i res_int8 = _mm_packs_epi16(res_int16_1, res_int16_2);
+		char* temp_char = reinterpret_cast<char*>(&res_int8);
+		for (int j = 0; j < 8; j++) {
+			out[j * 2] = temp_char[j * 4];
+			out[j * 2 + 1] = temp_char[j * 4 + 1];
+		}
+		inseq += 16;
+		out += 8;
 	}
 	out = nullptr;
 	return 0;
 }
 
 
-int Decode::Decode_AVX::transfer_audio_data_planar_float(uint8_t** const audiodata,
+int Decode::Decode_AVX::move_data(double* src, double* dst, const size_t& size)
+{
+	int remainder = size % 4;
+	for (int i = 0; i < size / 4; i++) {
+		__m256d data = _mm256_loadu_pd(src);
+		_mm256_storeu_pd(dst, data);
+		src += 4;
+		dst += 4;
+	}
+	if (remainder == 0)return 0;
+	__m256i mask = _mm256_set_epi64x(0, remainder >= 3 ? AVX_VALID_MASK_64 : 0, remainder >= 2 ? AVX_VALID_MASK_64 : 0, AVX_VALID_MASK_64);
+	__m256d data = _mm256_maskload_pd(src, mask);
+	_mm256_maskstore_pd(dst, mask, data);
+	return 0;
+}
+
+int Decode::Decode_AVX::transfer_audio_data_planar_float(uint8_t** const audio_data,
 	double** const normalized_samples, double** const seqs, 
 	const int& nb_last, const int& nb_last_next, const int& length, const int& nb_samples)
 {
-	int index = 0, index2 = 0;
+	int index = 0, seq_index = 0;
 	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
+		for (int ch = 0; ch < channels; ch++)move_data(seqs[ch], normalized_samples[ch], nb_last);
 		index = nb_last;
 	}
-	else index2 = nb_last;
+	else seq_index = nb_last;
 	for (int ch = 0; ch < channels; ch++) {
-		int avxlength = nb_samples / 8;
+		int avx_length = nb_samples / 8;
 		int avx_last = nb_samples % 8;
 		int nb_to_norm = std::max(length - nb_last, 0);
 		int threshold = nb_to_norm / 8;
 		int remainder = nb_to_norm % 8;
-		float* tempf = reinterpret_cast<float*>(audiodata[ch]);
-		double* tempd = normalized_samples[ch] + index;
-		double* temp_seq = seqs[ch] + index2;
+		float* data_ptr = reinterpret_cast<float*>(audio_data[ch]);
+		double* norm_ptr = normalized_samples[ch] + index;
+		double* seq_ptr = seqs[ch] + seq_index;
+		__m256d tr_res[2] = { _mm256_setzero_pd(), _mm256_setzero_pd() };
+		auto transfer_avx = [&data_ptr, &tr_res]() {
+			__m256 temp256 = _mm256_load_ps(data_ptr);
+			tr_res[0] = _mm256_cvtps_pd(_mm256_extractf128_ps(temp256, 0));
+			tr_res[1] = _mm256_cvtps_pd(_mm256_extractf128_ps(temp256, 1));
+		};
+		auto store_planar_avx = [&data_ptr, &tr_res](double*& dst) {
+			_mm256_storeu_pd(dst, tr_res[0]);
+			_mm256_storeu_pd(dst + 4, tr_res[1]);
+			dst += 8;
+			data_ptr += 8;
+		};
 		for (int i = 0; i < threshold; i++) {
-			__m256 temp256 = _mm256_load_ps(tempf);
-			__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
-			__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
-			_mm256_storeu_pd(tempd, _mm256_cvtps_pd(temp128_1));
-			tempd += 4;
-			_mm256_storeu_pd(tempd, _mm256_cvtps_pd(temp128_2));
-			tempd += 4;
-			tempf += 8;
+			transfer_avx();
+			store_planar_avx(norm_ptr);
 		}
-		if (threshold < avxlength) {
+		if (threshold < avx_length) {
 			if (remainder) {
-				__m256 temp256 = _mm256_load_ps(tempf);
-				__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
-				__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
-				__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
-				__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
-				for (int j = 0; j < 4; j++)
-					if (j < remainder) *(tempd++) = m256d_f64(tempd_1, j);
-					else *(temp_seq++) = m256d_f64(tempd_1, j);
+				transfer_avx();
+				auto assign_remainder = [&norm_ptr, &seq_ptr, &remainder](__m256d &src) {
+					for (int j = 0; j < 4; j++) {
+						if (j < remainder) *(norm_ptr++) = m256d_f64(src, j);
+						else *(seq_ptr++) = m256d_f64(src, j);
+					}
+				};
+				assign_remainder(tr_res[0]);
 				remainder -= 4;
-				for (int j = 0; j < 4; j++)
-					if (j < remainder) *(tempd++) = m256d_f64(tempd_2, j);
-					else *(temp_seq++) = m256d_f64(tempd_2, j);
-				tempf += 8;
+				assign_remainder(tr_res[1]);
+				data_ptr += 8;
 				threshold++;
 			}
-			for (int i = threshold; i < avxlength; i++) {
-				__m256 temp256 = _mm256_load_ps(tempf);
-				__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
-				__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
-				_mm256_storeu_pd(temp_seq, _mm256_cvtps_pd(temp128_1));
-				temp_seq += 4;
-				_mm256_storeu_pd(temp_seq, _mm256_cvtps_pd(temp128_2));
-				temp_seq += 4;
-				tempf += 8;
+			for (int i = threshold; i < avx_length; i++) {
+				transfer_avx();
+				store_planar_avx(seq_ptr);
 			}
 		}
 		if (avx_last > 0) {
 			int threshold2 = avx_last - nb_last_next;
 			for (int i = 0; i < avx_last; i++)
-				if (i < threshold2)*(tempd++) = static_cast<double>(*(tempf++));
-				else *(temp_seq++) = static_cast<double>(*(tempf++));
+				if (i < threshold2)*(norm_ptr++) = static_cast<double>(*(data_ptr++));
+				else *(seq_ptr++) = static_cast<double>(*(data_ptr++));
 		}
 	}
 	return 0;
 }
-int Decode::Decode_AVX::transfer_audio_data_packed_float(uint8_t** const audiodata, 
+int Decode::Decode_AVX::transfer_audio_data_packed_float(uint8_t** const audio_data, 
 	double** const normalized_samples, double** const seqs, 
 	const int& nb_last, const int& length, const int& nb_samples)
 {
-	int index = 0, index2 = 0;
-	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-		index = nb_last;
-	}
-	else index2 = nb_last;
-	int ch = 0;
-	float* tempf = reinterpret_cast<float*>(audiodata[0]);
-	int avxlength = nb_samples * channels / 8;
-	int avx_last = (nb_samples * channels) % 8;
-	int nb_to_norm = std::max(length - nb_last, 0);
-	int threshold = nb_to_norm * channels / 8;
-	int remainder = nb_to_norm * channels % 8;
-	for (int i = 0; i < threshold; i++) {
-		__m256 temp256 = _mm256_load_ps(tempf);
-		__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
-		__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
-		__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
-		__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
-		double out;
-		for (int j = 0; j < 4; j++) {
-			out = m256d_f64(tempd_1, j);
-			normalized_samples[ch++][index] = out;
-			if (ch == channels) {
-				ch = 0;
-				index++;
-			}
-		}
-		for (int j = 0; j < 4; j++) {
-			out = m256d_f64(tempd_2, j);
-			normalized_samples[ch++][index] = out;
-			if (ch == channels) {
-				ch = 0;
-				index++;
-			}
-		}
-		tempf += 8;
-	}
-	if (threshold < avxlength) {
-		if (remainder) {
-			__m256 temp256 = _mm256_load_ps(tempf);
-			__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
-			__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
-			__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
-			__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
-			for (int j = 0; j < 8; j++) {
-				double out;
-				if (j < 4)out = m256d_f64(tempd_1, j);
-				else out = m256d_f64(tempd_2, j - 4);
-				if (index < length) {
-					normalized_samples[ch++][index] = out;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				else {
-					seqs[ch++][index2] = out;
-					if (ch == channels) {
-						ch = 0;
-						index2++;
-					}
-				}
-			}
-			tempf += 8;
-			threshold++;
-		}
-		for (int i = threshold; i < avxlength; i++) {
-			__m256 temp256 = _mm256_load_ps(tempf);
-			__m128 temp128_1 = _mm256_extractf128_ps(temp256, 0);
-			__m128 temp128_2 = _mm256_extractf128_ps(temp256, 1);
-			__m256d tempd_1 = _mm256_cvtps_pd(temp128_1);
-			__m256d tempd_2 = _mm256_cvtps_pd(temp128_2);
-			double out;
-			for (int j = 0; j < 4; j++) {
-				out = m256d_f64(tempd_1, j);
-				seqs[ch++][index2] = out;
-				if (ch == channels) {
-					ch = 0;
-					index2++;
-				}
-			}
-			for (int j = 0; j < 4; j++) {
-				out = m256d_f64(tempd_2, j);
-				seqs[ch++][index2] = out;
-				if (ch == channels) {
-					ch = 0;
-					index2++;
-				}
-			}
-			tempf += 8;
-		}
-	}
-	for (int i = 0; i < avx_last; i++) {
-		if (index < length) {
-			normalized_samples[ch++][index] = static_cast<double>(*(tempf++));
-			if (ch == channels) {
-				ch = 0;
-				index++;
-			}
-		}
-		else {
-			seqs[ch++][index2] = static_cast<double>(*(tempf++));
-			if (ch == channels) {
-				ch = 0;
-				index2++;
-			}
-		}
-	}
+	auto transfer_avx = [](float*& data_ptr, __m256d tr_res[2]) {
+		__m256 temp256 = _mm256_load_ps(data_ptr);
+		tr_res[0] = _mm256_cvtps_pd(_mm256_extractf128_ps(temp256, 0));
+		tr_res[1] = _mm256_cvtps_pd(_mm256_extractf128_ps(temp256, 1));
+	};
+	transfer_audio_data_packed_base_avx<float>(audio_data, normalized_samples, seqs, nb_last, length, nb_samples,
+		transfer_avx, [](const float& val) { return static_cast<double>(val); });
 	return 0;
 }
 
-int Decode::Decode_AVX::normalize(uint8_t** const& audiodata, double**& normalized_samples, double**& seqs, int& nb_last, const int& nb_samples)
+int Decode::Decode_AVX::normalize(uint8_t** const& audio_data, double**& normalized_samples, double**& seqs, int& nb_last, const int& nb_samples)
 {
 	int nb_last_next = (nb_samples + nb_last) % fft_num;
 	int length = nb_samples + nb_last - nb_last_next;
@@ -940,25 +880,25 @@ int Decode::Decode_AVX::normalize(uint8_t** const& audiodata, double**& normaliz
 		switch (sample_type)
 		{
 		case 1:
-			transfer_audio_data_planar_float(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length, nb_samples);
+			transfer_audio_data_planar_float(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length, nb_samples);
 			break;
 		case 2:
-			transfer_audio_data_planar<double>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<double>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 8:
-			transfer_audio_data_planar<char>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int8_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 16:
-			transfer_audio_data_planar<short>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int16_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 24:
-			transfer_audio_data_planar<int, 24>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int32_t, 24>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 32:
-			transfer_audio_data_planar<int>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int32_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 64:
-			transfer_audio_data_planar<int64_t>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int64_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		default:
 			break;
@@ -967,25 +907,25 @@ int Decode::Decode_AVX::normalize(uint8_t** const& audiodata, double**& normaliz
 		switch (sample_type)
 		{
 		case 1:
-			transfer_audio_data_packed_float(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			transfer_audio_data_packed_float(audio_data, normalized_samples, seqs, nb_last, length, nb_samples);
 			break;
 		case 2:
-			transfer_audio_data_packed<double>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<double>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 8:
-			transfer_audio_data_packed<char>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<int8_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 16:
-			transfer_audio_data_packed<short>(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			transfer_audio_data_packed<int16_t>(audio_data, normalized_samples, seqs, nb_last, length, nb_samples);
 			break;
 		case 24:
-			transfer_audio_data_packed<int, 24>(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			transfer_audio_data_packed<int32_t, 24>(audio_data, normalized_samples, seqs, nb_last, length, nb_samples);
 			break;
 		case 32:
-			transfer_audio_data_packed<int>(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			transfer_audio_data_packed<int32_t>(audio_data, normalized_samples, seqs, nb_last, length, nb_samples);
 			break;
 		case 64:
-			transfer_audio_data_packed<int64_t>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<int64_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		default:
 			break;
@@ -1028,9 +968,9 @@ int Decode::Decode_AVX::FD8(double* inseq, DataStruct::Spec_Node* outseq)
 	__m256d const_mindb = _mm256_set1_pd(c_min_db);
 	__m256d const127 = _mm256_set1_pd(static_cast<double>(std::numeric_limits<char>::max())); // 127
 	__m256d constm128 = _mm256_set1_pd(static_cast<double>(std::numeric_limits<char>::min())); // -128
-	for (int i = 0; i < fft_num / 8; i++) {
-		__m256d seq1 = _mm256_load_pd(inseq);
-		__m256d seq2 = _mm256_load_pd(inseq + 4);
+	auto fd8_8 = [&const10, &const_maxdb, &const_mindb, &const127, &constm128](const double* data) {
+		__m256d seq1 = _mm256_load_pd(data);
+		__m256d seq2 = _mm256_load_pd(data + 4);
 		seq1 = _mm256_mul_pd(seq1, seq1);
 		seq2 = _mm256_mul_pd(seq2, seq2);
 		__m256d temp = _mm256_hadd_pd(seq1, seq2);
@@ -1042,409 +982,78 @@ int Decode::Decode_AVX::FD8(double* inseq, DataStruct::Spec_Node* outseq)
 		temp = _mm256_max_pd(temp, constm128);
 		temp = _mm256_min_pd(temp, const127);
 		temp = _mm256_round_pd(temp, _MM_FROUND_TO_NEAREST_INT);
-		__m128i temp_int = _mm256_cvtpd_epi32(temp);
-		char* temp_char = reinterpret_cast<char*>(&temp_int);
-		out[0] = temp_char[0];
-		out[2] = temp_char[4];
-		out[1] = temp_char[8];
-		out[3] = temp_char[12];
-		inseq += 8;
-		out += 4;
+		__m128i res_int32 = _mm256_cvtpd_epi32(temp);
+		return res_int32;
+	};
+	for (int i = 0; i < fft_num / 32; i++) {
+		__m128i res_1 = fd8_8(inseq);
+		__m128i res_2 = fd8_8(inseq + 8);
+		__m128i res_3 = fd8_8(inseq + 16);
+		__m128i res_4 = fd8_8(inseq + 24);
+		__m128i res_int16_1 = _mm_packs_epi32(res_1, res_2);
+		__m128i res_int16_2 = _mm_packs_epi32(res_3, res_4);
+		__m128i res_int8 = _mm_packs_epi16(res_int16_1, res_int16_2);
+		_mm_stream_si128(reinterpret_cast<__m128i*>(out), res_int8);
+		inseq += 32;
+		out += 16;
 	}
 	out = nullptr;
 	return 0;
 }
 
 
-int Decode::Decode_AVX2::transfer_audio_data_packed_int16(uint8_t** const audiodata, 
+int Decode::Decode_AVX2::transfer_audio_data_packed_int16(uint8_t** const audio_data, 
 	double** const normalized_samples, double** const seqs, 
 	const int& nb_last, const int& length, const int& nb_samples)
 {
-	int index = 0, index2 = 0;
-	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-		index = nb_last;
-	}
-	else index2 = nb_last;
-	int ch = 0;
-	__m128i* temp128 = reinterpret_cast<__m128i*>(audiodata[0]);
-	short* temps = reinterpret_cast<short*>(audiodata[0]);
 	__m256d const16 = _mm256_set1_pd(1.0 / 32767.0);
-	int avxlength = nb_samples * channels / 8;
-	int avx_last = (nb_samples * channels) % 8;
-	int nb_to_norm = std::max(length - nb_last, 0);
-	int threshold = nb_to_norm * channels / 8;
-	int remainder = nb_to_norm * channels % 8;
-	for (int i = 0; i < threshold; i++) {
-		__m128i temp16 = _mm_load_si128(temp128);
+	auto transfer_avx = [&const16](int16_t*& data_ptr, __m256d tr_res[2]) {
+		__m128i temp16 = _mm_load_si128(reinterpret_cast<__m128i*>(data_ptr));
 		__m256i temp32 = _mm256_cvtepi16_epi32(temp16);
-		__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-		__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-		__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-		__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-		tempd_1 = _mm256_mul_pd(tempd_1, const16);
-		tempd_2 = _mm256_mul_pd(tempd_2, const16);
-		double out;
-		for (int j = 0; j < 4; j++) {
-			out = m256d_f64(tempd_1, j);
-			normalized_samples[ch++][index] = out;
-			if (ch == channels) {
-				ch = 0;
-				index++;
-			}
-		}
-		for (int j = 0; j < 4; j++) {
-			out = m256d_f64(tempd_2, j);
-			normalized_samples[ch++][index] = out;
-			if (ch == channels) {
-				ch = 0;
-				index++;
-			}
-		}
-		temp128++;
-		temps += 8;
-	}
-	if (threshold < avxlength) {
-		if (remainder) {
-			__m128i temp16 = _mm_load_si128(temp128);
-			__m256i temp32 = _mm256_cvtepi16_epi32(temp16);
-			__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-			__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-			__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-			__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-			tempd_1 = _mm256_mul_pd(tempd_1, const16);
-			tempd_2 = _mm256_mul_pd(tempd_2, const16);
-			for (int j = 0; j < 8; j++) {
-				double out;
-				if (j < 4)out = m256d_f64(tempd_1, j);
-				else out = m256d_f64(tempd_2, j - 4);
-				if (index < length) {
-					normalized_samples[ch++][index] = out;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				else {
-					seqs[ch++][index2] = out;
-					if (ch == channels) {
-						ch = 0;
-						index2++;
-					}
-				}
-			}
-			temp128++;
-			temps += 8;
-			threshold++;
-		}
-		for (int i = threshold; i < avxlength; i++) {
-			__m128i temp16 = _mm_load_si128(temp128);
-			__m256i temp32 = _mm256_cvtepi16_epi32(temp16);
-			__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-			__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-			__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-			__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-			tempd_1 = _mm256_mul_pd(tempd_1, const16);
-			tempd_2 = _mm256_mul_pd(tempd_2, const16);
-			double out;
-			for (int j = 0; j < 4; j++) {
-				out = m256d_f64(tempd_1, j);
-				seqs[ch++][index2] = out;
-				if (ch == channels) {
-					ch = 0;
-					index2++;
-				}
-			}
-			for (int j = 0; j < 4; j++) {
-				out = m256d_f64(tempd_2, j);
-				seqs[ch++][index2] = out;
-				if (ch == channels) {
-					ch = 0;
-					index2++;
-				}
-			}
-			temp128++;
-			temps += 8;
-		}
-	}
-	for (int i = 0; i < avx_last; i++) {
-		if (index < length) {
-			normalized_samples[ch++][index] = static_cast<double>(*(temps++)) / 32767.0;
-			if (ch == channels) {
-				ch = 0;
-				index++;
-			}
-		}
-		else {
-			seqs[ch++][index2] = static_cast<double>(*(temps++)) / 32767.0;
-			if (ch == channels) {
-				ch = 0;
-				index2++;
-			}
-		}
-	}
+		tr_res[0] = _mm256_cvtepi32_pd(_mm256_extracti128_si256(temp32, 0));
+		tr_res[1] = _mm256_cvtepi32_pd(_mm256_extracti128_si256(temp32, 1));
+		tr_res[0] = _mm256_mul_pd(tr_res[0], const16);
+		tr_res[1] = _mm256_mul_pd(tr_res[1], const16);
+	};
+	transfer_audio_data_packed_base_avx<int16_t>(audio_data, normalized_samples, seqs, nb_last, length, nb_samples,
+		transfer_avx, [](const int16_t& val) { return static_cast<double>(val) / 32767.0; });
 	return 0;
 }
-int Decode::Decode_AVX2::transfer_audio_data_packed_int24(uint8_t** const audiodata, 
+int Decode::Decode_AVX2::transfer_audio_data_packed_int24(uint8_t** const audio_data, 
 	double** const normalized_samples, double** const seqs, 
 	const int& nb_last, const int& length, const int& nb_samples)
 {
-	int index = 0, index2 = 0;
-	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-		index = nb_last;
-	}
-	else index2 = nb_last;
-	int ch = 0;
-	int* tempi = reinterpret_cast<int*>(audiodata[0]);
-	__m256i* temp256 = reinterpret_cast<__m256i*>(audiodata[0]);
 	__m256d const24 = _mm256_set1_pd(1.0 / 8388607.0);
-	int avxlength = nb_samples * channels / 8;
-	int avx_last = (nb_samples * channels) % 8;
-	int nb_to_norm = std::max(length - nb_last, 0);
-	int threshold = nb_to_norm * channels / 8;
-	int remainder = nb_to_norm * channels % 8;
-	for (int i = 0; i < threshold; i++) {
-		__m256i temp32 = _mm256_load_si256(temp256);
+	auto transfer_avx = [&const24](int32_t*& data_ptr, __m256d tr_res[2]) {
+		__m256i temp32 = _mm256_load_si256(reinterpret_cast<__m256i*>(data_ptr));
 		temp32 = _mm256_srai_epi32(temp32, 8);
-		__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-		__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-		__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-		__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-		tempd_1 = _mm256_mul_pd(tempd_1, const24);
-		tempd_2 = _mm256_mul_pd(tempd_2, const24);
-		double out;
-		for (int j = 0; j < 4; j++) {
-			out = m256d_f64(tempd_1, j);
-			normalized_samples[ch++][index] = out;
-			if (ch == channels) {
-				ch = 0;
-				index++;
-			}
-		}
-		for (int j = 0; j < 4; j++) {
-			out = m256d_f64(tempd_2, j);
-			normalized_samples[ch++][index] = out;
-			if (ch == channels) {
-				ch = 0;
-				index++;
-			}
-		}
-		temp256++;
-		tempi += 8;
-	}
-	if (threshold < avxlength) {
-		if (remainder) {
-			__m256i temp32 = _mm256_load_si256(temp256);
-			temp32 = _mm256_srai_epi32(temp32, 8);
-			__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-			__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-			__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-			__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-			tempd_1 = _mm256_mul_pd(tempd_1, const24);
-			tempd_2 = _mm256_mul_pd(tempd_2, const24);
-			for (int j = 0; j < 8; j++) {
-				double out;
-				if (j < 4)out = m256d_f64(tempd_1, j);
-				else out = m256d_f64(tempd_2, j - 4);
-				if (index < length) {
-					normalized_samples[ch++][index] = out;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				else {
-					seqs[ch++][index2] = out;
-					if (ch == channels) {
-						ch = 0;
-						index2++;
-					}
-				}
-			}
-			temp256++;
-			tempi += 8;
-			threshold++;
-		}
-		for (int i = threshold; i < avxlength; i++) {
-			__m256i temp32 = _mm256_load_si256(temp256);
-			temp32 = _mm256_srai_epi32(temp32, 8);
-			__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-			__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-			__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-			__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-			tempd_1 = _mm256_mul_pd(tempd_1, const24);
-			tempd_2 = _mm256_mul_pd(tempd_2, const24);
-			double out;
-			for (int j = 0; j < 4; j++) {
-				out = m256d_f64(tempd_1, j);
-				seqs[ch++][index2] = out;
-				if (ch == channels) {
-					ch = 0;
-					index2++;
-				}
-			}
-			for (int j = 0; j < 4; j++) {
-				out = m256d_f64(tempd_2, j);
-				seqs[ch++][index2] = out;
-				if (ch == channels) {
-					ch = 0;
-					index2++;
-				}
-			}
-			temp256++;
-			tempi += 8;
-		}
-	}
-	for (int i = 0; i < avx_last; i++) {
-		if (index < length) {
-			normalized_samples[ch++][index] = static_cast<double>(*(tempi++) >> 8) / 8388607.0;
-			if (ch == channels) {
-				ch = 0;
-				index++;
-			}
-		}
-		else {
-			seqs[ch++][index2] = static_cast<double>(*(tempi++) >> 8) / 8388607.0;
-			if (ch == channels) {
-				ch = 0;
-				index2++;
-			}
-		}
-	}
+		tr_res[0] = _mm256_cvtepi32_pd(_mm256_extracti128_si256(temp32, 0));
+		tr_res[1] = _mm256_cvtepi32_pd(_mm256_extracti128_si256(temp32, 1));
+		tr_res[0] = _mm256_mul_pd(tr_res[0], const24);
+		tr_res[1] = _mm256_mul_pd(tr_res[1], const24);
+	};
+	transfer_audio_data_packed_base_avx<int32_t>(audio_data, normalized_samples, seqs, nb_last, length, nb_samples,
+		transfer_avx, [](const int32_t& val) { return static_cast<double>(val >> 8) / 8388607.0; });
 	return 0;
 }
-int Decode::Decode_AVX2::transfer_audio_data_packed_int32(uint8_t** const audiodata, 
+int Decode::Decode_AVX2::transfer_audio_data_packed_int32(uint8_t** const audio_data, 
 	double** const normalized_samples, double** const seqs, 
 	const int& nb_last, const int& length, const int& nb_samples)
 {
-	int index = 0, index2 = 0;
-	if (length > 0) {
-		for (int ch = 0; ch < channels; ch++)
-			for (int i = 0; i < nb_last; i++)normalized_samples[ch][i] = seqs[ch][i];
-		index = nb_last;
-	}
-	else index2 = nb_last;
-	int ch = 0;
-	int* tempi32 = reinterpret_cast<int*>(audiodata[0]);
-	__m256i* temp256 = reinterpret_cast<__m256i*>(audiodata[0]);
 	__m256d const32 = _mm256_set1_pd(1.0 / static_cast<double>(std::numeric_limits<int>::max()));
-	int avxlength = nb_samples * channels / 8;
-	int avx_last = (nb_samples * channels) % 8;
-	int nb_to_norm = std::max(length - nb_last, 0);
-	int threshold = nb_to_norm * channels / 8;
-	int remainder = nb_to_norm * channels % 8;
-	for (int i = 0; i < threshold; i++) {
-		__m256i temp32 = _mm256_load_si256(temp256);
-		__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-		__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-		__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-		__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-		tempd_1 = _mm256_mul_pd(tempd_1, const32);
-		tempd_2 = _mm256_mul_pd(tempd_2, const32);
-		double out;
-		for (int j = 0; j < 4; j++) {
-			out = m256d_f64(tempd_1, j);
-			normalized_samples[ch++][index] = out;
-			if (ch == channels) {
-				ch = 0;
-				index++;
-			}
-		}
-		for (int j = 0; j < 4; j++) {
-			out = m256d_f64(tempd_2, j);
-			normalized_samples[ch++][index] = out;
-			if (ch == channels) {
-				ch = 0;
-				index++;
-			}
-		}
-		temp256++;
-		tempi32 += 8;
-	}
-	if (threshold < avxlength) {
-		if (remainder) {
-			__m256i temp32 = _mm256_load_si256(temp256);
-			__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-			__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-			__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-			__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-			tempd_1 = _mm256_mul_pd(tempd_1, const32);
-			tempd_2 = _mm256_mul_pd(tempd_2, const32);
-			for (int j = 0; j < 8; j++) {
-				double out;
-				if (j < 4)out = m256d_f64(tempd_1, j);
-				else out = m256d_f64(tempd_2, j - 4);
-				if (index < length) {
-					normalized_samples[ch++][index] = out;
-					if (ch == channels) {
-						ch = 0;
-						index++;
-					}
-				}
-				else {
-					seqs[ch++][index2] = out;
-					if (ch == channels) {
-						ch = 0;
-						index2++;
-					}
-				}
-			}
-			temp256++;
-			tempi32 += 8;
-			threshold++;
-		}
-		for (int i = threshold; i < avxlength; i++) {
-			__m256i temp32 = _mm256_load_si256(temp256);
-			__m128i temp32_1 = _mm256_extracti128_si256(temp32, 0);
-			__m128i temp32_2 = _mm256_extracti128_si256(temp32, 1);
-			__m256d tempd_1 = _mm256_cvtepi32_pd(temp32_1);
-			__m256d tempd_2 = _mm256_cvtepi32_pd(temp32_2);
-			tempd_1 = _mm256_mul_pd(tempd_1, const32);
-			tempd_2 = _mm256_mul_pd(tempd_2, const32);
-			double out;
-			for (int j = 0; j < 4; j++) {
-				out = m256d_f64(tempd_1, j);
-				seqs[ch++][index2] = out;
-				if (ch == channels) {
-					ch = 0;
-					index2++;
-				}
-			}
-			for (int j = 0; j < 4; j++) {
-				out = m256d_f64(tempd_2, j);
-				seqs[ch++][index2] = out;
-				if (ch == channels) {
-					ch = 0;
-					index2++;
-				}
-			}
-			temp256++;
-			tempi32 += 8;
-		}
-	}
-	for (int i = 0; i < avx_last; i++) {
-		if (index < length) {
-			normalized_samples[ch++][index] = static_cast<double>(*(tempi32++)) / static_cast<double>(std::numeric_limits<int>::max());
-			if (ch == channels) {
-				ch = 0;
-				index++;
-			}
-		}
-		else {
-			seqs[ch++][index2] = static_cast<double>(*(tempi32++)) / static_cast<double>(std::numeric_limits<int>::max());
-			if (ch == channels) {
-				ch = 0;
-				index2++;
-			}
-		}
-	}
+	auto transfer_avx = [&const32](int32_t*& data_ptr, __m256d tr_res[2]) {
+		__m256i temp32 = _mm256_load_si256(reinterpret_cast<__m256i*>(data_ptr));
+		tr_res[0] = _mm256_cvtepi32_pd(_mm256_extracti128_si256(temp32, 0));
+		tr_res[1] = _mm256_cvtepi32_pd(_mm256_extracti128_si256(temp32, 1));
+		tr_res[0] = _mm256_mul_pd(tr_res[0], const32);
+		tr_res[1] = _mm256_mul_pd(tr_res[1], const32);
+	};
+	transfer_audio_data_packed_base_avx<int32_t>(audio_data, normalized_samples, seqs, nb_last, length, nb_samples,
+		transfer_avx, [](const int32_t& val) { return static_cast<double>(val) / static_cast<double>(std::numeric_limits<int32_t>::max()); });
 	return 0;
 }
 
-int Decode::Decode_AVX2::normalize(uint8_t** const& audiodata, double**& normalized_samples, double**& seqs, int& nb_last, const int& nb_samples)
+int Decode::Decode_AVX2::normalize(uint8_t** const& audio_data, double**& normalized_samples, double**& seqs, int& nb_last, const int& nb_samples)
 {
 	int nb_last_next = (nb_samples + nb_last) % fft_num;
 	int length = nb_samples + nb_last - nb_last_next;
@@ -1457,25 +1066,25 @@ int Decode::Decode_AVX2::normalize(uint8_t** const& audiodata, double**& normali
 		switch (sample_type)
 		{
 		case 1:
-			transfer_audio_data_planar_float(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length, nb_samples);
+			transfer_audio_data_planar_float(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length, nb_samples);
 			break;
 		case 2:
-			transfer_audio_data_planar<double>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<double>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 8:
-			transfer_audio_data_planar<char>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int8_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 16:
-			transfer_audio_data_planar<short>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int16_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 24:
-			transfer_audio_data_planar<int, 24>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int32_t, 24>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 32:
-			transfer_audio_data_planar<int>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int32_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 64:
-			transfer_audio_data_planar<int64_t>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_planar<int64_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		default:
 			break;
@@ -1484,25 +1093,25 @@ int Decode::Decode_AVX2::normalize(uint8_t** const& audiodata, double**& normali
 		switch (sample_type)
 		{
 		case 1:
-			transfer_audio_data_packed_float(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			transfer_audio_data_packed_float(audio_data, normalized_samples, seqs, nb_last, length, nb_samples);
 			break;
 		case 2:
-			transfer_audio_data_packed<double>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<double>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 8:
-			transfer_audio_data_packed<char>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<int8_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		case 16:
-			transfer_audio_data_packed_int16(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			transfer_audio_data_packed_int16(audio_data, normalized_samples, seqs, nb_last, length, nb_samples);
 			break;
 		case 24:
-			transfer_audio_data_packed_int24(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			transfer_audio_data_packed_int24(audio_data, normalized_samples, seqs, nb_last, length, nb_samples);
 			break;
 		case 32:
-			transfer_audio_data_packed_int32(audiodata, normalized_samples, seqs, nb_last, length, nb_samples);
+			transfer_audio_data_packed_int32(audio_data, normalized_samples, seqs, nb_last, length, nb_samples);
 			break;
 		case 64:
-			transfer_audio_data_packed<int64_t>(audiodata, normalized_samples, seqs, nb_last, nb_last_next, length);
+			transfer_audio_data_packed<int64_t>(audio_data, normalized_samples, seqs, nb_last, nb_last_next, length);
 			break;
 		default:
 			break;
@@ -1544,9 +1153,9 @@ int Decode::Decode_AVX2::FD8(double * inseq, DataStruct::Spec_Node * outseq)
 	__m256d const_mindb = _mm256_set1_pd(c_min_db);
 	__m256d const127 = _mm256_set1_pd(static_cast<double>(std::numeric_limits<char>::max())); // 127
 	__m256d constm128 = _mm256_set1_pd(static_cast<double>(std::numeric_limits<char>::min())); // -128
-	for (int i = 0; i < fft_num / 8; i++) {
-		__m256d seq1 = _mm256_load_pd(inseq);
-		__m256d seq2 = _mm256_load_pd(inseq + 4);
+	auto fd8_8 = [&const10, &const_maxdb, &const_mindb, &const127, &constm128](const double* data) {
+		__m256d seq1 = _mm256_load_pd(data);
+		__m256d seq2 = _mm256_load_pd(data + 4);
 		seq1 = _mm256_mul_pd(seq1, seq1);
 		seq2 = _mm256_mul_pd(seq2, seq2);
 		__m256d temp = _mm256_hadd_pd(seq1, seq2);
@@ -1556,14 +1165,20 @@ int Decode::Decode_AVX2::FD8(double * inseq, DataStruct::Spec_Node * outseq)
 		temp = _mm256_max_pd(temp, constm128);
 		temp = _mm256_min_pd(temp, const127);
 		temp = _mm256_round_pd(temp, _MM_FROUND_TO_NEAREST_INT);
-		__m128i temp_int = _mm256_cvtpd_epi32(temp);
-		char* temp_char = reinterpret_cast<char*>(&temp_int);
-		out[0] = temp_char[0];
-		out[2] = temp_char[4];
-		out[1] = temp_char[8];
-		out[3] = temp_char[12];
-		inseq += 8;
-		out += 4;
+		__m128i res_int32 = _mm256_cvtpd_epi32(temp);
+		return res_int32;
+	};
+	for (int i = 0; i < fft_num / 32; i++) {
+		__m128i res_1 = fd8_8(inseq);
+		__m128i res_2 = fd8_8(inseq + 8);
+		__m128i res_3 = fd8_8(inseq + 16);
+		__m128i res_4 = fd8_8(inseq + 24);
+		__m128i res_int16_1 = _mm_packs_epi32(res_1, res_2);
+		__m128i res_int16_2 = _mm_packs_epi32(res_3, res_4);
+		__m128i res_int8 = _mm_packs_epi16(res_int16_1, res_int16_2);
+		_mm_stream_si128(reinterpret_cast<__m128i*>(out), res_int8);
+		inseq += 32;
+		out += 16;
 	}
 	out = nullptr;
 	return 0;

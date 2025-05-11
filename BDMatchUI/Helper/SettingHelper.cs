@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace BDMatchUI.Helper
 {
-    internal class SettingHelper
+    public class SettingHelper
     {
         public SettingHelper()
         {

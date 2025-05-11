@@ -3,8 +3,9 @@
 #include <ctime>
 #pragma managed
 #include <msclr\marshal_cppstd.h>
+#include <thread>
 
-#define appversion "1.6.6"
+#define appversion "1.7.0"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0
@@ -97,7 +98,7 @@ Match_Core_Return BDMatch::MyForm::match(String^ sub_text, String^ tv_text, Stri
 	}
 	draw_pre(re);
 	if (re != Match_Core_Return::Success) {
-		if (re != Match_Core_Return::User_Stop)taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
+		taskbar->ProgressState(TBPFLAG::TBPF_ERROR);
 		return re;
 	}
 	gch1.Free();

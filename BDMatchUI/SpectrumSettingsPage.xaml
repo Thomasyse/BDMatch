@@ -24,15 +24,18 @@
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock x:Name="SpectrumSettingsText" x:Uid="BDMatchUI/SpectrumSettingsPage/SpectrumSettingsText" Grid.Row="0" Grid.Column="0" FontSize="40" Margin="25, 10, 20, 10" TextWrapping="WrapWholeWords" />
+                <TextBlock x:Name="SpectrumSettingsText" x:Uid="BDMatchUI/SpectrumSettingsPage/SpectrumSettingsText" Text="{x:Bind text_helper.SpectrumSettingsText, Mode=OneWay}" 
+                           Grid.Row="0" Grid.Column="0" FontSize="40" Margin="25, 10, 20, 10" TextWrapping="WrapWholeWords" />
                 
                 <StackPanel Grid.Row="2" Grid.Column="0" Margin="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                     <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock x:Name="DrawSpecText" x:Uid="BDMatchUI/SpectrumSettingsPage/DrawSpecText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
-                        <ToggleSwitch AutomationProperties.Name="simple ToggleSwitch" x:Name="DrawSpec" x:Uid="BDMatchUI/SpectrumSettingsPage/DrawSpec" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                     Toggled="DrawSpec_Toggled" FontSize="15"/>
+                        <TextBlock x:Name="DrawSpecText" x:Uid="BDMatchUI/SpectrumSettingsPage/DrawSpecText" Text="{x:Bind text_helper.DrawSpecText, Mode=OneWay}" 
+                                   Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                        <ToggleSwitch AutomationProperties.Name="simple ToggleSwitch" x:Name="DrawSpec" x:Uid="BDMatchUI/SpectrumSettingsPage/DrawSpec" OnContent="{x:Bind text_helper.OnText, Mode=OneWay}" OffContent="{x:Bind text_helper.OffText, Mode=OneWay}"
+                                      Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" Toggled="DrawSpec_Toggled" FontSize="15"/>
                     </StackPanel>
-                    <TextBlock x:Name="DrawSpecElbr" x:Uid="BDMatchUI/SpectrumSettingsPage/DrawSpecElbr" Margin="60,10,5,0" VerticalAlignment="Center" FontSize="15" TextWrapping="WrapWholeWords"/>
+                    <TextBlock x:Name="DrawSpecElbr" x:Uid="BDMatchUI/SpectrumSettingsPage/DrawSpecElbr" Text="{x:Bind text_helper.DrawSpecElbr, Mode=OneWay}" 
+                               Margin="60,10,5,0" VerticalAlignment="Center" FontSize="15" TextWrapping="WrapWholeWords"/>
                 </StackPanel>
             </Grid>
         </ScrollViewer>

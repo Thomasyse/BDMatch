@@ -13,15 +13,22 @@ namespace Match {
 
 	enum class Sub_Type { ASS, SRT };
 
+	constexpr size_t NB_PER_SUB_TASK_MIN = 50;
+	constexpr size_t NB_PER_SUB_TASK_MAX = 100;
+	constexpr size_t NB_PER_SE_SUB_TASK = 256;
+	constexpr size_t TV_MAXIMUN_CNT = 10;
+	constexpr size_t TV_MINIMUN_CNT = 14;
+	constexpr int ALLOWED_OFFSET = 2;
+
 	class Timeline
 	{
 	public:
 		Timeline(const int64_t& start0, const int64_t& end0, const bool& iscom0,
 			const std::string_view &head0, const std::string_view &text0);
-		int64_t start();
-		int64_t end();
-		int64_t duration();
-		bool iscom();
+		int64_t start() const;
+		int64_t end() const;
+		int64_t duration() const;
+		bool iscom() const;
 		std::string_view head();
 		std::string_view former_text();
 		int start(const int64_t& start0);
@@ -36,14 +43,16 @@ namespace Match {
 		std::string former_text_;
 	};
 
+	typedef std::tuple<int32_t, int32_t, int64_t> Samp_Info; // [0]: val, [1]: ch, [2]:time
 	typedef std::array<int64_t, 2> Se_Re; // [0]: diff, [1]: time
+	typedef std::array<int64_t, 3> Diffa_t; // No need to make atomic
 
 	class BDSearch
 	{
 	public:
 		BDSearch();
-		int reserve(const int& num);
-		int push(const int64_t& time, const int64_t& diff);
+		int allocate(const int& num);
+		int assign(const size_t& pos, const int64_t& time, const int64_t& delta);
 		int64_t read(const size_t& pos) const;
 		int64_t find(const int64_t& search_time, const int& retype) const;
 		int sort();
@@ -55,11 +64,11 @@ namespace Match {
 
 	struct Debug_Info_Line {
 		int64_t delta_1 = -1, min_diff = 0, diffa_0 = 0;
-		double found_index = -5;
+		double found_index = -5, task_index = -5;
 	};
 
 	struct Debug_Info {//debug info in matching
-		double ave_index = 0.0, max_index = 0.0, diffa_consis = 0.0;
+		double ave_index = 0.0, ave_task_index = 0.0, max_index = 0.0, diffa_consis = 0.0;
 		int64_t max_delta = 0, max_line = 0, nb_line = 0;
 		std::vector<Debug_Info_Line> lines;
 	};
@@ -80,7 +89,7 @@ namespace Match {
 		Match_Core_Return match(); // match all sub lines
 		Match_Core_Return output(const std::string_view &output_path); // write and check results at specific address
 		Match_Core_Return output(); // write and check results at auto address
-		int64_t get_nb_timeline(); // return num of timeline
+		int64_t get_nb_timeline() const; // return num of timeline
 		int64_t get_timeline(const size_t& line, const Timeline_Time_Type& type);//return timeline info
 		std::string_view get_feedback(); // return timeline info
 	protected:
@@ -88,15 +97,20 @@ namespace Match {
 		std::pair<Match_Core_Return, size_t> open_sub(); // open sub file
 		Match_Core_Return load_srt(); // load srt file
 		Match_Core_Return load_ass(); // load ass file
-		int decode_sub(const size_t& sub_file_size, const std::regex& timeline_regex, const std::regex& time_regex, 
+		Match_Core_Return decode_sub(const size_t& sub_file_size, const std::regex& timeline_regex, const std::regex& time_regex,
 			const std::regex* header_regex); // decode sub text to timelines
 		int add_timeline(const int64_t& start, const int64_t& end, const bool& iscom,
 			const std::string_view& header, const std::string_view& text); // add and check timeline
 		std::string cs_to_time(const int &cs0);
-		int time_to_cs(const std::string_view &time);
+		int time_to_cs(const std::string_view &time) const;
 		void sub_prog_back();
-		virtual int caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
-			const int64_t check_field, const BDSearch &bd_se, std::array<int64_t, 3> &diffa, Se_Re &re);
+		int get_node_sum(Spec_Node& node);
+		virtual char cal_node_max_v(Spec_Node &node);
+		virtual int cal_node_sum(Spec_Node& node);
+		int cal_se_delta(const int64_t bd_time_start, const size_t se_start, const size_t se_cnt, BDSearch& bd_se, const int32_t& tv_samp_avg, const std::array<Samp_Info, TV_MAXIMUN_CNT + TV_MINIMUN_CNT>& tv_samp_arr);
+		int sync_match_res(Diffa_t& diffa, Se_Re& feedback, const int& min_cnfrm_num, const int64_t& bd_start, const int64_t& check_field, const int64_t& sum);
+		virtual int cal_diff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
+			const int64_t check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re);
 		Debug_Info deb_info; // debug info in matching
 		prog_func prog_single = nullptr; // func_ptr for progress bar
 		std::stop_source &stop_src; // multithreading cancel source
@@ -128,7 +142,6 @@ namespace Match {
 		size_t nb_batch_threads = 0; // parameters of multithreading
 		std::atomic<int64_t> matched_line_cnt = 0;
 		volatile double prog_val = 0.0;
-		int right_shift = 0;
 		double t2f = 1.0; // Time to Frequency
 		double f2t = 1.0; // Frequency to Time
 		std::string feedback;
@@ -138,15 +151,19 @@ namespace Match {
 	public:
 		Match_SSE(const Language_Pack& lang_pack0, std::stop_source& stop_src0)
 			:Match(lang_pack0, stop_src0) {}
-		int caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
-			const int64_t check_field, const BDSearch &bd_se, std::array<int64_t, 3> &diffa, Se_Re &re);
+		char cal_node_max_v(Spec_Node& node);
+		int cal_node_sum(Spec_Node& node);
+		int cal_diff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
+			const int64_t check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re);
 	};
 
 	class Match_AVX2 : public Match {
 	public:
 		Match_AVX2(const Language_Pack& lang_pack0, std::stop_source& stop_src0)
 			:Match(lang_pack0, stop_src0) {}
-		int caldiff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
-			const int64_t check_field, const BDSearch &bd_se, std::array<int64_t, 3> &diffa, Se_Re &re);
+		char cal_node_max_v(Spec_Node& node);
+		int cal_node_sum(Spec_Node& node);
+		int cal_diff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
+			const int64_t check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re);
 	};
 }

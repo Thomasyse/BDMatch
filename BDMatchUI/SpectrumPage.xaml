@@ -7,7 +7,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    NavigationCacheMode="Required"
     SizeChanged="SpectrumPage_SizeChanged">
     
     <Grid Background="Transparent">
@@ -27,12 +26,12 @@
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
 
-                <Grid x:Name="SpecGrid" Grid.Row="1" Grid.Column="0" Margin="5, 5, 5, 20">
+                <Grid x:Name="SpecGrid" Grid.Row="1" Grid.Column="0" Margin="5, 5, 5, 20" Background="{x:Bind draw_ctrl.DrawBrush, Mode=OneWay}">
                 </Grid>
 
                 <StackPanel Grid.Row="2" Margin="5, 5, 5, 5">
                     <Slider x:Name="TimeSlider" Minimum="0" SmallChange="10" LargeChange="100" StepFrequency="1" TickFrequency="1000" TickPlacement="TopLeft"
-                            ValueChanged="TimeSlider_ValueChanged"/>
+                            ValueChanged="TimeSlider_ValueChanged" Value="{x:Bind draw_ctrl.TimeSlider, Mode=TwoWay}"/>
                     <Grid x:Name="SpecControlGrid" Margin="5, 5, 5, 20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -47,25 +46,17 @@
                         
                         <StackPanel Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Vertical">
                             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Horizontal">
-                                <TextBlock x:Name="ChannelText" x:Uid="BDMatchUI/SpectrumPage/ChannelText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
-                                <ComboBox x:Name="ChannelSel" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="18"
-                                  SelectionChanged="ChannelSel_SelectionChanged">
-                                    <x:String>0</x:String>
-                                    <x:String>1</x:String>
-                                    <x:String>2</x:String>
-                                    <x:String>3</x:String>
-                                    <x:String>4</x:String>
-                                    <x:String>5</x:String>
-                                    <x:String>6</x:String>
-                                    <x:String>7</x:String>
+                                <TextBlock x:Name="ChannelText" x:Uid="BDMatchUI/SpectrumPage/ChannelText" Text="{x:Bind text_helper.ChannelText, Mode=OneWay}"
+                                           Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                                <ComboBox x:Name="ChannelSel" ItemsSource="{x:Bind text_helper.ChannelSel, Mode=OneWay}" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="18"
+                                  SelectionChanged="ChannelSel_SelectionChanged" SelectedIndex="{x:Bind draw_ctrl.ChannelSel, Mode=TwoWay}">
                                 </ComboBox>
                             </StackPanel>
                             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Horizontal">
-                                <TextBlock x:Name="JumpSelText" x:Uid="BDMatchUI/SpectrumPage/JumpSelText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
-                                <ComboBox x:Name="JumpSel" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="18"
-                                    SelectionChanged="JumpSel_SelectionChanged">
-                                    <x:String>0</x:String>
-                                    <x:String>1</x:String>
+                                <TextBlock x:Name="JumpSelText" x:Uid="BDMatchUI/SpectrumPage/JumpSelText" Text="{x:Bind text_helper.JumpSelText, Mode=OneWay}"
+                                           Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                                <ComboBox x:Name="JumpSel" ItemsSource="{x:Bind text_helper.JumpSel, Mode=OneWay}" Margin="3,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="18"
+                                    SelectionChanged="JumpSel_SelectionChanged" SelectedIndex="{x:Bind draw_ctrl.JumpSel, Mode=TwoWay}">
                                 </ComboBox>
                             </StackPanel>
                         </StackPanel>
@@ -73,28 +64,29 @@
                         <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
                             <StackPanel x:Name="TimePanel" HorizontalAlignment="Stretch" VerticalAlignment="Center" Orientation="Horizontal">
                                 <NumberBox x:Name="HourNumber" SpinButtonPlacementMode="Compact" Minimum="0" Maximum="2147483647" SmallChange="1" LargeChange="10" Margin="10,0,0,0" FontSize="18" HorizontalAlignment="Stretch"
-                                   ValueChanged="Time_ValueChanged"/>
+                                   ValueChanged="Time_ValueChanged" Value="{x:Bind draw_ctrl.HourNumber, Mode=TwoWay}"/>
                                 <TextBlock Margin="5,0,5,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords">:</TextBlock>
                                 <NumberBox x:Name="MinuNumber" SpinButtonPlacementMode="Compact" Minimum="0" Maximum="59" SmallChange="1" LargeChange="10" Margin="0,0,0,0" FontSize="18" HorizontalAlignment="Stretch"
-                                   ValueChanged="Time_ValueChanged"/>
+                                   ValueChanged="Time_ValueChanged" Value="{x:Bind draw_ctrl.MinuNumber, Mode=TwoWay}"/>
                                 <TextBlock Margin="5,0,5,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords">:</TextBlock>
                                 <NumberBox x:Name="SecNumber" SpinButtonPlacementMode="Compact" Minimum="0" Maximum="59" SmallChange="1" LargeChange="10" Margin="0,0,0,0" FontSize="18" HorizontalAlignment="Stretch"
-                                   ValueChanged="Time_ValueChanged"/>
+                                   ValueChanged="Time_ValueChanged" Value="{x:Bind draw_ctrl.SecNumber, Mode=TwoWay}"/>
                                 <TextBlock Margin="5,0,5,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords">.</TextBlock>
                                 <NumberBox x:Name="CentiSecNumber" SpinButtonPlacementMode="Compact" Minimum="0" Maximum="99" SmallChange="1" LargeChange="10" Margin="0,0,10,0" FontSize="18" HorizontalAlignment="Stretch"
-                                   ValueChanged="Time_ValueChanged"/>
+                                   ValueChanged="Time_ValueChanged" Value="{x:Bind draw_ctrl.CentiSecNumber, Mode=TwoWay}"/>
                             </StackPanel>
                             <Line Stroke="Black" X1="0" Y1="0" X2="0" Y2="40" StrokeThickness="1" Margin="10, 0, 10, 0"/>
                             <StackPanel x:Name="TimelinePanel" HorizontalAlignment="Stretch" VerticalAlignment="Center" Orientation="Horizontal">
                                 <NumberBox x:Name="TimelineNumber" SpinButtonPlacementMode="Compact" Minimum="1" Maximum="2147483647" SmallChange="1" LargeChange="10" Margin="10,0,0,0" FontSize="18" HorizontalAlignment="Stretch"
-                                   ValueChanged="Timeline_ValueChanged"/>
+                                   ValueChanged="Timeline_ValueChanged" Value="{x:Bind draw_ctrl.TimelineNumber, Mode=TwoWay}"/>
                             </StackPanel>
                         </StackPanel>
 
                         <StackPanel Grid.Row="0" Grid.Column="4" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock x:Name="ScaleSliderText" x:Uid="BDMatchUI/SpectrumPage/ScaleSliderText" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
+                            <TextBlock x:Name="ScaleSliderText" x:Uid="BDMatchUI/SpectrumPage/ScaleSliderText" Text="{x:Bind text_helper.ScaleSliderText, Mode=OneWay}"
+                                       Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>
                             <Slider x:Name="ScaleSlider" Minimum="0.2" Maximum="5" SmallChange="0.2" LargeChange="1" StepFrequency="0.2" Width="200"
-                                    ValueChanged="ScaleSlider_ValueChanged"/>
+                                    ValueChanged="ScaleSlider_ValueChanged" Value="{x:Bind draw_ctrl.ScaleSlider, Mode=TwoWay}"/>
                         </StackPanel>
                     </Grid>
                     <TextBlock x:Name="TimeText" Margin="20,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" TextWrapping="WrapWholeWords"/>

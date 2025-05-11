@@ -20,14 +20,14 @@
             </Grid.RowDefinitions>
             <StackPanel x:Name="AboutHeaderPanel" Grid.Row="0" Margin="20, 10, 20, 10" Orientation="Horizontal">
                 <Image Source="/Assets/StoreLogo.scale-400.png" Height="60" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <TextBlock x:Uid="BDMatchUI/AboutPage/AboutHeader" x:Name="AboutHeader" FontSize="40" Margin="10, 0, 0, 0" TextWrapping="WrapWholeWords" VerticalAlignment="Center"/>
+                <TextBlock x:Uid="BDMatchUI/AboutPage/AboutHeader" x:Name="AboutHeader" Text="{x:Bind text_helper.AboutHeader, Mode=OneWay}" FontSize="40" Margin="10, 0, 0, 0" TextWrapping="WrapWholeWords" VerticalAlignment="Center"/>
             </StackPanel>
             <ScrollViewer Grid.Row="1"
                 IsVerticalScrollChainingEnabled="True"
                 HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Hidden"
                 VerticalScrollMode="Enabled" VerticalScrollBarVisibility="Auto">
                 <StackPanel x:Name="AboutPanel">
-                    <TextBlock x:Uid="BDMatchUI/AboutPage/AbouText" x:Name="AboutText" FontSize="25" Margin="20, 15, 15, 28" TextWrapping="WrapWholeWords" ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    <TextBlock x:Uid="BDMatchUI/AboutPage/AbouText" x:Name="AboutText" Text="{x:Bind text_helper.AboutText, Mode=OneWay}" FontSize="25" Margin="20, 15, 15, 28" TextWrapping="WrapWholeWords" ScrollViewer.VerticalScrollMode="Enabled" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
                 </StackPanel>
             </ScrollViewer>
         </Grid>

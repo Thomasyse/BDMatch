@@ -8,7 +8,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:media="using:Microsoft.UI.Xaml.Media"
     mc:Ignorable="d"
-    NavigationCacheMode="Required"
     SizeChanged="LogsPage_SizeChanged"
     ActualThemeChanged="LogsPage_ActualThemeChanged">
 
@@ -32,10 +31,10 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <TextBlock x:Name="LogsText" x:Uid="BDMatchUI/LogsPage/LogsText" Grid.Row="0" Grid.Column="0" FontSize="40" Margin="20, 10, 20, 10" TextWrapping="WrapWholeWords" />
+            <TextBlock x:Name="LogsText" x:Uid="BDMatchUI/LogsPage/LogsText" Text="{x:Bind sharing_helper.text_helper.LogsText, Mode=OneWay}" Grid.Row="0" Grid.Column="0" FontSize="40" Margin="20, 10, 20, 10" TextWrapping="WrapWholeWords" />
             <Grid Grid.Row="1" Grid.Column="0" Background="Transparent" CornerRadius="5" BorderBrush="{ThemeResource CustomAcrylicInAppLuminosity}" BorderThickness="2.5">
-                <ScrollViewer x:Name="LogScroll" 
-                    IsVerticalScrollChainingEnabled="True"
+                <ScrollViewer x:Name="LogScroll" ViewChanged="LogScroll_ViewChanged" AnchorRequested="LogScroll_AnchorRequested"
+                    IsVerticalScrollChainingEnabled="True" VerticalAnchorRatio="0.5"
                     HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Hidden"
                     VerticalScrollMode="Enabled" VerticalScrollBarVisibility="Auto">
                     <Grid x:Name="LogPanel">

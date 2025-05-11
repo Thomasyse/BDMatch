@@ -40,44 +40,48 @@
             IsSettingsVisible="False"
             SelectionChanged="NavigationView_SelectionChanged">
             <NavigationView.MenuItems>
-                <NavigationViewItemHeader x:Name="Match_and_Result_Header" x:Uid="BDMatchUI/MainWindow/Navi/Match_and_Result" Content="Match and Result"/>
-                <NavigationViewItem x:Name="MatchPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Match" Content="Match" Tag="MatchPage" Icon="Copy" />
-                <NavigationViewItem x:Name="LogsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Logs" Content="Logs" Tag="LogsPage">
+                <NavigationViewItemHeader x:Name="Match_and_Result_Header" x:Uid="BDMatchUI/MainWindow/Navi/Match_and_Result" Content="{x:Bind text_helper.Match_and_Result_Header, Mode=OneWay}"/>
+                <NavigationViewItem x:Name="MatchPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Match" Content="{x:Bind text_helper.MatchPage_Item, Mode=OneWay}" Tag="MatchPage" Icon="Copy" />
+                <NavigationViewItem x:Name="LogsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Logs" Content="{x:Bind text_helper.LogsPage_Item, Mode=OneWay}" Tag="LogsPage">
                     <NavigationViewItem.Icon>
                         <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe70b;"/>
                     </NavigationViewItem.Icon>
+                    <NavigationViewItem.InfoBadge>
+                        <InfoBadge x:Name="LogsPage_Item_Badge" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Style="{x:Bind sharing_helper.log.badge.BStyle, Mode=OneWay}"
+                                   Value="{x:Bind sharing_helper.log.badge.Value, Mode=OneWay}" Visibility="{x:Bind sharing_helper.log.badge.Visibility, Mode=OneWay}" IsRightTapEnabled="True" RightTapped="LogsPage_Item_Badge_RightTapped"/>
+                    </NavigationViewItem.InfoBadge>
                 </NavigationViewItem>
-                <NavigationViewItem x:Name="SpectrumPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Spectrum" Content="Spectrum" Tag="SpectrumPage">
+                <NavigationViewItem x:Name="SpectrumPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Spectrum" Content="{x:Bind text_helper.SpectrumPage_Item, Mode=OneWay}" Tag="SpectrumPage">
                     <NavigationViewItem.Icon>
                         <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe90b;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItemHeader x:Name="Settings_Header" x:Uid="BDMatchUI/MainWindow/Navi/Settings" Content="Settings"/>
-                <NavigationViewItem x:Name="MatchSettingsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Match_Settings" Content="Match Settings" Tag="MatchSettingsPage">
+                <NavigationViewItemHeader x:Name="Settings_Header" x:Uid="BDMatchUI/MainWindow/Navi/Settings" Content="{x:Bind text_helper.Settings_Header, Mode=OneWay}"/>
+                <NavigationViewItem x:Name="MatchSettingsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Match_Settings" Content="{x:Bind text_helper.MatchSettingsPage_Item, Mode=OneWay}" Tag="MatchSettingsPage">
                     <NavigationViewItem.Icon>
                         <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xea86;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem x:Name="DecodeSettingsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Decode_Settings" Content="Decode Settings" Tag="DeccodeSettingsPage">
+                <NavigationViewItem x:Name="DecodeSettingsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Decode_Settings" Content="{x:Bind text_helper.DecodeSettingsPage_Item, Mode=OneWay}" Tag="DeccodeSettingsPage">
                     <NavigationViewItem.Icon>
                         <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe9f5;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem x:Name="SpectrumSettingsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Spectrum_Settings" Content="Spectrum Settings" Tag="SpectrumSettingsPage">
+                <NavigationViewItem x:Name="SpectrumSettingsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Spectrum_Settings" Content="{x:Bind text_helper.SpectrumSettingsPage_Item, Mode=OneWay}" Tag="SpectrumSettingsPage">
                     <NavigationViewItem.Icon>
                         <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe9f9;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem x:Name="OtherSettingsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Other_Settings" Content="Other Settings" Tag="OtherSettingsPage">
+                <NavigationViewItem x:Name="OtherSettingsPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Other_Settings" Content="{x:Bind text_helper.OtherSettingsPage_Item, Mode=OneWay}" Tag="OtherSettingsPage">
                     <NavigationViewItem.Icon>
                         <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xF259;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>
             <NavigationView.FooterMenuItems>
-                <NavigationViewItemHeader x:Name="Others_Header" x:Uid="BDMatchUI/MainWindow/Navi/Others" Content="Others"/>
-                <NavigationViewItem x:Name="HelpPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Help" Content="Help" Tag="HelpPage" Icon="Help" />
-                <NavigationViewItem x:Name="AboutPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/About" Content="About" Tag="AboutPage">
+                <NavigationViewItemHeader x:Name="Others_Header" x:Uid="BDMatchUI/MainWindow/Navi/Others" Content="{x:Bind text_helper.Others_Header, Mode=OneWay}"/>
+                <NavigationViewItem x:Name="HelpPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/Help" Content="{x:Bind text_helper.HelpPage_Item, Mode=OneWay}" Tag="HelpPage" Icon="Help" />
+                <NavigationViewItem x:Name="AboutPage_Item" x:Uid="BDMatchUI/MainWindow/Navi/About" Content="{x:Bind text_helper.AboutPage_Item, Mode=OneWay}" Tag="AboutPage">
                     <NavigationViewItem.Icon>
                         <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe946;"/>
                     </NavigationViewItem.Icon>

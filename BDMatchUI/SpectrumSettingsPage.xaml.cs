@@ -21,27 +21,20 @@ namespace BDMatchUI
 
         private void load_control_text()
         {
-            SpectrumSettingsText.Text = AppResources.get_string("BDMatchUI/MainWindow/Navi/Spectrum_Settings/Content");
-            DrawSpecText.Text = AppResources.get_string("BDMatchUI/SpectrumSettingsPage/DrawSpecText/Text");
-            DrawSpec.OffContent = AppResources.get_string("BDMatchUI/Common/Text_Off");
-            DrawSpec.OnContent = AppResources.get_string("BDMatchUI/Common/Text_On");
-            DrawSpecElbr.Text = AppResources.get_string("BDMatchUI/SpectrumSettingsPage/DrawSpecElbr/Text");
-
-            current_language = new string(AppResources.current_language);
         }
 
-        SharingHelper sharing_helper;
-        SettingHelper settings;
-        string current_language = null;
+        SharingHelper sharing_helper = null;
+        SettingHelper settings = null;
+        TextHelper text_helper = null;
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             if (e.Parameter is SharingHelper && e.Parameter != null)
             {
                 sharing_helper = e.Parameter as SharingHelper;
                 settings = sharing_helper.settings;
+                text_helper = sharing_helper.text_helper;
                 DrawSpec.IsOn = Convert.ToBoolean(settings[SettingType.DrawSpec]);
             }
-            if (current_language != AppResources.current_language) load_control_text();
             base.OnNavigatedTo(e);
         }
 

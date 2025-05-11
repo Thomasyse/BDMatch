@@ -20,7 +20,7 @@ private:
 	std::vector<std::u8string_view> decoder_error_texts = { u8"无法打开文件！", u8"无法读取文件流信息！", u8"无音频流！", u8"无法找到音频的对应解码器！",
 		u8"无法构建音频的解码器环境！", u8"无法复制音频的解码器参数！", u8"无法打开音频的对应解码器！", u8"无法打开要写入的PCM文件！",
 		u8"无法构建重采样环境！", u8"无法初始化重采样环境！", u8"无法为音频帧分配内存！", u8"无法提交音频至解码器！", u8"音频解码出错！",
-		u8"无法计算音频数据大小！", u8"无法为重采样数据分配内存！", u8"重采样错误！" };
+		u8"无法计算音频数据大小！", u8"无法为重采样数据分配内存！", u8"重采样错误！", u8"音轨声道数量超出限制！" };
 	std::vector<std::u8string_view> decoder_info_texts = { u8"声道：{}", u8"总帧数：{}", u8"格式：{}",
 		u8"采样率：{}Hz", u8"采样位数：{}bit",  u8"采样格式：{}", u8"延迟：{}ms", 
 		u8"\n输出解码音频：{}", 
@@ -32,8 +32,8 @@ private:
 		u8"第{}行可能存在匹配错误：与后一行次序不一致！", u8"第{}行可能存在匹配错误：与前后行时差不一致！" };
 	std::vector<std::u8string_view> match_error_texts = { u8"读取字幕文件失败!", u8"输入字幕文件无效！", 
 		u8"打开输出字幕文件失败!", u8"写入字幕文件失败!" };
-	std::vector<std::u8string_view> match_debug_texts = { u8"Average Found Index = {:.6f}%", u8"Max Found Index = {:.6f}%", u8"Max Found Line = {}", 
-		u8"Max Delta = {}", u8"Diffa Consistency = {:.6f}%" };
+	std::vector<std::u8string_view> match_debug_texts = { u8"Average Found Index = {:.6f}%", u8"Average Task Index = {:.6f}%", u8"Max Found Index = {:.6f}%", u8"Max Found Line = {}",
+		u8"Max MM Delta = {}", u8"Diffa Consistency = {:.6f}%" };
 };
 
 template<typename... Args>

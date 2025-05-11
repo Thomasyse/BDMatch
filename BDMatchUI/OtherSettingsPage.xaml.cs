@@ -31,18 +31,9 @@ namespace BDMatchUI
             ThemeCombo.ItemsSource = Enum.GetNames(typeof(BackdropType));
         }
 
-        private void load_control_text()
-        {
-            OtherSettingsText.Text = AppResources.get_string("BDMatchUI/MainWindow/Navi/Other_Settings/Content");
-            LanguageText.Text = AppResources.get_string("BDMatchUI/OtherSettingsPage/LanguageText/Text");
-            ThemeText.Text = AppResources.get_string("BDMatchUI/OtherSettingsPage/ThemeText/Text");
-
-            current_language = new string(AppResources.current_language);
-        }
-
-        SharingHelper sharing_helper;
-        SettingHelper settings;
-        string current_language = null;
+        SharingHelper sharing_helper = null;
+        SettingHelper settings = null;
+        TextHelper text_helper = null;
         bool page_loading = false;
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -51,6 +42,7 @@ namespace BDMatchUI
             {
                 sharing_helper = e.Parameter as SharingHelper;
                 settings = sharing_helper.settings;
+                text_helper = sharing_helper.text_helper;
                 foreach (var item in LanguageCombo.Items)
                 {
                     if (item.ToString() == AppResources.current_language)
@@ -61,7 +53,6 @@ namespace BDMatchUI
                 }
                 load_ThemeCombo_selection();
             }
-            if (current_language != AppResources.current_language) load_control_text();
             base.OnNavigatedTo(e);
             page_loading = false;
         }
@@ -72,9 +63,7 @@ namespace BDMatchUI
             {
                 settings.language = LanguageCombo.SelectedItem.ToString();
                 AppResources.set_language(settings.language);
-                var main_window = WindowHelper.GetWindowForElement(this) as MainWindow;
-                main_window.load_control_text();
-                load_control_text();
+                sharing_helper.text_helper.load_text_resouce();
                 CoreHelper.set_language(AppResources.current_language);
             }
         }

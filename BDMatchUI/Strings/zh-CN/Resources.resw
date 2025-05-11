@@ -441,4 +441,7 @@ FFTW {2}: Matteo Frigo and Steven G. Johnson, Proceedings of the IEEE 93 (2), 21
   <data name="BDMatchUI/Warning/Prefix" xml:space="preserve">
     <value>警告：</value>
   </data>
+  <data name="BDMatchUI/SpectrumPage/Invalid_TImeline" xml:space="preserve">
+    <value>无效时轴！</value>
+  </data>
 </root>
