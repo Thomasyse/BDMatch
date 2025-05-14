@@ -5,7 +5,7 @@
 #include <msclr\marshal_cppstd.h>
 #include <thread>
 
-#define appversion "1.7.0"
+#define appversion "1.7.1"
 #define secpurple 45
 #define setintnum 5
 #define MaxdB 20.0

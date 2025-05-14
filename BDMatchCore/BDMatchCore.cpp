@@ -92,7 +92,7 @@ Match_Core_Return BDMatchCore::decode(const char* tv_path0, const char* bd_path0
 		feedback_tv(tv_path);
 		return re; 
 	}
-	pool.execute(std::bind(&Decode::Decode::decode_audio, tv_decode.get()));
+	pool.execute([&tv_decode = this->tv_decode]() { tv_decode->decode_audio(); });
 	if (!parallel_decode) {
 		pool.wait();
 		re = tv_decode->get_return();
@@ -128,7 +128,7 @@ Match_Core_Return BDMatchCore::decode(const char* tv_path0, const char* bd_path0
 		feedback_bd(bd_path, bd_pre_avg_vol);
 		return re;
 	}
-	if (!stop_src->stop_requested())pool.execute(std::bind(&Decode::Decode::decode_audio, bd_decode.get()));
+	if (!stop_src->stop_requested())pool.execute([&bd_decode = this->bd_decode]() { bd_decode->decode_audio(); });
 	pool.wait();
 	if (tv_decode->get_return() != Match_Core_Return::Success) {
 		re = tv_decode->get_return();
@@ -151,7 +151,7 @@ Match_Core_Return BDMatchCore::decode(const char* tv_path0, const char* bd_path0
 		else vol_coef /= 1.49;
 		bd_decode->set_vol_coef(vol_coef);
 		re = bd_decode->initialize(bd_path);
-		if (!stop_src->stop_requested())pool.execute(std::bind(&Decode::Decode::decode_audio, bd_decode.get()));
+		if (!stop_src->stop_requested())pool.execute([&bd_decode = this->bd_decode]() { bd_decode->decode_audio(); });
 		pool.wait();
 		if (bd_decode->get_return() != Match_Core_Return::Success) {
 			re = bd_decode->get_return();

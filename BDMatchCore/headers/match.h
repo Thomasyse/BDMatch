@@ -43,7 +43,11 @@ namespace Match {
 		std::string former_text_;
 	};
 
-	typedef std::tuple<int32_t, int32_t, int64_t> Samp_Info; // [0]: val, [1]: ch, [2]:time
+	struct Samp_Info {
+		int32_t val, ch;
+		int64_t time;
+	};
+
 	typedef std::array<int64_t, 2> Se_Re; // [0]: diff, [1]: time
 	typedef std::array<int64_t, 3> Diffa_t; // No need to make atomic
 
@@ -93,7 +97,7 @@ namespace Match {
 		int64_t get_timeline(const size_t& line, const Timeline_Time_Type& type);//return timeline info
 		std::string_view get_feedback(); // return timeline info
 	protected:
-		Match_Core_Return match_batch_lines(const int64_t start_line, const int64_t end_line); // match a batch of sub lines
+		Match_Core_Return match_batch_lines(const int64_t& start_line, const int64_t& end_line); // match a batch of sub lines
 		std::pair<Match_Core_Return, size_t> open_sub(); // open sub file
 		Match_Core_Return load_srt(); // load srt file
 		Match_Core_Return load_ass(); // load ass file
@@ -107,10 +111,10 @@ namespace Match {
 		int get_node_sum(Spec_Node& node);
 		virtual char cal_node_max_v(Spec_Node &node);
 		virtual int cal_node_sum(Spec_Node& node);
-		int cal_se_delta(const int64_t bd_time_start, const size_t se_start, const size_t se_cnt, BDSearch& bd_se, const int32_t& tv_samp_avg, const std::array<Samp_Info, TV_MAXIMUN_CNT + TV_MINIMUN_CNT>& tv_samp_arr);
+		int cal_se_delta(const int64_t& bd_time_start, const size_t& se_start, const size_t& se_cnt, BDSearch& bd_se, const int32_t& tv_samp_avg, const std::array<Samp_Info, TV_MAXIMUN_CNT + TV_MINIMUN_CNT>& tv_samp_arr);
 		int sync_match_res(Diffa_t& diffa, Se_Re& feedback, const int& min_cnfrm_num, const int64_t& bd_start, const int64_t& check_field, const int64_t& sum);
-		virtual int cal_diff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
-			const int64_t check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re);
+		virtual int cal_diff(const int64_t& tv_start, const size_t& se_start, const size_t& se_end, const int64_t& duration, const int& min_cnfrm_num,
+			const int64_t& check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re);
 		Debug_Info deb_info; // debug info in matching
 		prog_func prog_single = nullptr; // func_ptr for progress bar
 		std::stop_source &stop_src; // multithreading cancel source
@@ -153,7 +157,7 @@ namespace Match {
 			:Match(lang_pack0, stop_src0) {}
 		char cal_node_max_v(Spec_Node& node);
 		int cal_node_sum(Spec_Node& node);
-		int cal_diff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
+		int cal_diff(const int64_t& tv_start, const size_t& se_start, const size_t& se_end, const int64_t& duration, const int& min_cnfrm_num,
 			const int64_t check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re);
 	};
 
@@ -163,7 +167,7 @@ namespace Match {
 			:Match(lang_pack0, stop_src0) {}
 		char cal_node_max_v(Spec_Node& node);
 		int cal_node_sum(Spec_Node& node);
-		int cal_diff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
-			const int64_t check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re);
+		int cal_diff(const int64_t& tv_start, const size_t& se_start, const size_t& se_end, const int64_t& duration, const int& min_cnfrm_num,
+			const int64_t& check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re);
 	};
 }

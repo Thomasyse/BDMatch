@@ -407,7 +407,7 @@ Match_Core_Return Decode::Decode::decode_audio() {
 						if (fft_index < e_fft_num) {
 							if (fft_index + nb_fft_sample > e_fft_num)nb_fft_sample = static_cast<int>(e_fft_num - fft_index);
 							fft_samp_num += nb_fft_sample;
-							pool.execute(std::bind(&Decode::Decode::FFT, this, fft_data, normalized_samples, fft_index, nb_fft_sample));
+							pool.execute([=]() { FFT(fft_data, normalized_samples, fft_index, nb_fft_sample); });
 						}
 						else clear_normalized_samples(normalized_samples);
 					}
@@ -687,16 +687,18 @@ int Decode::Decode::normalize(uint8_t ** const &audio_data, double **&normalized
 	}
 	return nb_fft_samples;
 }
-int Decode::Decode::FFT(DataStruct::Spec_Node ** nodes, double ** in, int64_t fft_index, const int nb_fft)
+int Decode::Decode::FFT(DataStruct::Spec_Node ** nodes, double ** in, const int64_t& fft_index, const int& nb_fft)
 {
-	int fi_m = nb_fft * fft_num;
 	fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * fft_num);
-	for (int fi = 0; fi < fi_m; fi += fft_num) {
-		for (int ch = 0; ch < data_channels; ch++) {
-			fftw_execute_dft_r2c(plan, in[ch] + fi, out);
-			FD8(reinterpret_cast<double*>(out), nodes[ch] + fft_index);
+	for (int ch = 0; ch < data_channels; ch++) {
+		double* in_ch = in[ch];
+		DataStruct::Spec_Node* nodes_ch = nodes[ch] + fft_index;
+		for (int fi = 0; fi < nb_fft; fi++) {
+			fftw_execute_dft_r2c(plan, in_ch, out);
+			FD8(reinterpret_cast<double*>(out), nodes_ch);
+			in_ch += fft_num;
+			nodes_ch++;
 		}
-		fft_index++;
 	}
 	fftw_free(out);
 	for (int ch = 0; ch < channels; ch++) {

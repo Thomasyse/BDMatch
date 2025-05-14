@@ -105,7 +105,7 @@ namespace Decode {
 			const int& nb_last, const int& nb_last_next, const int& length);
 		virtual int normalize(uint8_t ** const &audio_data, double ** &normalized_samples, double ** &seqs, 
 			int &nb_last, const int &nb_samples);
-		int FFT(DataStruct::Spec_Node** nodes, double** in, int64_t fft_index, const int nb_fft);
+		int FFT(DataStruct::Spec_Node** nodes, double** in, const int64_t& fft_index, const int& nb_fft);
 		virtual int FD8(double* inseq, DataStruct::Spec_Node* outseq);
 		std::stop_source& stop_src;//multithreading cancel source
 		//language pack

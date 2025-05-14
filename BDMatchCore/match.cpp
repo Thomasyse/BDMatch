@@ -411,13 +411,13 @@ Match_Core_Return Match::Match::match()
 	}
 	// multithreading
 	int64_t nb_per_batch_task = std::max(nb_timeline / nb_batch_threads, 1ULL);
-	std::vector<std::function<Match_Core_Return()>> batch_tasks;
+	std::vector<std::function<void()>> batch_tasks;
 	batch_tasks.reserve((nb_timeline / nb_per_batch_task + 1));
 	fixed_thread_pool batch_pool(nb_batch_threads, stop_src);
 
 	int64_t batch_start_line = 0;
 	while (batch_start_line < nb_timeline) {
-		batch_tasks.emplace_back(std::bind(&Match::match_batch_lines, this, batch_start_line, std::min((batch_start_line + nb_per_batch_task), nb_timeline)));
+		batch_tasks.emplace_back([=]() { match_batch_lines(batch_start_line, std::min((batch_start_line + nb_per_batch_task), nb_timeline)); });
 		batch_start_line += nb_per_batch_task;
 	}
 	batch_pool.execute_batch(batch_tasks);
@@ -465,10 +465,10 @@ Match_Core_Return Match::Match::match()
 	return Match_Core_Return::Success;
 }
 
-Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, const int64_t end_line)
+Match_Core_Return Match::Match::match_batch_lines(const int64_t& start_line, const int64_t& end_line)
 {
 	// Multithreading
-	std::vector<std::function<int()>> tasks;
+	std::vector<std::function<void()>> tasks;
 	tasks.reserve(nb_sub_tasks);
 	fixed_thread_pool sub_task_pool(nb_sub_threads, stop_src);
 	// search vars
@@ -509,7 +509,7 @@ Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, cons
 				}
 				if (j == 0)tv_samp_arr.fill({ tv_line_sum_min, tv_line_sum_min_ch, 0 });
 				for (size_t k = 0; k < TV_MAXIMUN_CNT; k++) {
-					if (tv_line_sum_max > std::get<0>(tv_samp_arr[k]) || (j == 0 && k == 0)) {
+					if (tv_line_sum_max > tv_samp_arr[k].val || (j == 0 && k == 0)) {
 						for (size_t m = TV_MAXIMUN_CNT - 1; m > k; m--)tv_samp_arr[m] = tv_samp_arr[m - 1];
 						tv_samp_sum += tv_line_sum_max;
 						tv_samp_arr[k] = { tv_line_sum_max, tv_line_sum_max_ch, j };
@@ -517,7 +517,7 @@ Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, cons
 					}
 				}
 				for (size_t k = 0; k < TV_MINIMUN_CNT; k++) {
-					if (tv_line_sum_min < std::get<0>(tv_samp_arr[k + TV_MAXIMUN_CNT]) || (j == 0 && k == 0)) {
+					if (tv_line_sum_min < tv_samp_arr[k + TV_MAXIMUN_CNT].val || (j == 0 && k == 0)) {
 						for (size_t m = TV_MINIMUN_CNT + TV_MAXIMUN_CNT - 1; m > k + TV_MAXIMUN_CNT; m--)tv_samp_arr[m] = tv_samp_arr[m - 1];
 						tv_samp_arr[k + TV_MAXIMUN_CNT] = { tv_line_sum_min, tv_line_sum_min_ch, j };
 						break;
@@ -525,13 +525,13 @@ Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, cons
 				}
 			}
 			int32_t tv_samp_avg = static_cast<int32_t>(tv_samp_sum / tv_samp_arr.size());
-			auto tv_samp_time_cmp = [](const Samp_Info& a, const Samp_Info& b) { return std::get<1>(a) <= std::get<1>(b) && std::get<2>(a) < std::get<2>(b); };
+			auto tv_samp_time_cmp = [](const Samp_Info& a, const Samp_Info& b) { return a.ch <= b.ch && a.time < b.time; };
 			std::sort(tv_samp_arr.begin(), tv_samp_arr.end(), tv_samp_time_cmp);
 			size_t nb_se_sub_tasks = find_num / NB_PER_SE_SUB_TASK;
 			size_t nb_per_se_sub_task = find_num / nb_se_sub_tasks + ((find_num % nb_se_sub_tasks) ? 1 : 0);
 			bd_se.allocate(find_num);
 			for (size_t se_start = 0, bd_time_start = find_start; se_start < find_num; se_start += nb_per_se_sub_task, bd_time_start += interval * nb_per_se_sub_task) {
-				tasks.emplace_back(std::bind(&Match::cal_se_delta, this, bd_time_start, se_start, std::min(se_start + nb_per_se_sub_task, bd_se.size()), std::ref(bd_se), tv_samp_avg, std::ref(tv_samp_arr)));
+				tasks.emplace_back([=, &bd_se, &tv_samp_arr]() { cal_se_delta(bd_time_start, se_start, std::min(se_start + nb_per_se_sub_task, bd_se.size()), bd_se, tv_samp_avg, tv_samp_arr); });
 			}
 			sub_task_pool.execute_batch(tasks);
 			sub_task_pool.wait();
@@ -548,8 +548,8 @@ Match_Core_Return Match::Match::match_batch_lines(const int64_t start_line, cons
 			for (size_t j = 0, se_start = 0; j < nb_sub_tasks; j++, se_start += nb_per_sub_task) {
 				search_result[j] = { std::numeric_limits<int64_t>::max(), 0 };
 				if (se_start < bd_se.size()) {
-					tasks.emplace_back(std::bind(&Match::cal_diff, this, tv_time[line_idx], se_start, std::min(se_start + nb_per_sub_task, bd_se.size()), duration,
-						min_cnfrm_num_aply, check_field, std::ref(bd_se), std::ref(diffa), std::ref(search_result[j])));
+					tasks.emplace_back([=, &bd_se, &diffa, &search_result]() { cal_diff(tv_time[line_idx], se_start, std::min(se_start + nb_per_sub_task, bd_se.size()), duration,
+						min_cnfrm_num_aply, check_field, bd_se, diffa, search_result[j]); });
 				}
 			}
 			sub_task_pool.execute_batch(tasks);
@@ -921,21 +921,21 @@ int Match::Match_AVX2::cal_node_sum(Spec_Node& node)
 	return sum;
 }
 
-int Match::Match::cal_se_delta(const int64_t bd_time_start, const size_t se_start, const size_t se_end, BDSearch& bd_se, const int32_t& tv_samp_avg, const std::array<Samp_Info, TV_MAXIMUN_CNT + TV_MINIMUN_CNT>& tv_samp_arr)
+int Match::Match::cal_se_delta(const int64_t& bd_time_start, const size_t& se_start, const size_t& se_end, BDSearch& bd_se, const int32_t& tv_samp_avg, const std::array<Samp_Info, TV_MAXIMUN_CNT + TV_MINIMUN_CNT>& tv_samp_arr)
 {
 	int64_t bd_time = bd_time_start;
 	std::array<int32_t, TV_MAXIMUN_CNT + TV_MINIMUN_CNT> bd_samp_arr;
 	for (size_t se_index = se_start; se_index < se_end; se_index++) {
 		int64_t delta = 0, bd_samp_sum = 0;
 		for (int i = 0; i < tv_samp_arr.size(); i++) {
-			int bd_samp_line_sum = get_node_sum(bd_fft_data[std::get<1>(tv_samp_arr[i])][bd_time + std::get<2>(tv_samp_arr[i])]);
+			int bd_samp_line_sum = get_node_sum(bd_fft_data[tv_samp_arr[i].ch][bd_time + tv_samp_arr[i].time]);
 			bd_samp_arr[i] = bd_samp_line_sum;
-			delta += std::abs(bd_samp_line_sum - static_cast<int32_t>(std::get<0>(tv_samp_arr[i])));
+			delta += std::abs(bd_samp_line_sum - static_cast<int32_t>(tv_samp_arr[i].val));
 			bd_samp_sum += bd_samp_line_sum;
 		}
 		int32_t bd_samp_avg = static_cast<int32_t>(bd_samp_sum / tv_samp_arr.size());
 		for (int i = 0; i < tv_samp_arr.size(); i++)
-			delta += std::abs((std::get<0>(tv_samp_arr[i]) - tv_samp_avg) - (bd_samp_arr[i] - bd_samp_avg)) * 8;
+			delta += std::abs((tv_samp_arr[i].val - tv_samp_avg) - (bd_samp_arr[i] - bd_samp_avg)) * 8;
 		bd_se.assign(se_index, bd_time, delta);
 		bd_time += interval;
 	}
@@ -951,8 +951,8 @@ int Match::Match::sync_match_res(Diffa_t& diffa, Se_Re& feedback, const int& min
 	return 0;
 }
 
-int Match::Match::cal_diff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
-	const int64_t check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re)
+int Match::Match::cal_diff(const int64_t& tv_start, const size_t& se_start, const size_t& se_end, const int64_t& duration, const int& min_cnfrm_num,
+	const int64_t& check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re)
 {
 	if (diffa[2] <= 0)return -1;
 	Se_Re feedback{ std::numeric_limits<int64_t>::max(), 0 };
@@ -984,7 +984,7 @@ int Match::Match::cal_diff(const int64_t tv_start, const size_t se_start, const 
 	re = std::move(feedback);
 	return 0;
 }
-int Match::Match_SSE::cal_diff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
+int Match::Match_SSE::cal_diff(const int64_t& tv_start, const size_t& se_start, const size_t& se_end, const int64_t& duration, const int& min_cnfrm_num,
 	const int64_t check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re)
 {
 	if (diffa[2] <= 0)return -1;
@@ -1033,8 +1033,8 @@ int Match::Match_SSE::cal_diff(const int64_t tv_start, const size_t se_start, co
 	re = std::move(feedback);
 	return 0;
 }
-int Match::Match_AVX2::cal_diff(const int64_t tv_start, const size_t se_start, const size_t se_end, const int64_t duration, const int min_cnfrm_num,
-	const int64_t check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re)
+int Match::Match_AVX2::cal_diff(const int64_t& tv_start, const size_t& se_start, const size_t& se_end, const int64_t& duration, const int& min_cnfrm_num,
+	const int64_t& check_field, const BDSearch& bd_se, Diffa_t& diffa, Se_Re& re)
 {
 	if (diffa[2] <= 0)return -1;
 	Se_Re feedback{ std::numeric_limits<int64_t>::max(), 0 };
